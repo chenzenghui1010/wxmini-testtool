@@ -14,7 +14,7 @@
 <script>
 
   // import '@/yfmap.min'
-  import { idrMapView , idrMarkers, networkInstance, idrMapEventTypes } from '../../../indoorunMap/map'
+  import { idrMapView , idrMarkers, networkInstance, idrMapEventTypes } from '../../indoorunMap/map'
   import FloorListControl from '@/components/FloorListControl.vue'
   import { mapGetters } from 'vuex'
   import Zoom from "@/components/Zoom";

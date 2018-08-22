@@ -9,7 +9,7 @@
 
 <script>
 
-  import { idrLocateServerInstance } from "../../../indoorunMap/map";
+  import { idrLocateServerInstance } from "../../indoorunMap/map";
 
   export default {
 

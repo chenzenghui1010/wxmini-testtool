@@ -21,9 +21,8 @@
     networkInstance,
     idrMarkers,
     idrMapEventTypes,
-    idrDebug,
     idrWxManager
-  } from '../../../indoorunMap/map'
+  } from '../../indoorunMap/map'
 
   import MarkInMap from '@/components/MarkInMap'
   import FloorListControl from '@/components/FloorListControl.vue'

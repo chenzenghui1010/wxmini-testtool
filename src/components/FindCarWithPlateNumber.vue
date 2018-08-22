@@ -25,7 +25,7 @@
 
 <script>
 
-  import { networkInstance } from "../../../indoorunMap/map";
+  import { networkInstance } from "../../indoorunMap/map";
   import { Indicator } from 'mint-ui';
 
   export default {

@@ -7,7 +7,7 @@
 
 <script>
 
-  import { networkInstance } from '../../../indoorunMap/map'
+  import { networkInstance } from '../../indoorunMap/map'
   import ParkingCell from "@/components/ParkingCell";
 
   export default {

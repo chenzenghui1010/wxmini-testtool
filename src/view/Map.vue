@@ -10,6 +10,7 @@
     <facility-panel v-if="showFacilityPanel" v-bind:map="map" @onnavigateto="onNavigateTo" @onclose="showFacilityPanel = false"></facility-panel>
     <navigation v-if='navigation.start' @toggleSpeak="toggleSpeak" v-on:stop="onStopNavigate" @birdlook="onBirdLook" @followme="onFollowMe"></navigation>
     <mark-in-map v-if="mapState.markInMap"></mark-in-map>
+    <floor-list-control :floorlist="floorList" :currentName="currentFloorName" :selectfloorid="currentFloorId" :locatefloorid="locateFloorId" v-on:onselect="onSelect"></floor-list-control>
   </div>
 </template>
 
@@ -120,7 +121,15 @@
           this.onUnitClick(unit)
         })
       },
+      addGreyMarker(pos) {
+
+        var marker = new idrMarkers.IDRGreenMarker(pos, './static/markericon/greymarker.png')
+
+        return this.map.addMarker(marker)
+      },
       onUnitClick(unit) {
+
+        this.addGreyMarker(unit.position)
 
         if (!this.mapState.markInMap) {
 

@@ -218,6 +218,7 @@
       },
       onUnitClick(unit) {
 
+        this.addGreyMarker(unit.position)
         if (this.navigation.start) {
 
           return
@@ -429,6 +430,12 @@
       onFollowMe() {
 
         this.map.setStatus(YFM.Map.STATUS_NAVIGATE)
+      },
+      addGreyMarker(pos) {
+
+        var marker = new idrMarkers.IDRGreenMarker(pos, './static/markericon/greymarker.png')
+
+        return this.map.addMarker(marker)
       },
       addEndMarker(pos) {
 

@@ -11,6 +11,8 @@ import {FloatAlert} from "./FloatAlert";
 
 import 'mint-ui/lib/style.css'
 
+import './mock'
+
 Vue.config.productionTip = false
 
 Vue.use(Vuex)

@@ -50,6 +50,8 @@
   import deviceParameter from '../components/deviceParameter'
   import parameter from '../components/parameter'
   
+  import {getstatus} from "../api/locate";
+  
   export default {
     name: "Map",
     components: {
@@ -84,8 +86,8 @@
         audioTime: 0,
         audio: null,
         errorCount: 0,
-  
-        showParameter:false,
+        
+        showParameter: false,
       }
     },
     computed: {
@@ -147,7 +149,7 @@
         
         return this.map.addMarker(marker)
       },
-
+      
       //
       // addZhengChang(pos) {
       //
@@ -157,10 +159,8 @@
       // },
       //
       onUnitClick(unit) {
-      
-        this.addGreyMarker(unit.position)
         
-        // this.addZhengChang(unit.position)
+        // this.addGreyMarker(unit.position)
         
         if (!this.mapState.markInMap) {
           
@@ -346,12 +346,32 @@
         }
       },
       onFloorChangeSuccess({floorId}) {
-        
+        console.log(floorId);
         this.currentFloorId = floorId
         
         if (!this.startLocate) {
           
           this.doLocating()
+          
+          //请求
+          
+          getstatus()
+
+            .then(data => {
+
+              console.log(data);
+
+              for(let i=0 ; i<data.length; i++){
+  
+                let marker = new idrMarkers.IDRGreenMarker(data[i].pos, './static/markericon/greymarker.png')
+  
+                this.map.addMarker(marker)
+              }
+             
+            })
+          cache(msg => {
+            console.log(msg);
+          })
           
           this.startLocate = true
         }
@@ -584,7 +604,7 @@
         
         this.$store.dispatch('toggleSpeak')
       },
-      isShowParameter(val){
+      isShowParameter(val) {
         
         this.showParameter = !val
       }

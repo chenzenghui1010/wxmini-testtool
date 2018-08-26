@@ -15,6 +15,7 @@
     <status></status>
     <device-parameter @isShow="isShowParameter"></device-parameter>
     <parameter v-if="showParameter"></parameter>
+    <parameter-details></parameter-details>
     
     <navigation v-if='navigation.start' @toggleSpeak="toggleSpeak" v-on:stop="onStopNavigate" @birdlook="onBirdLook"
                 @followme="onFollowMe"></navigation>
@@ -49,8 +50,8 @@
   import status from '../components/status'
   import deviceParameter from '../components/deviceParameter'
   import parameter from '../components/parameter'
-  
-  import {getstatus} from "../api/locate";
+  import parameterDetails from '../components/parameterDetails'
+  import {getstatus, getDetectionStatus} from "../api/locate";
   
   export default {
     name: "Map",
@@ -68,6 +69,7 @@
       status,
       deviceParameter,
       parameter,
+      parameterDetails
     },
     data() {
       return {
@@ -88,6 +90,10 @@
         errorCount: 0,
         
         showParameter: false,
+        statusList: [],
+        addedMarker: null,
+        myMarker: [],
+        
       }
     },
     computed: {
@@ -356,22 +362,51 @@
           //请求
           
           getstatus()
-
+            
             .then(data => {
-
-              console.log(data);
-
-              for(let i=0 ; i<data.length; i++){
-  
-                let marker = new idrMarkers.IDRGreenMarker(data[i].pos, './static/markericon/greymarker.png')
-  
-                this.map.addMarker(marker)
+              
+              this.statusList = data
+              
+              for (let i = 0; i < data.length; i++) {
+                
+                let marker = new idrMarkers.IDRGreyMarker(data[i].pos, './static/markericon/greymarker.png')
+                
+                this.addedMarker = this.map.addMarker(marker)
+                
+                this.myMarker.push({mac: data[i].mac, marker: this.addedMarker})
+                
               }
-             
+              
             })
-          cache(msg => {
-            console.log(msg);
-          })
+          
+        
+          //
+          //
+          setTimeout(() => {
+            
+            getDetectionStatus()
+              
+              .then(data => {
+                
+                for (let i = 0; i < data.length; i++) {
+                  
+                  if (this.myMarker[i].mac === data[i].mac) {
+                    
+                    this.map.removeMarker(this.myMarker[i].marker)
+                    
+                    let zheng  = new idrMarkers.IDRGreenMarker(this.statusList[i].pos, './static/markericon/zhengchang.png')
+                    
+                    setTimeout(()=>{
+                      
+                      this.myMarker[i].marker = this.map.addMarker(zheng)
+                      
+                    },10000)
+                   
+                  }
+                }
+              })
+          }, 2000)
+          
           
           this.startLocate = true
         }

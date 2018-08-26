@@ -35,6 +35,8 @@
     border-top-color: rgba(0, 0, 0, .3);
   }
   .tooltip-inner{
+    box-sizing: border-box;
+    padding :0.2rem ;
     font-size: 10px;
     border-radius: 0.3rem;
     text-align: center;
@@ -49,5 +51,8 @@
     height: 0;
     border-color: #ea161600;
     border-style: solid;
+  }
+  p{
+    font-weight: 200;
   }
 </style>

@@ -9,6 +9,16 @@ export function getstatus(data) {
 	})
 }
 
+export function getDetectionStatus(data) {
+  
+  return request({
+    
+    url:'/getDetectionStatus',
+    method:'post',
+    params:data
+    
+  })
+}
 
 
 

@@ -43,7 +43,6 @@
     left: 1rem;
     width: 3.5rem;
     height: 3.5rem;
-    background: url("../assets/shebechangshu.png") no-repeat center/ 3.5rem 3.5rem;
   }
   
   .select {

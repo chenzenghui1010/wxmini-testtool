@@ -156,18 +156,9 @@
         return this.map.addMarker(marker)
       },
       
-      //
-      // addZhengChang(pos) {
-      //
-      //   var zheng = new idrMarkers.IDRGreenMarker(pos, './static/markericon/zhengchang.png')
-      //
-      //   return this.map.addMarker(zheng)
-      // },
-      //
       onUnitClick(unit) {
         
-        // this.addGreyMarker(unit.position)
-        
+     
         if (!this.mapState.markInMap) {
           
           return
@@ -376,7 +367,6 @@
                 this.myMarker.push({mac: data[i].mac, marker: this.addedMarker})
                 
               }
-              
             })
           
         

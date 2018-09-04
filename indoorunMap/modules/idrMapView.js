@@ -777,6 +777,11 @@ class idrMapView {
 		
 		this._idrMap.setUserDirection(angle)
 	}
+	
+  inserPaopao({text, color, visible}, floor, x, y, offsetx, offsety) {
+	  
+	  this._idrMap.inserPaopao({text, color, visible}, floor, x, y, offsetx, offsety)
+  }
 }
 
 export { idrMapView as default }

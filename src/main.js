@@ -17,7 +17,7 @@ Vue.config.productionTip = false
 
 Vue.use(Vuex)
 
-window.debugtest = false
+window.debugtest = true
 
 window.Alertboxview = new AlertBox()
 

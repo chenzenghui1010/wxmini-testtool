@@ -111,7 +111,7 @@ function idrGlMap(mapView) {
       _floorList.push(data)
     }
 
-    _region = new Region("testRegion", _canvas_gl, _canvas_txt, listener);
+    _region = new YFM.Map.Region("testRegion", _canvas_gl, _canvas_txt, listener);
 	  
     _region.setUIScaleRate(1/_csscale)
 
@@ -286,6 +286,11 @@ function idrGlMap(mapView) {
 		    _region.insertIcon({type:type, unitId:unit.id, unitType:unit.unitTypeId}, _floor.floorIndex, pos.x, pos.y)
 	    }
     }
+  }
+  
+  function inserPaopao(obj, floor, x, y, offsetX, offsetY) {
+  
+	  _region.insertCallout(obj, floor, x, y, offsetX, offsetY)
   }
 
   function removeMarker(marker) {
@@ -664,6 +669,8 @@ function idrGlMap(mapView) {
 	this.setRoutePath = setRoutePath
 	
 	this.setUserDirection = setUserDirection
+  
+  this.inserPaopao = inserPaopao
 }
 
 export { idrGlMap as default }

@@ -288,7 +288,7 @@ function idrGlMap(mapView) {
     }
   }
   
-  function inserPaopao(obj, floor, x, y, offsetX, offsetY) {
+  function insertPaopao(obj, floor, x, y, offsetX, offsetY) {
   
 	  _region.insertCallout(obj, floor, x, y, offsetX, offsetY)
   }
@@ -670,7 +670,7 @@ function idrGlMap(mapView) {
 	
 	this.setUserDirection = setUserDirection
   
-  this.inserPaopao = inserPaopao
+  this.insertPaopao = insertPaopao
 }
 
 export { idrGlMap as default }

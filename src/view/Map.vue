@@ -93,7 +93,7 @@
         statusList: [],
         addedMarker: null,
         myMarker: [],
-
+        paopao:null
       }
     },
     computed: {
@@ -521,7 +521,16 @@
 
           this.map.setUserPos(pos)
 
-          this.map.inserPaopao({text:'AA', color:0x00ffff, visible:true, }, 0, pos.x, pos.y, 0, 10)
+          if (!this.paopao) {
+
+            this.paopao = {text:'AA', color:0x00ffff, visible:true}
+
+            this.map.insertPaopao(this.paopao, 0, pos.x, pos.y, 0, 10)
+          }
+          else {
+
+            this.paopao.visible = false
+          }
         }
       },
       preparePlayAudio() {

@@ -12,7 +12,9 @@
     },
     methods: {
       onClick() {
+        
         this.isShow = !this.isShow
+        
         this.$emit('isShow',this.isShow)
       }
     }

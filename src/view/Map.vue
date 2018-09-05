@@ -97,7 +97,7 @@
         myStatus: {
           text: 'Major:1211 Minor:12412',
           color: 0xFFC0CB,
-          visible: this.showParameter,
+          visible: true,
         }
         
       }
@@ -629,7 +629,6 @@
             this.map.setStatus(YFM.Map.STATUS_TOUCH)
           })
       },
-      
       addEndMarker(pos) {
         
         this.map.removeMarker(this.endMarker)
@@ -648,14 +647,16 @@
         
         if (this.showParameter) {
           
-          for (let i = 0; i < this.statusList.length; i++) {
+          // for (let i = 0; i < this.statusList.length; i++) {
             // 气泡
-            this.map.inserPaopao(this.myStatus , 0, this.statusList[i].pos.x, (this.statusList[i].pos.y) - 40, 0, 10)
-          }
+            this.map.inserPaopao(this.myStatus , 0, this.statusList[1].pos.x, (this.statusList[1].pos.y) - 40, 0, 10)
+          // }
           // this.myStatus.visible= !this.myStatus.visible
         }
-        
-        console.log( this.showParameter)
+        this.myStatus.visible =!this.myStatus.visible
+  
+  
+        console.log(this.myStatus.visible);
       }
     }
   }

@@ -34,6 +34,7 @@
     },
     mounted() {
     
+      document.title = '登录'
     },
     methods: {
       

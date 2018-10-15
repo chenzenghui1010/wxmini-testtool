@@ -35,7 +35,6 @@
     
   }
   .content {
-    display: flex;
     display: -webkit-flex;
     justify-content: space-between;
     align-items: center;

@@ -8,8 +8,9 @@ import store from './store'
 import AlertBox from './AlertBox.js'
 import HeaderTip from './HeaderTip.js'
 import {FloatAlert} from "./FloatAlert";
-
-import 'mint-ui/lib/style.css'
+import Mint from 'mint-ui';
+import 'mint-ui/lib/style.css';
+Vue.use(Mint);
 
 import './mock'
 

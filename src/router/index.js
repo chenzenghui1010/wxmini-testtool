@@ -6,7 +6,8 @@ import ParkingList from '@/view/ParkingList'
 import EmptyList from '@/view/EmptyList'
 import login from '../view/login'
 import projectList from '../view/projectList'
-
+import home from '../view/Home'
+import ReverseTitle from '../components/ReverseTitle'
 Vue.use(Router)
 
 const base = process.env.NODE_ENV === 'production' ? '/thxz/' : '/'
@@ -44,6 +45,19 @@ export default new Router({
       path:'/projectList',
       name:'projectList',
       component:projectList
-    }
+    },
+  
+    {
+      path:'/home',
+      name:'home',
+      component:home
+    },
+    {
+      path:'/ReverseTitle',
+      name:'ReverseTitle',
+      component:ReverseTitle
+    },
+  
+    
   ]
 })

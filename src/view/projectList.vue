@@ -9,7 +9,7 @@
         </mt-search>
       </div>
     </form>
-    <project v-for='item  in  lists ' :text="item.title"></project>
+    <!--<project v-for='item  in  lists ' :text="item.title"></project>-->
   </div>
 </template>
 

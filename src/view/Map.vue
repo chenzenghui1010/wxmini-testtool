@@ -22,6 +22,11 @@
     <mark-in-map v-if="mapState.markInMap"></mark-in-map>
     <floor-list-control :floorlist="floorList" :currentName="currentFloorName" :selectfloorid="currentFloorId"
                         :locatefloorid="locateFloorId" v-on:onselect="onSelect"></floor-list-control>
+  
+  
+    
+    
+    <Reverse-title></Reverse-title>
   </div>
 </template>
 
@@ -52,6 +57,7 @@
   import parameter from '../components/parameter'
   import parameterDetails from '../components/parameterDetails'
   import {getstatus, getDetectionStatus} from "../api/locate";
+  import ReverseTitle from '../components/ReverseTitle'
   
   export default {
     name: "Map",
@@ -69,7 +75,8 @@
       status,
       deviceParameter,
       parameter,
-      parameterDetails
+      parameterDetails,
+      ReverseTitle
     },
     data() {
       return {
@@ -657,7 +664,7 @@
       },
       
       isShowParameter(val) {
-        
+        console.log('显示气泡');
         for (let i = 0; i < this.statusList.length; i++) {
           // 气泡
           this.map.insertPaopao(this.myStatus[i], 0, this.statusList[i].pos.x, (this.statusList[i].pos.y) - 40, 0, 10)

@@ -61,7 +61,7 @@
   import {idrMarker} from "../../indoorunMap/modules/idrMarkers";
 
   import floor from '../components/floor'
-  
+
   export default {
     name: "Map",
     components: {
@@ -105,7 +105,7 @@
         addedMarker: null,
         myMarker: [],
         paopao: null,
-        
+
         myStatus: [{text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
           {text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
           {text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
@@ -537,13 +537,7 @@
       },
       onMapClick(pos) {
 
-        let marker = new idrMarker({pos, image:'./static/markericon/greymarker.png'})
-
-        this.map.addMarker(marker)
-
         if (window.debugtest) {
-
-          // this.map.setUserPos(pos)
 
           if (!this.paopao) {
 

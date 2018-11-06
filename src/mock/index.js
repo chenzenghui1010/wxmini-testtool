@@ -6,4 +6,5 @@ Mock.setup({
 })
 
 Mock.mock(/\/getstatus/,'post', myData.statusData)
+alert(0)
 Mock.mock(/\/getDetectionStatus/,'post',myData.getDetectionStatus)

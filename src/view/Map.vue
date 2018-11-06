@@ -20,13 +20,12 @@
     <navigation v-if='navigation.start' @toggleSpeak="toggleSpeak" v-on:stop="onStopNavigate" @birdlook="onBirdLook"
                 @followme="onFollowMe"></navigation>
     <mark-in-map v-if="mapState.markInMap"></mark-in-map>
-    <floor-list-control :floorlist="floorList" :currentName="currentFloorName" :selectfloorid="currentFloorId"
-                        :locatefloorid="locateFloorId" v-on:onselect="onSelect"></floor-list-control>
-  
-  
+    <!--<floor-list-control :floorlist="floorList" :currentName="currentFloorName" :selectfloorid="currentFloorId"-->
+    <!--:locatefloorid="locateFloorId" v-on:onselect="onSelect"></floor-list-control>-->
+    <!--<floor></floor>-->
     
     
-    <Reverse-title></Reverse-title>
+    <!--<Reverse-title></Reverse-title>-->
   </div>
 </template>
 
@@ -58,6 +57,7 @@
   import parameterDetails from '../components/parameterDetails'
   import {getstatus, getDetectionStatus} from "../api/locate";
   import ReverseTitle from '../components/ReverseTitle'
+  // import floor from '../components/floor'
   
   export default {
     name: "Map",
@@ -76,7 +76,8 @@
       deviceParameter,
       parameter,
       parameterDetails,
-      ReverseTitle
+      ReverseTitle,
+      
     },
     data() {
       return {
@@ -102,7 +103,7 @@
         myMarker: [],
         paopao: null,
         
-        myStatus:[{text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
+        myStatus: [{text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
           {text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
           {text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
           {text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},

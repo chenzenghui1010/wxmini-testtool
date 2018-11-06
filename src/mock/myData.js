@@ -32,7 +32,9 @@ function getDetectionStatus  () {
     })
      itemList.push(item)
   }
+ 
   return itemList
+  
 }
 
 genarate()
@@ -40,7 +42,9 @@ getDetectionStatus()
 // const items = [{'pos': {'x': '800', 'y': '995', 'floorId': '15323290763798360'}, 'mac': '1'},]
 
 export default {
+  
   statusData: config => {
+   
     return {
       code: 'success',
       msg: 'ok',

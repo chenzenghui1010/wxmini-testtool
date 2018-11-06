@@ -17,19 +17,19 @@
     <!--<parameter v-if="showParameter"></parameter>-->
     <parameter-details></parameter-details>
 
-    <!--<navigation v-if='navigation.start' @toggleSpeak="toggleSpeak" v-on:stop="onStopNavigate" @birdlook="onBirdLook"-->
-                <!--@followme="onFollowMe"></navigation>-->
+    <navigation v-if='navigation.start' @toggleSpeak="toggleSpeak" v-on:stop="onStopNavigate" @birdlook="onBirdLook"
+                @followme="onFollowMe"></navigation>
     <mark-in-map v-if="mapState.markInMap"></mark-in-map>
 
     <!--<floor-list-control :floorlist="floorList" :currentName="currentFloorName" :selectfloorid="currentFloorId"-->
     <!--:locatefloorid="locateFloorId" v-on:onselect="onSelect"></floor-list-control>-->
-    <floor :floorlist="floorList" :currentName="currentFloorName" :selectfloorid="currentFloorId"
-           :locatefloorid="locateFloorId" v-on:onselect="onSelect"></floor>
+    <floor :floorlist="floorList" :currentName="currentFloorName" :selectfloorIndex="currentFloorIndex"
+           :locatefloorIndex="locateFloorIndex" v-on:onselect="onSelect"></floor>
     
     
-    <Reverse-title></Reverse-title>
-
     <!--<Reverse-title></Reverse-title>-->
+    <!--<floor-guide></floor-guide>-->
+    <!--<tips></tips>-->
 
   </div>
 </template>
@@ -65,6 +65,8 @@
   import {idrMarker} from "../../indoorunMap/modules/idrMarkers";
 
   import floor from '../components/floor'
+  import floorGuide from '../components/floorGuide'
+  import tips from '../components/tips'
   
   export default {
     name: "Map",
@@ -84,7 +86,9 @@
       parameter,
       parameterDetails,
       ReverseTitle,
-      floor
+      floor,
+      floorGuide,
+      tips
     },
     data() {
       return {
@@ -179,8 +183,7 @@
       },
 
       onUnitClick(unit) {
-
-
+        
         if (!this.mapState.markInMap) {
 
           return
@@ -433,7 +436,7 @@
 
         for (var i = 0; i < this.floorList.length; ++i) {
 
-          if (this.floorList[i].id === this.currentFloorIndex) {
+          if (this.floorList[i].floorIndex === this.currentFloorIndex) {
 
             return this.floorList[i].name
           }
@@ -540,6 +543,8 @@
         this.map.autoChangeFloor = false
       },
       onMapClick(pos) {
+        
+        this.map.doRoute({start:null, end:{position:pos}})
 
         if (window.debugtest) {
 
@@ -667,7 +672,7 @@
         console.log('显示气泡');
         for (let i = 0; i < this.statusList.length; i++) {
           // 气泡
-          this.map.insertPaopao(this.myStatus[i], 0, this.statusList[i].pos.x, (this.statusList[i].pos.y) - 40, 0, 10)
+          this.map.insertPaopao(this.myStatus[i], 0, this.statusList[i].pos.x, (this.statusList[i].pos.y) - 30, 0, 0)
 
           this.myStatus[i].visible = !this.myStatus[i].visible
         }

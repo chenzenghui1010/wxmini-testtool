@@ -7,8 +7,8 @@
     <transition name="fade">
       <div v-if="showFloor" class="show">
         <ul>
-          <li  @click="onSelect(floor.id, floor.name)" v-for="floor in floorlist">{{ floor.name }}<span class="bai"
-                                                                              :class="{ floor:selectfloorid == floor.id}">●</span>
+          <li  @click="onSelect(floor.floorIndex, floor.name)" v-for="floor in floorlist">{{ floor.name }}<span class="bai"
+                                                                              :class="{ floor:selectfloorIndex == floor.floorIndex}">●</span>
           </li>
         </ul>
       </div>
@@ -23,27 +23,33 @@
       return {
         showColor: false,
         showFloor: false,
+        selectFloorName:null,
         // floorList: ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'B7', 'B8', 'C9', 'F10'],
       }
     },
-    props: ['floorlist', 'selectfloorid', 'locatefloorid', 'currentName'],
+    props: ['floorlist', 'selectfloorIndex', 'locatefloorIndex', 'currentName'],
     methods: {
       
       
       isShow() {
         
         this.showFloor = !this.showFloor
+        console.log(this.currentName);
+        console.log(this.selectfloorIndex);
       },
       
       
-      onSelect(floorId ,floorName) {
-    
+      onSelect(floorIndex ,floorName) {
+  
+        this.selectFloorName = floorName
         
         this.currentName = floorName
         
-        this.$emit('onselect', floorId)
+        this.showColor = true
+        
+        this.$emit('onselect', floorIndex)
     
-        console.log('选择:' + floorId)
+        console.log('选择:' + floorIndex)
     
         this.showFloor = false
         
@@ -53,7 +59,7 @@
       
       isShowDian: function () {
         
-        return this.locatefloorid == this.selectfloorid ? true : false
+        return this.currentName == this.selectFloorName ? true : false
       }
     }
   }

@@ -26,7 +26,7 @@
            :locatefloorid="locateFloorId" v-on:onselect="onSelect"></floor>
     
     
-    <!--<Reverse-title></Reverse-title>-->
+    <Reverse-title></Reverse-title>
   </div>
 </template>
 
@@ -59,7 +59,7 @@
   import {getstatus, getDetectionStatus} from "../api/locate";
   import ReverseTitle from '../components/ReverseTitle'
   import floor from '../components/floor'
-  
+  import {Toast} from 'mint-ui';
   export default {
     name: "Map",
     components: {
@@ -673,6 +673,13 @@
           
           this.myStatus[i].visible = !this.myStatus[i].visible
         }
+      },
+      Toast(val) {
+        Toast({
+          message: val,
+          position: 'middle',
+          duration: 2000
+        });
       }
     }
   }

@@ -38,8 +38,6 @@
     font-size: 1.6rem;
   }
   
-  
-  
   .mint-search{
     height: 100%;
   }

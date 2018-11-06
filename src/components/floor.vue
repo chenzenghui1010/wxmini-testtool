@@ -1,14 +1,14 @@
 <template>
   <div class="main" :class="{floortype :showColor} ">
     <div @click="isShow" class="ceng">
-      <p>{{floor}} <span v-show="isShowDian" class="lc_dot">●</span></p>
+      <p>{{currentName}} <span v-show="isShowDian" class="lc_dot">●</span></p>
       <p :class="{xialabai :showColor}"></p>
     </div>
     <transition name="fade">
       <div v-if="showFloor" class="show">
         <ul>
-          <li @click="select(item)" v-for="item in floorList">{{ item }}<span class="bai"
-                                                                              :class="{ floor:locatingfloor == item}">●</span>
+          <li  @click="onSelect(floor.id, floor.name)" v-for="floor in floorlist">{{ floor.name }}<span class="bai"
+                                                                              :class="{ floor:selectfloorid == floor.id}">●</span>
           </li>
         </ul>
       </div>
@@ -18,40 +18,42 @@
 
 <script>
   export default {
-    
+    name:'floor',
     data() {
-      
       return {
-        locatingfloor: 'F4',
         showColor: false,
         showFloor: false,
-        floor: 'F2',
-        floorList: ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'B7', 'B8', 'C9', 'F10'],
+        // floorList: ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'B7', 'B8', 'C9', 'F10'],
       }
     },
-    
+    props: ['floorlist', 'selectfloorid', 'locatefloorid', 'currentName'],
     methods: {
-      
-      select(val) {
-        
-        this.floor = val
-        
-        this.showColor = true
-        
-        this.showFloor = false
-      },
       
       
       isShow() {
         
         this.showFloor = !this.showFloor
-      }
+      },
+      
+      
+      onSelect(floorId ,floorName) {
+    
+        
+        this.currentName = floorName
+        
+        this.$emit('onselect', floorId)
+    
+        console.log('选择:' + floorId)
+    
+        this.showFloor = false
+        
+      },
     },
     computed: {
       
       isShowDian: function () {
         
-        return this.locatingfloor === this.floor ? true : false
+        return this.locatefloorid == this.selectfloorid ? true : false
       }
     }
   }
@@ -72,10 +74,10 @@
     width: 3.5rem;
     height: 3.5rem;
     border-radius: 0.25rem;
-    border: 1px solid #ccc;
     position: absolute;
     right: 1.5rem;
     top: 10rem;
+    background: #fff;
   }
   
   .ceng p:nth-child(1) {

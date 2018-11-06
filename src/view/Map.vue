@@ -22,7 +22,8 @@
     <mark-in-map v-if="mapState.markInMap"></mark-in-map>
     <!--<floor-list-control :floorlist="floorList" :currentName="currentFloorName" :selectfloorid="currentFloorId"-->
     <!--:locatefloorid="locateFloorId" v-on:onselect="onSelect"></floor-list-control>-->
-    <!--<floor></floor>-->
+    <floor :floorlist="floorList" :currentName="currentFloorName" :selectfloorid="currentFloorId"
+           :locatefloorid="locateFloorId" v-on:onselect="onSelect"></floor>
     
     
     <!--<Reverse-title></Reverse-title>-->
@@ -57,7 +58,7 @@
   import parameterDetails from '../components/parameterDetails'
   import {getstatus, getDetectionStatus} from "../api/locate";
   import ReverseTitle from '../components/ReverseTitle'
-  // import floor from '../components/floor'
+  import floor from '../components/floor'
   
   export default {
     name: "Map",
@@ -77,7 +78,7 @@
       parameter,
       parameterDetails,
       ReverseTitle,
-      
+      floor
     },
     data() {
       return {

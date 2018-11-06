@@ -12,8 +12,8 @@ function genarate() {
     let item = Mock.mock({
       'pos': {
         
-        'x|1': ['800', '1200', '1050', '1200', '1250', '1051', '1120', '1620', '1547'],
-        'y|1': ['500', '440', '940', '1208', '1406', '875', '995', '845', '1200', '1154'],
+        'x|1': ['200', '300', '250', '300', '400', '251', '260', '420', '347'],
+        'y|1': ['100', '140', '240', '308', '306', '205', '195', '245', '300', '254'],
         
         'floorIndex|1': ['0'],
       }, 'mac': Math.floor(Math.random() * 2 + 1)
@@ -32,7 +32,9 @@ function getDetectionStatus  () {
     })
      itemList.push(item)
   }
+ 
   return itemList
+  
 }
 
 genarate()
@@ -40,7 +42,9 @@ getDetectionStatus()
 // const items = [{'pos': {'x': '800', 'y': '995', 'floorId': '15323290763798360'}, 'mac': '1'},]
 
 export default {
+  
   statusData: config => {
+   
     return {
       code: 'success',
       msg: 'ok',

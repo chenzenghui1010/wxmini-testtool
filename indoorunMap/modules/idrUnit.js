@@ -1,23 +1,23 @@
+function getPos(boundLeft, boundTop, boundRight, boundBottom, floorIndex) {
+	
+	let x = 0.5 * (boundLeft + boundRight)
+	
+	let y = 0.5 * (boundTop + boundBottom)
+	
+	return {x, y, floorIndex}
+}
 
-export default class idrUnit {
+export class idrUnit {
 	
 	constructor(unitInfo, floorName, floorIndex, floorId) {
 		
-		const {boundLeft, boundRight, boundTop, boundBottom, unitTypeId, id, name, points} = unitInfo
+		const {boundLeft, boundRight, boundTop, boundBottom, unitTypeId, id, name, points, extInfo} = unitInfo
+		
+		this.position = getPos(boundLeft, boundTop, boundRight, boundBottom, floorIndex)
 		
 		this.id = id
 		
 		this.name = name
-		
-		this.boundLeft = boundLeft
-		
-		this.boundRight = boundRight
-		
-		this.boundTop = boundTop
-		
-		this.boundBottom = boundBottom
-		
-		this.floorName = floorName
 		
 		this.floorIndex = floorIndex
 		
@@ -25,25 +25,41 @@ export default class idrUnit {
 		
 		this.unitTypeId = unitTypeId
 		
+		this.floorName = floorName
+		
+		this.rect = {x:boundLeft, y:boundTop, width:boundRight - boundLeft, height:boundBottom - boundTop}
+		
 		if (points) {
 			
 			this.points = points.split(' ')
 		}
 		
+		this.extInfo = extInfo
+		
+		if (this.extInfo && this.extInfo.linkPoints) {
+			
+			this.junctions = this.extInfo.linkPoints.map(p=>{
+				
+				return Object.assign({}, p, {floorId:this.floorId})
+			})
+		}
+		else {
+			
+			this.junctions = null
+		}
+		
 		this._pts = null
 		
 		this._points = null
-		
-		this.position = this.getPos()
 	}
 	
-	getPos() {
+	getPos(boundLeft, boundTop, boundRight, boundBottom, floorIndex) {
 		
-		let x = 0.5 * (this.boundLeft + this.boundRight)
+		let x = 0.5 * (boundLeft + boundRight)
 		
-		let y = 0.5 * (this.boundTop + this.boundBottom)
+		let y = 0.5 * (boundTop + boundBottom)
 		
-		return {x, y, floorId:this.floorId, floorIndex:this.floorIndex}
+		return {x, y, floorIndex}
 	}
 	
 	getPts() {

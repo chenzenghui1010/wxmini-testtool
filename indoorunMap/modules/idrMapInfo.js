@@ -2,15 +2,28 @@
  * Created by ky on 17-4-21.
  */
 
-import IDRUnit from './idrUnit'
+import {idrUnit} from './idrUnit'
 
-export default class IDRRegionEx {
+export class idrMapInfo {
 	
 	constructor(regionAllInfo) {
 		
-		const { floorList, defaultFloorId, address, telephone, latitude, longitude, name, northDeflectionAngle } = regionAllInfo
+		let { floorList, defaultFloorId, address, telephone, latitude, longitude, name, northDeflectionAngle } = regionAllInfo
 		
-		this.floorList = floorList
+		this.floorList = floorList.sort((a, b)=>{
+			
+			if (a.floorIndex > b.floorIndex) {
+				
+				return 1
+			}
+			
+			if (a.floorIndex < b.floorIndex) {
+				
+				return -1
+			}
+			
+			return 0
+		})
 		
 		this.longitude = longitude
 		
@@ -23,8 +36,8 @@ export default class IDRRegionEx {
 		this.address = address
 		
 		this.name = name
-    
-    this.northDeflectionAngle = northDeflectionAngle
+		
+		this.northDeflectionAngle = northDeflectionAngle
 		
 		this._generateUnits()
 	}
@@ -41,8 +54,15 @@ export default class IDRRegionEx {
 			
 			this.floorList[i].unitList = unitList.map(unit => (
 				
-				new IDRUnit(unit, floorName, floorIndex, floorId)
+				new idrUnit(unit, floorName, floorIndex, floorId)
 			))
+			
+			this.floorList[i].unitsMap = new Map()
+			
+			for (let j = 0; j < this.floorList[i].unitList.length; ++j) {
+				
+				this.floorList[i].unitsMap.set(this.floorList[i].unitList[j].id, this.floorList[i].unitList[j])
+			}
 		}
 	}
 	
@@ -109,6 +129,21 @@ export default class IDRRegionEx {
 		return null
 	}
 	
+	getFloorByIndex(floorIndex) {
+		
+		for (var i = 0; i < this.floorList.length; ++i) {
+			
+			var floor = this.floorList[i]
+			
+			if (floor.floorIndex === floorIndex) {
+				
+				return floor
+			}
+		}
+		
+		return null
+	}
+	
 	getFloorbyId(floorId) {
 		
 		for (var i = 0; i < this.floorList.length; ++i) {
@@ -133,17 +168,7 @@ export default class IDRRegionEx {
 			return null
 		}
 		
-		for (var i = 0; i < floor.unitList.length; ++i) {
-			
-			var unit = floor.unitList[i]
-			
-			if (unit.id === unitId) {
-				
-				return unit
-			}
-		}
-		
-		return null
+		return floor.unitsMap.get(unitId)
 	}
 	
 	getUnitWithId(unitId) {
@@ -152,14 +177,11 @@ export default class IDRRegionEx {
 			
 			let floor = this.floorList[i]
 			
-			for (var j = 0; j < floor.unitList.length; ++j) {
+			let unit = floor.unitsMap.get(unitId)
+			
+			if (unit != null) {
 				
-				var unit = floor.unitList[j]
-				
-				if (unit.id === unitId) {
-					
-					return unit
-				}
+				return unit
 			}
 		}
 		
@@ -173,14 +195,14 @@ export default class IDRRegionEx {
 	
 	getNearUnit(pos, unitList) {
 		
-		if (!pos || !pos.floorId) {
+		if (!pos) {
 			
 			return null
 		}
 		
 		if (!unitList) {
 			
-			var floor = this.getFloorbyId(pos.floorId)
+			var floor = this.getFloorByIndex(pos.floorIndex)
 			
 			unitList = floor.unitList
 		}
@@ -191,12 +213,12 @@ export default class IDRRegionEx {
 			
 			var unit = unitList[i]
 			
-			if (unit.floorId !== pos.floorId) {
+			if (unit.floorIndex !== pos.floorIndex) {
 				
 				continue
 			}
 			
-			var dis = this.getDistance(pos, unit.getPos())
+			var dis = this.getDistance(pos, unit.position)
 			
 			if (dis < mindis) {
 				
@@ -207,64 +229,5 @@ export default class IDRRegionEx {
 		}
 		
 		return result
-	}
-	
-	getAllUnits() {
-		
-		var results = []
-		
-		for (var i = 0; i < this.floorList.length; ++i) {
-			
-			var units = this.floorList[i].unitList
-			
-			for (var j = 0; j < units.length; ++j) {
-				
-				if (units[j].unitTypeId != '0') {
-					
-					continue
-				}
-				
-				results.push(units[j])
-			}
-		}
-		
-		return results
-	}
-	
-	findUnitsWithType(types) {
-		
-		var result = {}
-		
-		for (var k = 0; k < this.floorList.length; ++k) {
-			
-			var floor = this.floorList[k]
-			
-			for (var i = 0; i < floor.unitList.length; ++i) {
-				
-				var unit = floor.unitList[i]
-				
-				for (var j = 0; j < types.length; ++j) {
-					
-					if (unit.unitTypeId == types[j]) {
-						
-						if (unit.unitTypeId in result) {
-							
-							result[unit.unitTypeId].push(unit)
-						}
-						else  {
-							
-							result[unit.unitTypeId] = [unit]
-						}
-					}
-				}
-			}
-		}
-		
-		return result
-	}
-	
-	findNearUnit(pos, targetunits) {
-		
-		return this.getNearUnit(pos, targetunits)
 	}
 }

@@ -2,8 +2,6 @@
  * Created by yan on 01/03/2017.
  */
 
-import idrDebug from './idrDebug'
-
 function ajax(options) {
 	//编码数据
 	function setData() {
@@ -148,8 +146,6 @@ function ajax(options) {
 
 function doAjax(url, data, successFn, failedFn) {
 	
-	console.log('网络请求' + url)
-	
 	if (data) {
 		
 		ajax({
@@ -275,29 +271,23 @@ class idrNetworkManager {
 		
 		this.sessionKey = null
 		
-		this.appId = 'yf1248331604'
+		this.appId = null
 		
 		this.clientId = null
 	}
 	
 	doAjax(url, data, successFn, failedFn) {
 		
-		if (data) {
+		data.appId = this.appId
+		
+		if (this.sessionKey) {
 			
-			if (this.appId) {
-				
-				data.appId = this.appId
-			}
+			data.sessionKey = this.sessionKey
+		}
+		
+		if (this.clientId) {
 			
-			if (this.sessionKey) {
-				
-				data.sessionKey = this.sessionKey
-			}
-			
-			if (this.clientId) {
-				
-				data.clientId = this.clientId
-			}
+			data.clientId = this.clientId
 		}
 		
 		doAjax(url, data, successFn, failedFn)
@@ -377,24 +367,7 @@ class idrNetworkManager {
 		})
 	}
 	
-	getRegionIdByParkCode(parkCode) {
-		
-		var url = this.host + 'thxz/pc/getRegionIdByParkCode';
-		
-		return new Promise((resolve, reject)=>{
-			
-			this.doAjax(url, {parkCode}, (res)=>{
-				
-				resolve(res.data)
-				
-			}, res=>{
-				
-				reject(res)
-			})
-		})
-	}
-	
-	serverCallRegionAllInfo(regionId) {
+	serverCallMapInfo(regionId) {
 		
 		var url = this.host + 'wx/getRegionData';
 		
@@ -411,7 +384,7 @@ class idrNetworkManager {
 		})
 	}
 	
-	getMarkedUnit(regionId, success, failed) {
+	getMarkedUnit(regionId) {
 		
 		var url = this.host + 'chene/getCheLocation.html'
 		
@@ -420,7 +393,17 @@ class idrNetworkManager {
 			regionId
 		}
 		
-		this.doAjax(url, data, success, failed)
+		return new Promise(((resolve, reject) => {
+			
+			this.doAjax(url, data, (res=>{
+				
+				resolve(res)
+				
+			}), (error)=>{
+				
+				reject(error)
+			})
+		}))
 	}
 	
 	removeMarkedUnit(regionId, success, failed) {
@@ -437,7 +420,7 @@ class idrNetworkManager {
 	
 	saveMarkedUnit(unit, success, failed) {
 		
-		var pos = unit.getPos()
+		var pos = unit.position
 		
 		var unitInJson = JSON.stringify({svgX:pos.x, svgY:pos.y, floorId:unit.floorId, regionId:unit.regionId})
 		
@@ -449,17 +432,15 @@ class idrNetworkManager {
 		
 		this.doAjax(url, data, success, failed)
 	}
-  
-  getParkingPlaceUnitByCarNo(carNo, regionId) {
+	
+	getParkingPlaceUnitByCarNo(carNo, regionId) {
 		
-		var url = this.host + 'thxz/pc/getParkingPlaceUnitByCarNo.html'
+		var url = this.host + 'chene/getParkingPlaceUnitByCarNo.html'
 		
 		var data = {
 			regionId,
 			carNo,
 		}
-		
-		console.log(data)
 		
 		return new Promise((resolve, reject)=>{
 			
@@ -476,13 +457,13 @@ class idrNetworkManager {
 	
 	parksOverview(regionId) {
 	
-		let data = regionId ? {regionId}:null
+		let data = {regionId}
 		
 		return new Promise((resolve, reject)=>{
 			
 			let url = this.host + 'thxz/pc/parksOverview'
 			
-			doAjax(url, data, res=>{
+			this.doAjax(url, data, res=>{
 				
 				resolve(res)
 			}, res=> {
@@ -492,7 +473,7 @@ class idrNetworkManager {
 		})
 	}
 	
-	locatingBin({beacons, count, regionId, floorId}, success, failed) {
+	serverCallLocatingBin({beacons, count, regionId, floorId}, success, failed) {
 		
 		var data = {
 			'version':1,
@@ -521,8 +502,8 @@ class idrNetworkManager {
 		
 		var url = this.host + 'locate/locatingBin';
 		
-		this.doAjax(url, data, (pos)=>success(pos), e => failed(e))
+		this.doAjax(url, data, success, failed)
 	}
 }
 
-export const networkInstance = new idrNetworkManager()
+export const idrNetworkInstance = new idrNetworkManager()

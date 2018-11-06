@@ -25,8 +25,8 @@
     <!--:locatefloorid="locateFloorId" v-on:onselect="onSelect"></floor-list-control>-->
     <floor :floorlist="floorList" :currentName="currentFloorName" :selectfloorIndex="currentFloorIndex"
            :locatefloorIndex="locateFloorIndex" v-on:onselect="onSelect"></floor>
-    
-    
+
+
     <!--<Reverse-title></Reverse-title>-->
     <!--<floor-guide></floor-guide>-->
     <!--<tips></tips>-->
@@ -67,7 +67,7 @@
   import floor from '../components/floor'
   import floorGuide from '../components/floorGuide'
   import tips from '../components/tips'
-  
+
   export default {
     name: "Map",
     components: {
@@ -183,7 +183,13 @@
       },
 
       onUnitClick(unit) {
-        
+
+        this.map.doRoute({start:null, end:unit})
+          .then(res=>{
+
+            this.onRouterSuccess(res)
+          })
+
         if (!this.mapState.markInMap) {
 
           return
@@ -199,7 +205,7 @@
               return Promise.reject('蓝牙未开启，请开启蓝牙')
             }
 
-            return this.map.doRoute(null, unit.position)
+            return this.map.doRoute({start:null, end:unit})
           })
           .then((res) => {
 
@@ -283,7 +289,7 @@
 
         this.preparePlayAudio()
 
-        this.map.doRoute(null, unit.position)
+        this.map.doRoute({start:null, end:unit})
           .then(res => {
 
             return this.onRouterSuccess(res, false)
@@ -337,7 +343,7 @@
 
           if (unit) {
 
-            this.map.doRoute(null, unit)
+            this.map.doRoute({start:null, end:unit})
               .then(res => {
 
                 return this.onRouterSuccess(res, false)
@@ -455,7 +461,7 @@
             return
           }
 
-          this.map.doRoute(null, this.endMarker)
+          this.map.doRoute({start:null, end:this.endMarker})
             .then(res => {
 
               return this.onRouterSuccess(res)
@@ -543,7 +549,7 @@
         this.map.autoChangeFloor = false
       },
       onMapClick(pos) {
-        
+
         this.map.doRoute({start:null, end:{position:pos}})
 
         if (window.debugtest) {

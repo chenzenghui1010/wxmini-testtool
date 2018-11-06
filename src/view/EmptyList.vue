@@ -7,7 +7,7 @@
 
 <script>
 
-  import { networkInstance } from '../../indoorunMap/map'
+  import { idrNetworkInstance } from '../../indoorunMap/map'
   import ParkingCell from "@/components/ParkingCell";
 
   export default {
@@ -19,7 +19,7 @@
       }
     },
     mounted() {
-      networkInstance.parksOverview()
+      idrNetworkInstance.parksOverview()
         .then(res=>{
 
           if (res.code != 'success') {

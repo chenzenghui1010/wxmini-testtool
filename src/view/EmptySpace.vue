@@ -14,7 +14,7 @@
 <script>
 
   // import '@/yfmap.min'
-  import { idrMapView , idrMarkers, networkInstance, idrMapEventTypes } from '../../indoorunMap/map'
+  import { idrMapView , idrMarkers, idrNetworkInstance, idrMapEvent } from '../../indoorunMap/map'
   import FloorListControl from '@/components/FloorListControl.vue'
   import { mapGetters } from 'vuex'
   import Zoom from "@/components/Zoom";
@@ -69,24 +69,13 @@
 
       this.isWx = userAgent.match(/MicroMessenger/i) == 'micromessenger'
 
-      const {parkCode, regionId} = this.$route.query
+      const parkCode = this.$route.query.parkCode
 
-      if (regionId) {
+      const regionId = this.$route.query.regionId || "14559560656150195"
 
-        this.regionId = regionId
+      this.regionId = regionId
 
-        this.initMap(regionId)
-      }
-      else {
-
-        networkInstance.getRegionIdByParkCode(parkCode)
-          .then(({regionId})=>{
-
-            this.regionId = regionId
-
-            this.initMap(regionId)
-          })
-      }
+      this.initMap(regionId)
     },
     methods:{
       preparePlayAudio() {
@@ -102,32 +91,32 @@
 
         this.map.initMap('yf1248331604', 'map', this.regionId)
 
-        this.map.addEventListener(idrMapEventTypes.onFloorChangeSuccess, data => {
+        this.map.addEventListener(idrMapEvent.types.onFloorChangeSuccess, data => {
 
           this.onFloorChangeSuccess(data)
         })
 
-        this.map.addEventListener(idrMapEventTypes.onInitMapSuccess, regionEx => {
+        this.map.addEventListener(idrMapEvent.types.onInitMapSuccess, regionEx => {
 
           this.onInitMapSuccess(regionEx)
         })
 
-        this.map.addEventListener(idrMapEventTypes.onUnitClick, (unit) => {
+        this.map.addEventListener(idrMapEvent.types.onUnitClick, (unit) => {
 
           this.onUnitClick(unit)
         })
 
-        this.map.addEventListener(idrMapEventTypes.onMapClick, (pos) => {
+        this.map.addEventListener(idrMapEvent.types.onMapClick, (pos) => {
 
           this.onMapClick(pos)
         })
 
-        this.map.addEventListener(idrMapEventTypes.onRouterFinish, () => {
+        this.map.addEventListener(idrMapEvent.types.onRouterFinish, () => {
 
           this.onRouterFinish()
         })
 
-        this.map.addEventListener(idrMapEventTypes.onNaviStatusUpdate, (data) => {
+        this.map.addEventListener(idrMapEvent.types.onNaviStatusUpdate, (data) => {
 
           this.onNaviStatusUpdate(data)
         })

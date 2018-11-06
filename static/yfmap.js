@@ -335,7 +335,7 @@ YFM.Panorama.prototype = {
         pointsArray.push(vertices[d]);
     },
 
-    _makeCubeTex : function(posx, posy, posz,
+    _makeCubeTex : function(posx, posy, posz, 
                             negx, negy, negz){
 
         var gl = this.gl;
@@ -369,7 +369,7 @@ YFM.Panorama.prototype = {
         texWrap.imgCount += 1;
         if(6 == texWrap.imgCount){
             this._makeCubeTex(
-                texWrap.imgList[0], texWrap.imgList[1], texWrap.imgList[2],
+                texWrap.imgList[0], texWrap.imgList[1], texWrap.imgList[2], 
                 texWrap.imgList[3], texWrap.imgList[4], texWrap.imgList[5]);
         }
     },
@@ -545,16 +545,16 @@ YFM.SVG = function(){
         yellowgreen : rgb(154, 205, 50)
     };
 
-    var parse = function(color, alpha){
-        var r = parseInt(color.slice(0 , 2) , 16);
-        var g = parseInt(color.slice(2 , 4) , 16);
-        var b = parseInt(color.slice(4 , 6) , 16);
+    var parse = function(color, alpha){  
+        var r = parseInt(color.slice(0 , 2) , 16);  
+        var g = parseInt(color.slice(2 , 4) , 16);  
+        var b = parseInt(color.slice(4 , 6) , 16);  
 
         return rgba(r, g, b, alpha);
     };
 
     var doubleString = function(e){
-        return e.concat(e);
+        return e.concat(e); 
     };
 
     var svgFillColor = function(color, opacity){
@@ -591,14 +591,14 @@ YFM.SVG = function(){
              * 以便style的merge函数识别
              */
             return null;
-        }else if(color.indexOf("#") == 0){
-            if(color.length == 7){
-                color = color.slice(1);
+        }else if(color.indexOf("#") == 0){  
+            if(color.length == 7){  
+                color = color.slice(1);  
             }
-            else if(color.length == 4){
-                color = color.slice(1);
-                var array = color.split("").map(doubleString);
-                color = array.join("");
+            else if(color.length == 4){  
+                color = color.slice(1);  
+                var array = color.split("").map(doubleString);  
+                color = array.join("");             
             }
             return parse(color, alpha);
         }else{
@@ -631,14 +631,14 @@ YFM.SVG = function(){
             return undefined;
         }else if("none" === color){
             return null;
-        }else if(color.indexOf("#") == 0){
-            if(color.length == 7){
-                color = color.slice(1);
+        }else if(color.indexOf("#") == 0){  
+            if(color.length == 7){  
+                color = color.slice(1);  
             }
-            else if(color.length == 4){
-                color = color.slice(1);
-                var array = color.split("").map(doubleString);
-                color = array.join("");
+            else if(color.length == 4){  
+                color = color.slice(1);  
+                var array = color.split("").map(doubleString);  
+                color = array.join("");             
             }
             return parse(color, alpha);
         }else{
@@ -675,6 +675,7 @@ YFM.SVG.SVGParser = function(floor, region, extrude, boundary){
      */
     this.regUnit = /^unit/g;
     this.regIcon = /^icon/g;
+    this.regText = /^text/g;
     this.regExtrude = /_ex/;
     this.regBoundary = /^boundary/;
     this.extrudeValue = /_ex(\d*)/;
@@ -693,13 +694,19 @@ YFM.SVG.SVGParser = function(floor, region, extrude, boundary){
      * 由于这个二维的贝塞尔细分不怎么通用, 也没做支持各种细节配置的版本
      * 就先放这了
      */
-    this.RECURSION_LIMIT = 8;
+    //this.RECURSION_LIMIT = 8;
+    this.RECURSION_LIMIT = 4;
     this.FLT_EPSILON = 1.19209290e-7;
-    this.PATH_DISTANCE_EPSILON = 0.2;
+    //this.PATH_DISTANCE_EPSILON = 0.2;
+    this.PATH_DISTANCE_EPSILON = 0.4;
     this.distanceTolerance = this.PATH_DISTANCE_EPSILON*this.PATH_DISTANCE_EPSILON;
     this.TWO_PI = 2.0*Math.PI;
 
     this.transformStack = new YFM.SVG.SVGTransformStack();
+
+    /*
+    this.isUnit = false;
+    this.unitCnt = 0;*/
 }
 
 YFM.SVG.SVGParser.prototype = {
@@ -728,7 +735,7 @@ YFM.SVG.SVGParser.prototype = {
             var child = svgDOM.childNodes.item(i);
 
             if("g" === child.nodeName){
-                this._readGroup(child, groupList, 0);
+                this._readGroup(child, groupList, 0, 1);
             }
         }
 
@@ -827,7 +834,7 @@ YFM.SVG.SVGParser.prototype = {
      * 读取组并解析
      * 会处理定义在组中的style属性
      */
-    _readGroup : function(group, groupList, type){
+    _readGroup : function(group, groupList, type, level){
 
         var id = group.getAttribute("id");
         var vType = 0;
@@ -837,12 +844,19 @@ YFM.SVG.SVGParser.prototype = {
         /**
          * 有id的情况, 新建组
          * 没有id的情况, 视为嵌套在有id的group内的匿名group
+         * 为了应对画图人员因为转换工具的原因, 经常弄出一些规格以外的命名组
+         * 我们现在忽略所有层级大于1的组的id
          */
-        if(id){
+        if(id && level <= 1){
 
+            /*
+            this.isUnit = false;
+            if(this.regUnit.test(id)){
+                this.isUnit = true;
+            }*/
 
             if(type){
-                vType = type;
+                vType = type; 
             }else if(this.regExtrude.test(id)){
 
                 var height;
@@ -857,8 +871,9 @@ YFM.SVG.SVGParser.prototype = {
                 }
 
                 vType = YFM.SVG.SVGParser.prototype.GROUP_TYPE_EXTRUDE;
-            }else if(this.regIcon.test(id)){
+            }else if(this.regIcon.test(id) || this.regText.test(id)){
                 vType = YFM.SVG.SVGParser.prototype.GROUP_TYPE_ICON;
+                return;
             }else if(this.regBoundary.test(id)){
                 vType = YFM.SVG.SVGParser.prototype.GROUP_TYPE_BOUNDARY;
             }
@@ -866,7 +881,7 @@ YFM.SVG.SVGParser.prototype = {
             this.currentGroup = {
                                  id : id,
                                  type : vType,
-                                 objarray : [],
+                                 //objarray : [],
                                  varray : [],
                                  carray : []
                                 };
@@ -881,13 +896,13 @@ YFM.SVG.SVGParser.prototype = {
                 this.currentGroup = {
                                      id : id,
                                      type : vType,
-                                     objarray : [],
+                                     //objarray : [],
                                      varray : [],
                                      carray : []
                                     };
                 groupList.push(this.currentGroup);
             }else{
-                vType = type;
+                vType = type;  
             }
         }
 
@@ -907,7 +922,7 @@ YFM.SVG.SVGParser.prototype = {
             var child = group.childNodes.item(i);
             if(1 == child.nodeType){
                 if("g" == child.nodeName)
-                    this._readGroup(child, groupList, vType);
+                    this._readGroup(child, groupList, vType, level+1);
                 else
                     this._readObject(child, vType, style);
             }
@@ -965,6 +980,11 @@ YFM.SVG.SVGParser.prototype = {
         var points = []
         var matrix = this.transformStack.getCurrentMat();
  
+        /*
+        var dx, dy;
+        var len0, len1;
+        var cx, cy;
+        var azimuth;*/
         if(matrix){
             
             var p0 = this._multVec3(matrix, this._pos2(x,        y));
@@ -980,6 +1000,19 @@ YFM.SVG.SVGParser.prototype = {
             points.push(p2[1]);
             points.push(p3[0]);
             points.push(p3[1]);
+
+            /*
+            cx = (p0[0]+p1[0]+p2[0]+p3[0])/4.0;
+            cy = (p0[1]+p1[1]+p2[1]+p3[1])/4.0;
+
+            if(width > height){
+                dx = p1[0] - p0[0];
+                dy = p1[1] - p0[1];
+            }else{
+                dx = p3[0] - p0[0];
+                dy = p3[1] - p0[1];
+            }
+            azimuth = 180*Math.atan2(-dy, dx)/Math.PI;*/
         }else{
             points.push(x);
             points.push(y);
@@ -989,7 +1022,23 @@ YFM.SVG.SVGParser.prototype = {
             points.push(y+height);
             points.push(x);
             points.push(y+height);
+
+            /*
+            cx = x + width/2.0;
+            cy = y + height/2.0;
+
+            if(width > height){
+                azimuth = 0;
+            }else{
+                azimuth = 90;
+            }*/
         }
+
+        /*
+        if(this.isUnit){
+            this.unitCnt += 1;
+            this.floor.insertModelInstancePending("DerbyCar", azimuth, 16.0, cx, cy, 16);
+        }*/
         this._addShape(points, style, type, true, null);
     },
 
@@ -1053,6 +1102,8 @@ YFM.SVG.SVGParser.prototype = {
             var vx = x2 - x1;
             var vy = y2 - y1;
             var norm = Math.sqrt(vx*vx + vy*vy);
+            if(0 === norm)
+                return null;
             vx /= norm;
             vy /= norm;
             var nx = vy*sw;
@@ -1168,7 +1219,7 @@ YFM.SVG.SVGParser.prototype = {
 
 
     /*
-    
+     
     _addEllipse : function(obj, style, type){
         if(!style.fill && !style.stroke)
             return;
@@ -1498,7 +1549,7 @@ YFM.SVG.SVGParser.prototype = {
             this._tesselate(style.fill, contours1D, contours2D, type, style.fill_rule);
         }
 
-        var lastEnd;
+        var lastEnd = false;
         if(style.stroke){
             for(i = 0; i < len; i++){
                 x = path[i*2 + 0];
@@ -1519,6 +1570,8 @@ YFM.SVG.SVGParser.prototype = {
                     this.extrude.addBorder(YFM.Math.Vector.pos(x, y, 0), YFM.Math.Vector.pos(xn, yn, 0), style.stroke);
                 }else{
                     lastEnd = this._addSeg(style, x, y, xn, yn, lastEnd);
+                    if(null === lastEnd)
+                        break;
                 }
             }
         }
@@ -1534,7 +1587,7 @@ YFM.SVG.SVGParser.prototype = {
      * path是用控制点描述的, 我们使用自适应贝塞尔细分将它
      * 转换成足够逼近真正曲线的折线/多边形
      * 转换后的顶点数目可能非常巨大
-     *
+     * 
      * 加上path可能会附加各种变换, 如果在细分后的顶点施加变换, 需要做大量的乘法
      *
      * 而path的曲线都有仿射不变性这一特质
@@ -1637,14 +1690,14 @@ YFM.SVG.SVGParser.prototype = {
                 path = null;
             }else if('L' === cmd[0]){
                 /**
-                 * L命令, 绝对坐标移动直线移动到一个位置,
+                 * L命令, 绝对坐标移动直线移动到一个位置, 
                  * 并添加顶点
                  */
                 cur = Vector.pos(cmd[1], cmd[2]);
                 this._lineTo(path.pts, cur, matrix);
             }else if('l' === cmd[0]){
                 /**
-                 * l命令, 相对坐标移动直线移动到一个位置,
+                 * l命令, 相对坐标移动直线移动到一个位置, 
                  * 并添加顶点
                  */
                 cur = Vector.pos(cur[0]+cmd[1], cur[1]+cmd[2]);
@@ -1696,7 +1749,7 @@ YFM.SVG.SVGParser.prototype = {
                 this._qBerzier(path.pts, p0, p1, p2, matrix);
                 cur = p2;
             }else if('T' === cmd[0]){
-                /**
+                /** 
                  * T命令, 绝对坐标平滑连接二次贝塞尔曲线
                  * 需要检查前序命令否则抛出异常
                  */
@@ -1711,7 +1764,7 @@ YFM.SVG.SVGParser.prototype = {
                 this._qBerzier(path.pts, p0, p1, p2, matrix);
                 cur = p2;
             }else if('t' === cmd[0]){
-                /**
+                /** 
                  * t命令, 相对坐标平滑连接二次贝塞尔曲线
                  * 需要检查前序命令否则抛出异常
                  */
@@ -1746,7 +1799,7 @@ YFM.SVG.SVGParser.prototype = {
                 this._cBersizer(path.pts, p0, p1, p2, p3, matrix);
                 cur = p3;
             }else if('S' === cmd[0]){
-                /**
+                /** 
                  * S命令, 绝对坐标平滑连接三次贝塞尔曲线
                  * 需要检查前序命令否则抛出异常
                  */
@@ -1762,7 +1815,7 @@ YFM.SVG.SVGParser.prototype = {
                 this._cBersizer(path.pts, p0, p1, p2, p3, matrix);
                 cur = p3;
             }else if('s' === cmd[0]){
-                /**
+                /** 
                  * s命令, 相对坐标平滑连接三次贝塞尔曲线
                  * 需要检查前序命令否则抛出异常
                  */
@@ -1805,7 +1858,7 @@ YFM.SVG.SVGParser.prototype = {
     _moveTo : function(pts, p, matrix){
 
         if(matrix){
-            p = this._multVec3(matrix, this._pos2(p[0], p[1]));
+            p = this._multVec3(matrix, this._pos2(p[0], p[1])); 
         }
         pts.push(p);
     },
@@ -1813,7 +1866,7 @@ YFM.SVG.SVGParser.prototype = {
     _lineTo : function(pts, p, matrix){
 
         if(matrix){
-            p = this._multVec3(matrix, this._pos2(p[0], p[1]));
+            p = this._multVec3(matrix, this._pos2(p[0], p[1])); 
         }
         pts.push(p);
     },
@@ -1860,7 +1913,7 @@ YFM.SVG.SVGParser.prototype = {
             }
         }
         if(matrix){
-            pe = this._multVec3(matrix, this._pos2(pe[0], pe[1]));
+            pe = this._multVec3(matrix, this._pos2(pe[0], pe[1])); 
         }
         pts.push(pe);
     },
@@ -1965,21 +2018,21 @@ YFM.SVG.SVGParser.prototype = {
         angleExtent %= 2*Math.PI;
         angleStart %= 2*Math.PI;
 
-        return {cx : cx,
-                cy : cy,
-                rx : rx,
-                ry : ry,
-                angleStart : angleStart,
-                angleExtent : angleExtent,
+        return {cx : cx, 
+                cy : cy, 
+                rx : rx, 
+                ry : ry, 
+                angleStart : angleStart, 
+                angleExtent : angleExtent, 
                 xAngle : xAngle};
     },
 
     _qBerzier : function(pts, p0, p1, p2, matrix){
 
         if(matrix){
-            p0 = this._multVec3(matrix, this._pos2(p0[0], p0[1]));
-            p1 = this._multVec3(matrix, this._pos2(p1[0], p1[1]));
-            p2 = this._multVec3(matrix, this._pos2(p2[0], p2[1]));
+            p0 = this._multVec3(matrix, this._pos2(p0[0], p0[1])); 
+            p1 = this._multVec3(matrix, this._pos2(p1[0], p1[1])); 
+            p2 = this._multVec3(matrix, this._pos2(p2[0], p2[1])); 
         }
 
         pts.push(p0);
@@ -1989,10 +2042,10 @@ YFM.SVG.SVGParser.prototype = {
 
     _cBersizer : function(pts, p0, p1, p2, p3, matrix){
         if(matrix){
-            p0 = this._multVec3(matrix, this._pos2(p0[0], p0[1]));
-            p1 = this._multVec3(matrix, this._pos2(p1[0], p1[1]));
-            p2 = this._multVec3(matrix, this._pos2(p2[0], p2[1]));
-            p3 = this._multVec3(matrix, this._pos2(p3[0], p3[1]));
+            p0 = this._multVec3(matrix, this._pos2(p0[0], p0[1])); 
+            p1 = this._multVec3(matrix, this._pos2(p1[0], p1[1])); 
+            p2 = this._multVec3(matrix, this._pos2(p2[0], p2[1])); 
+            p3 = this._multVec3(matrix, this._pos2(p3[0], p3[1])); 
         }
 
         pts.push(p0);
@@ -2052,7 +2105,7 @@ YFM.SVG.SVGParser.prototype = {
      */
     _cBersizerDivPlus : function(pts, p1, p2, p3, p4, level) {
 
-        if(level > this.RECURSION_LIMIT)
+        if(level > this.RECURSION_LIMIT) 
             return
 
         var Vector = YFM.Math.Vector;
@@ -2256,7 +2309,7 @@ YFM.SVG.SVGParser.prototype = {
     },
 
 
-    /**
+    /** 
      * 利用tess2库做曲面细分
      */
     _tesselate: function(color, contours1D, contours2D, type, fill_rule){
@@ -2313,16 +2366,18 @@ YFM.SVG.SVGParser.prototype = {
         }
 
         if(YFM.SVG.SVGParser.prototype.GROUP_TYPE_EXTRUDE === type){
-            var ret = this.extrude.addExtrude(contours2D, triangles, color);
+            //var ret = this.extrude.addExtrude(contours2D, triangles, color);
+            this.extrude.addExtrude(contours2D, triangles, color);
 
-            this.currentGroup.objarray.push({color:color,
-                                             top_start:ret.top_start, top_len:ret.top_len,
-                                             side_start:ret.side_start, side_len:ret.side_len});
+            /*
+            this.currentGroup.objarray.push({color:color, 
+                                             top_start:ret.top_start, top_len:ret.top_len, 
+                                             side_start:ret.side_start, side_len:ret.side_len});*/
         }else if(YFM.SVG.SVGParser.prototype.GROUP_TYPE_BOUNDARY === type){
             this.boundary.addExtrude(contours2D, triangles, color);
 
         }else{
-            this.currentGroup.objarray.push({color:color, start:c_start, len:res.elements.length});
+            //this.currentGroup.objarray.push({color:color, start:c_start, len:res.elements.length});
         }
 	    return true;
     }
@@ -2488,7 +2543,7 @@ YFM.SVG.SVGTransformStack.prototype = {
 
         for(i in ts){
             cmd = ts[i].match(this.transformVal);
-            mat = this._parseMatrix(cmd);
+            mat = this._parseMatrix(cmd); 
             prod = this._matMul(prod, mat);
         }
 
@@ -2534,7 +2589,7 @@ YFM.SVG.SVGTransformStack.prototype = {
 }
 
 /*
-** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008)
+** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008) 
 ** Copyright (C) [dates of first publication] Silicon Graphics, Inc.
 ** All Rights Reserved.
 **
@@ -2544,10 +2599,10 @@ YFM.SVG.SVGTransformStack.prototype = {
 ** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
 ** of the Software, and to permit persons to whom the Software is furnished to do so,
 ** subject to the following conditions:
-**
+** 
 ** The above copyright notice including the dates of first publication and either this
 ** permission notice or a reference to http://oss.sgi.com/projects/FreeB/ shall be
-** included in all copies or substantial portions of the Software.
+** included in all copies or substantial portions of the Software. 
 **
 ** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 ** INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
@@ -2555,7 +2610,7 @@ YFM.SVG.SVGTransformStack.prototype = {
 ** BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 ** TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 ** OR OTHER DEALINGS IN THE SOFTWARE.
-**
+** 
 ** Except as contained in this notice, the name of Silicon Graphics, Inc. shall not
 ** be used in advertising or otherwise to promote the sale, use or other dealings in
 ** this Software without prior written authorization from Silicon Graphics, Inc.
@@ -2683,7 +2738,7 @@ YFM.Tess2 = {};
 		this.pqHandle = 0;		/* to allow deletion from priority queue */
 		this.n = 0;				/* to allow identify unique vertices */
 		this.idx = 0;			/* to allow map result to original verts */
-	}
+	} 
 
 	YFM.Tess2.TESSface = function() {
 		this.next = null;		/* next face (never NULL) */
@@ -2945,7 +3000,7 @@ YFM.Tess2 = {};
 		// static void MakeFace( TESSface *newFace, TESShalfEdge *eOrig, TESSface *fNext )
 		makeFace_: function(newFace, eOrig, fNext) {
 			var fNew = newFace;
-			assert(fNew !== null);
+			assert(fNew !== null); 
 
 			/* insert in circular doubly-linked list before fNext */
 			var fPrev = fNext.prev;
@@ -3099,7 +3154,7 @@ YFM.Tess2 = {};
 				eOrg.Org.anEdge = eOrg;
 			}
 			if( ! joiningLoops ) {
-				var newFace = new YFM.Tess2.TESSface();
+				var newFace = new YFM.Tess2.TESSface();  
 
 				/* We split one loop into two -- the new loop is eDst->Lface.
 				* Make sure the old face points to a valid half-edge.
@@ -3234,7 +3289,7 @@ YFM.Tess2 = {};
 
 		// TESShalfEdge *tessMeshConnect( TESSmesh *mesh, TESShalfEdge *eOrg, TESShalfEdge *eDst );
 		connect: function(eOrg, eDst) {
-			var joiningLoops = false;
+			var joiningLoops = false;  
 			var eNew = this.makeEdge_( eOrg );
 			var eNewSym = eNew.Sym;
 
@@ -3340,7 +3395,7 @@ YFM.Tess2 = {};
 
 				eCur = f.anEdge;
 				vStart = eCur.Org;
-				
+					
 				while (true)
 				{
 					eNext = eCur.Lnext;
@@ -4288,7 +4343,7 @@ YFM.Tess2 = {};
 		* Two vertices with idential coordinates are combined into one.
 		* e1->Org is kept, while e2->Org is discarded.
 		*/
-		tess.mesh.splice( e1, e2 );
+		tess.mesh.splice( e1, e2 ); 
 	}
 
 	//static void VertexWeights( TESSvertex *isect, TESSvertex *org, TESSvertex *dst, TESSreal *weights )
@@ -4529,7 +4584,7 @@ YFM.Tess2 = {};
 			if( dstUp === tess.event ) {
 				/* Splice dstUp into eLo, and process the new region(s) */
 				tess.mesh.splitEdge( eLo.Sym );
-				tess.mesh.splice( eUp.Lnext, eLo.Oprev );
+				tess.mesh.splice( eUp.Lnext, eLo.Oprev ); 
 				regLo = regUp;
 				regUp = YFM.Tess2.Sweep.topRightRegion( regUp );
 				e = YFM.Tess2.Sweep.regionBelow(regUp).eUp.Rprev;
@@ -5379,14 +5434,14 @@ YFM.Tess2 = {};
 			sUnit[(i+1)%3] = S_UNIT_X;
 			sUnit[(i+2)%3] = S_UNIT_Y;
 
-			// Now make it exactly perpendicular
+			// Now make it exactly perpendicular 
 			w = Dot( sUnit, norm );
 			sUnit[0] -= w * norm[0];
 			sUnit[1] -= w * norm[1];
 			sUnit[2] -= w * norm[2];
 			Normalize( sUnit );
 
-			// Choose tUnit so that (sUnit,tUnit,norm) form a right-handed frame
+			// Choose tUnit so that (sUnit,tUnit,norm) form a right-handed frame 
 			tUnit[0] = norm[1]*sUnit[2] - norm[2]*sUnit[1];
 			tUnit[1] = norm[2]*sUnit[0] - norm[0]*sUnit[2];
 			tUnit[2] = norm[0]*sUnit[1] - norm[1]*sUnit[0];
@@ -5436,7 +5491,7 @@ YFM.Tess2 = {};
 		* (what else would it do??)  The region must consist of a single
 		* loop of half-edges (see mesh.h) oriented CCW.  "Monotone" in this
 		* case means that any vertical line intersects the interior of the
-		* region in a single interval.
+		* region in a single interval.  
 		*
 		* Tessellation consists of adding interior edges (actually pairs of
 		* half-edges), to split the region into non-overlapping triangles.
@@ -5900,7 +5955,7 @@ YFM.Tess2 = {};
 			if (vertexSize > 3)
 				vertexSize = 3;
 
-	/*		if (setjmp(tess->env) != 0) {
+	/*		if (setjmp(tess->env) != 0) { 
 				// come back here if out of memory
 				return 0;
 			}*/
@@ -5932,7 +5987,7 @@ YFM.Tess2 = {};
 			if (elementType == YFM.Tess2.BOUNDARY_CONTOURS) {
 				this.setWindingNumber_( mesh, 1, true );
 			} else {
-				this.tessellateInterior_( mesh );
+				this.tessellateInterior_( mesh ); 
 			}
 	//		if (rc == 0) longjmp(tess->env,1);  /* could've used a label */
 
@@ -6034,7 +6089,7 @@ YFM.WebGL = function(){
 		gl.attachShader( program, vertShdr );
 		gl.attachShader( program, fragShdr );
 		gl.linkProgram( program );
-	 
+	    
 		if(!gl.getProgramParameter(program, gl.LINK_STATUS)){
 			var msg = "Shader program failed to link.  The error log is:"
 				+ "<pre>" + gl.getProgramInfoLog( program ) + "</pre>";
@@ -6114,7 +6169,7 @@ window.requestAnimFrame = (function() {
          };
 })();
 /*
-window.requestAnimFrame =
+window.requestAnimFrame = 
          function(callback, element) {
            window.setTimeout(callback, 1000/30);
          };*/
@@ -6148,7 +6203,9 @@ YFM.Map.Floor = function(gl, id, url, deflection, region, index, loadListener){
     this.callout = null;
     this.models = null;
     this.markers = new YFM.Map.FloorMarkers(this.gl, this.region, this);
+    this.quickCallout = new YFM.Map.FloorQuickCallout(this.gl, this.region, this);
 
+    this.texRectList = new YFM.Map.FloorTextureRectList(this.region, this.gl);
     this.texRect = new YFM.Map.FloorTextureRect(this.region, this.gl, 0);
     this.texRectSpec = new YFM.Map.FloorTextureRect(this.region, this.gl, 1);
     this.texRectUltra = new YFM.Map.FloorTextureRect(this.region, this.gl, 2);
@@ -6184,6 +6241,8 @@ YFM.Map.Floor = function(gl, id, url, deflection, region, index, loadListener){
     if(null === YFM.Map.Floor.prototype.quadVBO){
         this._initQuad(gl);
     }
+
+    this.modelInstancePending = [];
 }
 
 
@@ -6191,6 +6250,10 @@ YFM.Map.Floor.prototype = {
 	constructor : YFM.Map.Floor,
 
     quadVBO : null,
+
+    setTrajectoryWidth : function(width){
+        this.trajectory.setWidth(width);
+    },
 
     selectUnit : function(id, color, frame){
         this.extrude.selectUnit(id, color, frame);
@@ -6221,6 +6284,7 @@ YFM.Map.Floor.prototype = {
     setUnitHeight : function(value){
         this.unitHeight = value;
         this.quickPolygon.setHeight(value+1.0);
+        this.texRectList.setHeight(value+2.0);
         this.texRect.setHeight(value+2.5);
         this.texRectSpec.setHeight(value+2.5);
         this.texRectUltra.setHeight(value+2.5);
@@ -6244,7 +6308,6 @@ YFM.Map.Floor.prototype = {
         this.callout = new YFM.Map.FloorCallout(this.gl, this.region, this);
 
         this.quadTree = new YFM.Math.FloorQuadTree(this, 100);
-        this.models = new YFM.Map.FloorModels(this.gl, this.region, this, vPitch/3.0);
         this.vOffset = vOffset;
 
         /*
@@ -6256,7 +6319,7 @@ YFM.Map.Floor.prototype = {
     },
     addTrajectory : function(pts){
         this.trajectory.addTrajectory(pts);
-    },
+    }, 
 
     cleanTrajectory : function(){
         this.trajectory.cleanTrajectory();
@@ -6296,31 +6359,43 @@ YFM.Map.Floor.prototype = {
         this.callout.setVisibility(visible);
     },
 
-    insertModel : function(model, azimuth, scale, x, y, height){
-        model.setFloor(this);
-        model.setModelMatrix(YFM.Math.Matrix.postTranslate(
-                                YFM.Math.Matrix.postRotate3d(
-                                    YFM.Math.Matrix.postRotate3d(
-                                        YFM.Math.Matrix.scale(scale, 0, 0, 0),
-                                        90, 1, 0, 0),
-                                    azimuth, 0, 0, 1),
-                                x, this.mapHeight - y, height));
-        return this.models.insertModel(model);
+    insertQuickCallout : function(calloutObj, x, y, offsetX, offsetY){
+        this.quickCallout.insertCallout(calloutObj, x, y, offsetX, offsetY);
     },
 
-    removeModel : function(id){
-        return this.models.removeModel(id);
+    setQuickCalloutVisibility : function(visible){
+        this.quickCallout.setVisibility(visible);
+    },
+
+    insertModelInstancePending : function(name, azimuth, scale, x, y, z){
+
+        this.modelInstancePending.push({n:name,
+                                        a:azimuth,
+                                        s:scale,
+                                        x:x,
+                                        y:y,
+                                        z:z});
+    },
+
+    insertModelInstance : function(name, azimuth, scale, x, y, z){
+
+        return this.models.insertInstance(name, azimuth, scale, YFM.Math.Vector.pos(x, this.mapHeight-y, z));
+    },
+
+    removeModelInstance : function(instance){
+        this.models.removeInstance(instance);
     },
 
     searchModel : function(ray, once){
 
+        /*
         var result = [];
 
         if(null != this.models){
             return this.models.rayCheck(ray, once);
         }else{
             return [];
-        }
+        }*/
     },
 
     searchUnit : function(ray, once){
@@ -6383,9 +6458,9 @@ YFM.Map.Floor.prototype = {
 
             if(0 === group.type && group.colorVBO){
                 var gl = this.gl;
-                var obj = group.objarray[index];
+                var obj = group.objarray[index]; 
                 var cvec = YFM.WebGL.Color.getRGBAVec(color);
-                var cbuf = [];
+                var cbuf = []; 
                 for(var i = 0; i < obj.len; i++){
                     cbuf.push(cvec);
                 }
@@ -6397,7 +6472,7 @@ YFM.Map.Floor.prototype = {
                 obj.setted = true;
             }else if(1 === group.type){
 
-                var obj = group.objarray[index];
+                var obj = group.objarray[index]; 
                 this.extrude.setObjectColor(obj.top_start, obj.top_len, obj.side_start, obj.side_len, color);
                 obj.setted = true;
             }
@@ -6411,8 +6486,8 @@ YFM.Map.Floor.prototype = {
 
             if(0 === group.type && group.colorVBO){
                 var gl = this.gl;
-                var obj = group.objarray[index];
-                var cbuf = [];
+                var obj = group.objarray[index]; 
+                var cbuf = []; 
                 for(var i = 0; i < obj.len; i++){
                     cbuf.push(obj.color);
                 }
@@ -6424,7 +6499,7 @@ YFM.Map.Floor.prototype = {
                 obj.setted = false;
             }else if(1 === group.type){
 
-                var obj = group.objarray[index];
+                var obj = group.objarray[index]; 
                 this.extrude.setObjectColor(obj.top_start, obj.top_len, obj.side_start, obj.side_len, obj.color);
                 obj.setted = false;
             }
@@ -6438,8 +6513,8 @@ YFM.Map.Floor.prototype = {
                 var gl = this.gl;
 
                 for(var j = 0, cnt = group.objarray.length; j< cnt; j++){
-                    var obj = group.objarray[j];
-                    var cbuf = [];
+                    var obj = group.objarray[j]; 
+                    var cbuf = []; 
                     for(var i = 0; i < obj.len; i++){
                         cbuf.push(obj.color);
                     }
@@ -6453,7 +6528,7 @@ YFM.Map.Floor.prototype = {
             }else if(1 === group.type){
 
                 for(var j = 0, cnt = group.objarray.length; j< cnt; j++){
-                    var obj = group.objarray[j];
+                    var obj = group.objarray[j]; 
                     this.extrude.setObjectColor(obj.top_start, obj.top_len, obj.side_start, obj.side_len, obj.color);
                     obj.setted = false;
                 }
@@ -6530,9 +6605,24 @@ YFM.Map.Floor.prototype = {
         }
     },
 
-    renderModels : function(frustum, shader, vrMat, light){
+    renderModels : function(shader, pvrMat){
 
-        this.models.renderModels(frustum, shader, vrMat, light);
+
+        var cnt = this.models.getInstanceCnt();
+
+        if(cnt > 0){
+            shader.setFloorMatrix(this.floorMat);
+
+            this.gl.enable(this.gl.CULL_FACE);
+            this.gl.enable(this.gl.DEPTH_TEST);
+            this.gl.depthFunc(this.gl.LEQUAL);
+
+            var pvrfMat = YFM.Math.Matrix.mul(pvrMat, this.floorMat);
+            this.models.render(shader, pvrfMat);
+
+            this.gl.disable(this.gl.DEPTH_TEST);
+            this.gl.disable(this.gl.CULL_FACE);
+        }
     },
 
     renderIcons : function(frustum, shader){
@@ -6544,11 +6634,16 @@ YFM.Map.Floor.prototype = {
         this.callout.renderCallout(frustum, shader);
     },
 
+    renderQuickCallout : function(frustum, shader){
+        this.quickCallout.renderCallout(frustum, shader);
+    },
+
     renderMarkers : function(frustum, colorShader, texShader, pvrMat, eyePos){
         this.markers.render(frustum, colorShader, texShader, pvrMat, eyePos);
     },
 
     renderTextureRect : function(shader){
+        this.texRectList.render(shader);
         this.texRect.render(shader);
         this.texRectSpec.render(shader);
         this.texRectUltra.render(shader);
@@ -6635,10 +6730,10 @@ YFM.Map.Floor.prototype = {
 
                 slgl[0] -= (objWrap.obj.block.hw + texhw - 8.0);
 
-                
+                                                                                   
                 var m = YFM.Math.Matrix.postRotateXY(YFM.Math.Matrix.postTranslate(
                                                         YFM.Math.Matrix.scaleXYZ(objWrap.obj.tex.texSize, 0, 0, 0),
-                                                                                   slgl[0],
+                                                                                   slgl[0], 
                                                                                    slgl[1],
                                                                                    0),
 
@@ -6696,6 +6791,18 @@ YFM.Map.Floor.prototype = {
 
         this.extrude.buildExtrude();
         this.boundary.buildExtrude();
+
+        /*
+        this.models = new YFM.Map.FloorModels(this, this.mapWidth, this.mapHeight, 100); 
+
+        var mip_cnt = this.modelInstancePending.length;
+        var mip;
+        if(mip_cnt > 0){
+            for(i = 0; i < mip_cnt; i++){
+                mip = this.modelInstancePending[i];
+                this.models.insertInstance(mip.n, mip.a, mip.s, YFM.Math.Vector.pos(mip.x, this.mapHeight-mip.y, mip.z));
+            }
+        }*/
 
         //console.log("after readSVG groupMap:%o", this.groupMap);
 
@@ -6832,7 +6939,7 @@ YFM.Map.FloorBoundary.prototype = {
         }else{
             this.loaded = false;
         }
-    },
+    }, 
 
     _putSideQuad : function(p0, p1, color){
 
@@ -6929,7 +7036,7 @@ YFM.Map.FloorCallout.prototype = {
 
         calloutObj.pos = pos;
         calloutObj.spos = {cx:0.0, cy:0.0, gx:0.0, gy:0.0};
-        calloutObj.colorVec = YFM.WebGL.Color.getRGBVec(calloutObj.color);
+        calloutObj.colorVec = YFM.WebGL.Color.getRGBAVec(calloutObj.color);
         calloutObj.dirty = true;
         calloutObj.offset = [ox, oy];
         this.quadTree.insertObject(calloutObj, this.floor.index, x, y, z);
@@ -6940,8 +7047,11 @@ YFM.Map.FloorCallout.prototype = {
 
     renderCallout : function(frustum, shader){
         if(true === this.visible){
+            this.gl.enable(this.gl.BLEND);
+            this.gl.blendFunc(this.gl.ONE, this.gl.ONE_MINUS_SRC_ALPHA);
             this.shader = shader;
             this.quadTree.render(frustum, this._renderCallout, this, 1024);
+            this.gl.disable(this.gl.BLEND);
         }
     },
 
@@ -6954,7 +7064,7 @@ YFM.Map.FloorCallout.prototype = {
             return;
 
         if(!obj.block || true === obj.dirty){
-            obj.block = cl._makeTextBlock(obj.text, cl.region.ctx2d,
+            obj.block = cl._makeTextBlock(obj.text, cl.region.ctx2d, 
                                         cl.region.fontHeight, cl.sizeW, cl.sizeH);
             obj.dirty = false;
         }
@@ -7078,7 +7188,7 @@ YFM.Map.FloorExtrude.prototype = {
     setObjectColor : function(topStart, topLen, sideStart, sideLen, color){
         var gl = this.gl;
         var i;
-        var cbuf = [];
+        var cbuf = []; 
         var cvec;
         if(color instanceof Array)
             cvec = color;
@@ -7178,17 +7288,17 @@ YFM.Map.FloorExtrude.prototype = {
         var a, b, c;
         var triCnt = triangles.length/3;
         var normal = YFM.Math.Vector.vec(0.0, 0.0, 1.0);
-        var ret = {top_start:0, top_len:0, side_start:0, side_len:0};
+        //var ret = {top_start:0, top_len:0, side_start:0, side_len:0};
 
-        ret.top_start = this.extrudeTopCarray.length;
-        ret.top_len   = triCnt*3;
+        //ret.top_start = this.extrudeTopCarray.length;
+        //ret.top_len   = triCnt*3;
         for(i = 0; i < triCnt; i++){
 
             a = triangles[i*3+0];
             b = triangles[i*3+1];
             c = triangles[i*3+2];
 
-            
+                
             this.extrudeTopVarray.push(YFM.Math.Vector.pos(a[0], a[1], a[2]+this.height));
             this.extrudeTopVarray.push(normal);
             this.extrudeTopVarray.push(YFM.Math.Vector.pos(c[0], c[1], c[2]+this.height));
@@ -7202,8 +7312,8 @@ YFM.Map.FloorExtrude.prototype = {
         }
 
 
-        ret.side_start = this.extrudeSideCarray.length;
-        ret.side_len   = 0;
+        //ret.side_start = this.extrudeSideCarray.length;
+        //ret.side_len   = 0;
         /**
          * 在轮廓支持多条path
          */
@@ -7219,15 +7329,15 @@ YFM.Map.FloorExtrude.prototype = {
                 p0 = pts[j];
                 p1 = pts[j+1];
                 this._putSideQuad(p1, p0, color);
-                ret.side_len  += 6;
+                //ret.side_len  += 6;
             }
             p0 = pts[j];
             p1 = pts[0];
             this._putSideQuad(p1, p0, color);
-            ret.side_len  += 6;
+            //ret.side_len  += 6;
         }
 
-        return ret;
+        //return ret;
     },
 
     buildExtrude : function(){
@@ -7266,7 +7376,7 @@ YFM.Map.FloorExtrude.prototype = {
         }else{
             this.loaded = false;
         }
-    },
+    }, 
 
     _clock_wise_tri : function(pts){
         var sum = 0.0;
@@ -7282,7 +7392,7 @@ YFM.Map.FloorExtrude.prototype = {
         for(var i = 0; i < len; i++){
             sum += (pts[(i+1)%len][0] - pts[i][0])*(pts[(i+1)%len][1] + pts[i][1]);
         }
-        
+                                                    
         return sum > 0;
     },
 
@@ -7443,7 +7553,7 @@ YFM.Map.FloorIcons = function(gl, region, floor){
 
     var quadVarray = [];
     var type;
-    for(type = 0; type < 16; type++){
+    for(type = 0; type < 64; type++){
         this._calcTexCoords(quadVarray, pts, type);
     }
 
@@ -7637,9 +7747,9 @@ YFM.Map.FloorMarkers.prototype = {
         var i, index, m, distSQ;
 
         for(var i = 0; i < this.markerSorted.length; i++){
-            m = this.markerArray[this.markerSorted[i]];
+            m = this.markerSorted[i];
 
-            if(m && this._envelopCheck(m.envelop, screenX, screenY)){
+            if(this._envelopCheck(m.envelop, screenX, screenY)){
                 return {id : m.id,
                         dist : m.distSQ};
             }
@@ -7663,7 +7773,7 @@ YFM.Map.FloorMarkers.prototype = {
 
     _envelopCheck : function(envelop, x, y){
 
-        if(x >= envelop[0] &&
+        if(x >= envelop[0] && 
                 x <= envelop[2] &&
                 y >= envelop[1] &&
                 y <= envelop[3])
@@ -7736,14 +7846,14 @@ YFM.Map.FloorMarkers.prototype = {
 
 
             m = YFM.Math.Matrix.postRotateXY(YFM.Math.Matrix.postTranslate(YFM.Math.Matrix.scaleXYZ(marker.texSize, 0, 0, 0),
-                                                                               screenPos[0]-marker.offsetX,
+                                                                               screenPos[0]-marker.offsetX, 
                                                                                screenPos[1]+marker.offsetY,
                                                                                0),
 
                                                   this.region.camera.getRoll(),
                                                   screenPos[0],
                                                   screenPos[1]);
-                                                  
+                                                                               
             texShader.setModelMatrix(m);
             this.gl.depthMask(false);
             texShader.drawTriangles(this.quadVBO, 6, 0);
@@ -7791,61 +7901,278 @@ YFM.Map.FloorMarkers.prototype = {
 
 
 
-/*
- * 楼层的Model数据源
- */
-YFM.Map.FloorModels = function(gl, region, floor, vPitch){
-    this.gl = gl;
-    this.region = region;
-    this.floor = floor;
-    this.vPitch = vPitch;
-    this.quadTree = new YFM.Math.FloorQuadTree(floor, vPitch);
+
+YFM.Map.FloorModels = function(floor, xmax, ymax, zmax){
+    this.gl = floor.region.gl;
+    this.floorIndex = floor.index;
+    this.modelPool = floor.region.modelPool;
+    this.octTree = new YFM.Math.AAOctTree(0, xmax, 0, ymax, -20, zmax);
+
+    this.instanceGroupSet = {};
+
+    this.frustum = new YFM.Math.FrustumWorldSpace();
+
+    this.cnt = 0;
 }
 
 YFM.Map.FloorModels.prototype = {
-	constructor : YFM.Map.FloorModels,
+	constructor : YFM.Map.FloorModels, 
 
-    removeModel : function(id){
-        return this.quadTree.removeObject(id);
+    removeInstance : function(instance){
+        if(instance.id){
+            
+            /**
+             * 先检查, 删除枚举表中的实例
+             */
+            var instanceList = this.instanceGroupSet[name];
+            if(!instanceList){
+
+                var instanceListIndex = instanceList.indexOf(instance);
+                if(-1 !== instanceListIndex){
+                    instanceList.splice(instanceListIndex, 1);
+
+                    /**
+                     * 再删除八叉树中的实例
+                     */
+                    this.octTree.removeObject(instance.id);
+
+                    this.cnt -= 1;
+                }
+            }
+
+        }
+    },
+
+    insertInstance : function(name, azimuth, scale, position){
+
+        var id = -1;
+        var instance = new YFM.Mesh.ObjModelInstance(this, this.modelPool, name);
+        instance.setModelArguments(azimuth, scale, position);
+
+        var instanceList = this.instanceGroupSet[name];
+        if(!instanceList){
+            instanceList = [];
+            this.instanceGroupSet[name] = instanceList;
+        }
+        instanceList.push(instance);
+
+        id = this.octTree.insertObject(instance, instance.obb);
+
+        instance.id = id;
+        instance.index = this.floorIndex;
+
+        this.cnt += 1;
+
+        return instance;
+    },
+
+    updateInstance : function(instance, azimuth, scale, position){
+
+        instance.setModelArguments(azimuth, scale, position);
+
+        return this.octTree.updateObjectObb(instance.id, instance.obb);
+    },
+
+    updateInstanceRaw : function(instance){
+        return this.octTree.updateObjectObb(instance.id, instance.obb);
+    },
+
+    getInstanceList : function(modelName){
+
+        var list = this.instanceGroupSet[modelName];
+
+
+        if(!list){
+            list = [];
+        }
+
+        return list;
+    },
+
+    getInstanceCnt : function(){
+        return this.cnt;
+    },
+
+    render : function(shader, pvrfMat){
+
+        this.frustum.update(pvrfMat);
+
+        this.octTree.render(this.frustum, function(objWrap){
+            if(objWrap){
+                objWrap.obj.render(shader);
+            }
+        });
+    }
+}
+
+
+
+
+/*
+ * 楼层的快速标注数据源
+ */
+YFM.Map.FloorQuickCallout = function(gl, region, floor){
+    this.gl = gl;
+    this.region = region;
+    this.floor = floor;
+    this.calloutArray = [];
+
+    this.sizeH = 20.0;
+    this.sizeW = 30.0;
+
+    this.visible = true;
+
+    this._initMesh();
+    
+}
+
+YFM.Map.FloorQuickCallout.prototype = {
+	constructor : YFM.Map.FloorQuickCallout,
+
+    setVisibility : function(visible){
+        this.visible = visible;
     },
     
-    insertModel : function(model){
-        return this.quadTree.insertObjectOBB(model, model.obb);
+    insertCallout : function(calloutObj, x, y, z, offsetX, offsetY){
+        var ox, oy;
+        var pos = this.floor.floorPos2Region(x, y);
+        pos[2] += z;
+
+        if(undefined == offsetX){
+            ox = 0.0;
+        }else{
+            ox = offsetX;
+        }
+        if(undefined == offsetY){
+            oy = 0.0;
+        }else{
+            oy = offsetY;
+        }
+
+        calloutObj.pos = pos;
+        calloutObj.spos = {cx:0.0, cy:0.0, gx:0.0, gy:0.0};
+        calloutObj.colorVec = YFM.WebGL.Color.getRGBAVec(calloutObj.color);
+        calloutObj.dirty = true;
+        calloutObj.delete = false;
+        calloutObj.offset = [ox, oy];
+        this.calloutArray.push(calloutObj);
     },
 
-    rayCheck : function(ray, once){
-        return this.quadTree.rayCheckOBB(ray, once);
+    renderCallout : function(frustum, shader){
+        if(true === this.visible){
+            this.gl.enable(this.gl.BLEND);
+            this.gl.blendFunc(this.gl.ONE, this.gl.ONE_MINUS_SRC_ALPHA);
+            this.shader = shader;
+
+
+            for(var i=0,flag=true,len=this.calloutArray.length; i<len; flag ? i++ : i){
+                        
+                var c = this.calloutArray[i];
+
+                if(c && true === c.delete){
+                    flag = false;
+                    this.calloutArray.splice(i, 1);
+                }else{
+                    flag = true;
+                    if(c && frustum.containCheckPoint(c.pos)){
+                        this._renderCallout(c, this);
+                    }
+                }
+            }
+
+            this.gl.disable(this.gl.BLEND);
+        }
     },
 
-    renderModels : function(frustum, shader, vrMat, light){
-        this.shader = shader;
-        this.vrfMat = YFM.Math.Matrix.mul(vrMat, this.floor.getFloorMat());
+    _renderCallout : function(obj, cl){
 
-        shader.setFloorMatrix(this.floor.getFloorMat());
-        shader.setLightPos(light);
+        var block;
 
-        this.gl.enable(this.gl.CULL_FACE);
-        this.gl.enable(this.gl.DEPTH_TEST);
-        this.gl.depthFunc(this.gl.LEQUAL);
+        if(false === obj.visible)
+            return;
 
+        if(2 === obj.pos.length){
+            obj.pos = cl.floor.floorPos2Region(obj.pos[0], obj.pos[1]);
+        }
 
-        this.quadTree.render(frustum, this._renderModel, this, 1024);
+        if(!obj.block || true === obj.dirty){
+            obj.block = cl._makeTextBlock(obj.text, cl.region.ctx2d, 
+                                        cl.region.fontHeight, cl.sizeW, cl.sizeH);
+            obj.dirty = false;
+        }
+        block = obj.block;
 
+        cl.region.regionPos2ScreenPlus(obj.pos, obj.spos);
 
-        this.gl.disable(this.gl.DEPTH_TEST);
-        this.gl.disable(this.gl.CULL_FACE);
+        var modelMat = YFM.Math.Matrix.translate(obj.spos.gx+obj.offset[0], obj.spos.gy+cl.sizeH+obj.offset[1], 0);
+        cl.shader.setModelMatrix(modelMat);
+        cl.shader.draw(cl.anchorMesh, cl.gl.TRIANGLES, obj.colorVec);
+
+        modelMat = YFM.Math.Matrix.scaleXYZ(block.scale, 0.0, 0.0, 0.0);
+        modelMat = YFM.Math.Matrix.postTranslate(modelMat, obj.spos.gx+obj.offset[0], obj.spos.gy+cl.sizeH+block.phh+obj.offset[1], 0);
+        cl.shader.setModelMatrix(modelMat);
+        cl.shader.draw(cl.panleMesh, cl.gl.TRIANGLES, obj.colorVec);
+
+        var y = obj.spos.cy - cl.sizeH/2.0 - block.phh - block.bhh - obj.offset[1];
+        var i, cnt, x;
+        for(i = 0, cnt = block.lines.length; i < cnt; i++){
+            x = obj.spos.cx + obj.offset[0];
+            cl.region._drawText(block.lines[i], x, y);
+            y += cl.region.fontHeight;
+        }
     },
 
-    /*
-    _renderDummy : function(cl, node, color){
-        cl.shader.setFloorMatrix(YFM.Math.Matrix.mat());
-        cl.shader.setModelMatrix(YFM.Math.Matrix.mat());
-        cl.shader.drawLines(node.dummyLinesVBO, color, 0, node.dummyLinesSize);
-        cl.shader.setFloorMatrix(cl.floor.getFloorMat());
-    },*/
+    _makeTextBlock : function(text, ctx, fontHeight, sizeW, sizeH){
+        var lines = text.split(/\r?\n/);
+        var bhw = 0.0, bhh = 0.0, phw, phh;
+        var scaleX, scaleY, ms, hw;
+        for(var i = 0; i < lines.length; i++){
+            ms = ctx.measureText(lines[i]);
+            bhh += (fontHeight/2.0);
+            hw = (ms.width+4.0)/2.0;
+            if(hw > bhw)
+                bhw = hw;
+        }
 
-    _renderModel : function(objWrap, cl){
-        objWrap.obj.render(cl.shader, cl.vrfMat);
+        phw = bhw + sizeW/2.0;
+        phh = bhh + sizeH/2.0;
+
+        scaleX = phw/sizeW;
+        scaleY = phh/sizeH;
+
+        return {
+                lines : lines,
+                bhw : bhw,
+                bhh : bhh,
+                phw : phw,
+                phh : phh,
+                scale : [scaleX, scaleY, 1.0]
+        };
+    },
+
+    _initMesh : function(){
+
+        var Vector = YFM.Math.Vector;
+        
+        var anchorPts = [];
+        anchorPts.push(Vector.pos(0.0,                -this.sizeH));
+        anchorPts.push(Vector.pos(this.sizeW/2.0,     0.0));
+        anchorPts.push(Vector.pos(-this.sizeW/2.0,    1.0));
+
+        this.anchorMesh = new YFM.WebGL.VAttribs(this.gl);
+        this.anchorMesh.addAttribute("position", anchorPts, 3);
+
+        var panlePts = [];
+        panlePts.push(Vector.pos(-this.sizeW,       this.sizeH));
+        panlePts.push(Vector.pos(this.sizeW,        -this.sizeH));
+        panlePts.push(Vector.pos(this.sizeW,        this.sizeH));
+
+        panlePts.push(Vector.pos(-this.sizeW,       this.sizeH));
+        panlePts.push(Vector.pos(-this.sizeW,       -this.sizeH));
+        panlePts.push(Vector.pos(this.sizeW,        -this.sizeH));
+
+        this.panleMesh = new YFM.WebGL.VAttribs(this.gl);
+        this.panleMesh.addAttribute("position", panlePts, 3);
     }
 }
 
@@ -7889,7 +8216,6 @@ YFM.Map.FloorQuickPolygon.prototype = {
     addQuickPolygon : function(pts, colorValue){
 
         var i, j, p0, p1;
-        var ptsCnt = pts.length;
         var normal = YFM.Math.Vector.vec(0.0, 0.0, 1.0);
         var color = YFM.WebGL.Color.getRGBVec(colorValue);
 
@@ -7935,7 +8261,7 @@ YFM.Map.FloorQuickPolygon.prototype = {
         this.quickPolygonCarray = [];
 
         this.loaded = true;
-    },
+    }, 
 
     cleanQuickPolygon : function(){
         if(null !== this.quickPolygonVBO){
@@ -7944,7 +8270,7 @@ YFM.Map.FloorQuickPolygon.prototype = {
             this.quickPolygonVBO = null;
             this.loaded = false;
             setTimeout(function(){
-                gl.deleteBuffer(pending);
+                gl.deleteBuffer(pending); 
             }, 2000);
         }
 
@@ -7954,7 +8280,7 @@ YFM.Map.FloorQuickPolygon.prototype = {
             this.quickPolygonCBO = null;
             this.loaded = false;
             setTimeout(function(){
-                gl.deleteBuffer(pending);
+                gl.deleteBuffer(pending); 
             }, 2000);
         }
     },
@@ -7973,7 +8299,7 @@ YFM.Map.FloorQuickPolygon.prototype = {
         for(var i = 0; i < len; i++){
             sum += (pts[(i+1)%len][0] - pts[i][0])*(pts[(i+1)%len][1] + pts[i][1]);
         }
-        
+                                                    
         return sum > 0;
     },
 
@@ -8016,12 +8342,12 @@ YFM.Map.FloorQuickPolygon.prototype = {
     	var l, v, r;
 
         var parray = [];
-        for(i = 0; i < ptsCnt; i++){
+        for(var i = 0, ptsCnt = pts.length; i < ptsCnt; i++){
             parray.push(pts[i]);
         }
         
         while(parray.length > 3){
-        
+            
 		var li = -1;
 		var isear;
 		var tryings = 0;
@@ -8030,19 +8356,19 @@ YFM.Map.FloorQuickPolygon.prototype = {
             do{
                 tryings ++;
                 cnt = parray.length;
-                
+                    
                 if(tryings >= cnt) {
                     console.log("bad input.");
                     return null;
                 }
-                
+                    
                 li ++;
                 l = parray[li % cnt];
                 v = parray[(li+1) % cnt];
                 r = parray[(li+2) % cnt];
-                
+                    
                 isear = this._is_left_turn(l, v, r) ^ clockwise;
-                
+                    
                 if(isear){
                     var p
                     for(i = 0, cnt = parray.length; i < cnt; i++){
@@ -8053,7 +8379,7 @@ YFM.Map.FloorQuickPolygon.prototype = {
                         }
                     }
                 }
-                
+                    
             }while(!isear);
             
 
@@ -8064,7 +8390,7 @@ YFM.Map.FloorQuickPolygon.prototype = {
             parray.splice((li+1)%cnt, 1);
         }
         
-        if(3 == parray.size()){
+        if(3 == parray.length){
 
             triangles.push(parray[0]);
             triangles.push(parray[1]);
@@ -8161,7 +8487,7 @@ YFM.Map.FloorTextureRect.prototype = {
         this.textureRectSize = this.textureRectVarray.length/2;
         this.textureRectVarray = [];
         this.loaded = true;
-    },
+    }, 
 
     cleanTextureRect : function(){
         if(null !== this.textureRectVBO){
@@ -8170,7 +8496,185 @@ YFM.Map.FloorTextureRect.prototype = {
             this.textureRectVBO = null;
             this.loaded = false;
             setTimeout(function(){
-                gl.deleteBuffer(pending);
+                gl.deleteBuffer(pending); 
+            }, 2000);
+        }
+    }
+}
+
+
+
+
+YFM.Map.FloorTextureRectList = function(region, gl){
+    this.region = region;
+    this.gl = gl;
+    this.height = 2.0;
+
+    this.list = [];
+}
+
+YFM.Map.FloorTextureRectList.prototype = {
+	constructor : YFM.Map.FloorTextureRectList,
+
+    setHeight: function(value){
+        this.height = value;
+        var i, cnt;
+        for(i = 0, cnt = this.list.length; i < cnt; i++){
+            this.list[i].setHeight(value);
+        }
+    },
+
+    render : function(shader){
+
+        var i, cnt;
+
+        shader.setColorFlag(0);
+        this.gl.enable(this.gl.BLEND);
+        this.gl.blendFunc(this.gl.ONE, this.gl.ONE_MINUS_SRC_ALPHA);
+        this.gl.enable(this.gl.DEPTH_TEST);
+        this.gl.depthFunc(this.gl.LEQUAL);
+
+        for(i = 0, cnt = this.list.length; i < cnt; i++){
+            this.list[i].render(shader);
+        }
+
+        this.gl.disable(this.gl.DEPTH_TEST);
+        this.gl.disable(this.gl.BLEND);
+    },
+
+    addTextureType : function(texName){
+        var ret = this.list.length;
+        var layer = new YFM.Map.FloorTextureRectPlus(this.region, this.gl, texName);
+        this.list.push(layer);
+        layer.setHeight(this.height);
+
+        return ret;
+    },
+
+    addTextureRect : function(type, pts){
+
+        var rectLayer = this.list[type];
+
+        if(rectLayer){
+            rectLayer.addTextureRect(pts);
+        }
+    },
+
+    buildTextureRect : function(type){
+
+        var rectLayer = this.list[type];
+
+        if(rectLayer){
+            rectLayer.buildTextureRect();
+        }
+    }, 
+
+    cleanTextureRect : function(type){
+        var rectLayer = this.list[type];
+
+        if(rectLayer){
+            rectLayer.cleanTextureRect();
+        }
+    },
+
+    buildAllTextureRect : function(){
+
+        var i, cnt;
+        for(i = 0, cnt = this.list.length; i < cnt; i++){
+            this.list[i].buildTextureRect();
+        }
+    }, 
+
+    cleanAllTextureRect : function(){
+        var i, cnt;
+        for(i = 0, cnt = this.list.length; i < cnt; i++){
+            this.list[i].cleanTextureRect();
+        }
+    }
+}
+
+
+
+YFM.Map.FloorTextureRectPlus = function(region, gl, texName){
+    this.region = region;
+    this.gl = gl;
+    this.texName = texName;
+    this.height = 2.0;
+    this.textureRectVBO = null;
+    this.textureRectSize = 0;
+    this.textureRectVarray = [];
+    this.loaded = false;
+
+    var Vector = YFM.Math.Vector;
+    this.tex = [];
+    this.tex.push(Vector.vec(0.0, 0.0));
+    this.tex.push(Vector.vec(1.0, 0.0));
+    this.tex.push(Vector.vec(1.0, 1.0));
+    this.tex.push(Vector.vec(0.0, 1.0));
+}
+
+YFM.Map.FloorTextureRectPlus.prototype = {
+	constructor : YFM.Map.FloorTextureRectPlus,
+
+    setHeight: function(value){
+        this.height = value;
+    },
+
+    render : function(shader){
+
+        if(this.loaded){
+
+            var tex = this.region.getTexture(this.texName);
+            if(null !== tex){
+                shader.bindTexture(tex.tex);
+                shader.drawTriangles(this.textureRectVBO, this.textureRectSize);
+            }
+        }
+    },
+
+    addTextureRect : function(pts){
+
+        pts[0][2] = this.height;
+        pts[1][2] = this.height;
+        pts[2][2] = this.height;
+        pts[3][2] = this.height;
+
+        this.textureRectVarray.push(pts[0]);
+        this.textureRectVarray.push(this.tex[0]);
+        this.textureRectVarray.push(pts[1]);
+        this.textureRectVarray.push(this.tex[1]);
+        this.textureRectVarray.push(pts[2]);
+        this.textureRectVarray.push(this.tex[2]);
+
+        this.textureRectVarray.push(pts[0]);
+        this.textureRectVarray.push(this.tex[0]);
+        this.textureRectVarray.push(pts[2]);
+        this.textureRectVarray.push(this.tex[2]);
+        this.textureRectVarray.push(pts[3]);
+        this.textureRectVarray.push(this.tex[3]);
+    },
+
+    buildTextureRect : function(){
+        if(this.textureRectVarray.length <= 0){
+            return;
+        }
+        this.cleanTextureRect();
+        this.textureRectVBO = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.textureRectVBO);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, YFM.Math.flatten(this.textureRectVarray, 4), this.gl.STATIC_DRAW);
+        this.textureRectSize = this.textureRectVarray.length/2;
+        this.textureRectVarray = [];
+        this.loaded = true;
+    }, 
+
+    cleanTextureRect : function(){
+        if(null !== this.textureRectVBO){
+            var pending = this.textureRectVBO;
+            var gl = this.gl;
+            this.textureRectVBO = null;
+            this.loaded = false;
+            setTimeout(function(){
+                gl.deleteBuffer(pending); 
             }, 2000);
         }
     }
@@ -8184,10 +8688,20 @@ YFM.Map.FloorTrajectory = function(region, floor, gl){
     this.height = 1.0;
     this.meshList = [];
     this.time = 0.0;
+    
+    //this.seg_width = 8.0;
+    //this.step_len = 128.0;
+    this.seg_width = 2.0;
+    this.step_len = 32.0;
 }
 
 YFM.Map.FloorTrajectory.prototype = {
 	constructor : YFM.Map.FloorTrajectory,
+
+    setWidth : function(value){
+        this.seg_width = value;
+        this.step_len = value*16.0;
+    },
 
     setHeight : function(value){
         this.height = value;
@@ -8210,7 +8724,7 @@ YFM.Map.FloorTrajectory.prototype = {
                 shader.setFloorMat(this.floor.floorMat);
                 shader.setTime(this.time);
 
-                shader.bindTexture(tex.tex);
+                shader.bindTexture(tex.tex); 
 
                 gl.enable(gl.BLEND);
                 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -8237,7 +8751,7 @@ YFM.Map.FloorTrajectory.prototype = {
 
         
         this.meshList.push(this._makeSegsMesh(segList));
-    },
+    }, 
 
     cleanTrajectory : function(){
         for(var i = 0, cnt = this.meshList.length; i < cnt; i++){
@@ -8297,7 +8811,7 @@ YFM.Map.FloorTrajectory.prototype = {
 
             /**
              * 计算单位切向量
-             */
+             */ 
             cur_tan = Vector.vec(x2-x1, y2-y1);
             cur_tan = Vector.normalize(cur_tan);
 
@@ -8337,17 +8851,13 @@ YFM.Map.FloorTrajectory.prototype = {
     _makeSegsMesh : function(seg_list){
         var mesh;
         var i, seg_cnt, vcnt, index_cnt, index_offset, istart;
-        var seg_len, seg_width, step_len;
+        var seg_len;
         var x1, y1, x2, y2;
         var vx, vy;
         var nx, ny;
         var dist_start, dist_end, uv_start, uv_end;
         var seg;
 
-        //seg_width = 8.0;
-        //step_len = 128.0;
-        seg_width = 2.0;
-        step_len = 32.0;
 
         seg_cnt = seg_list.length;
 
@@ -8382,14 +8892,14 @@ YFM.Map.FloorTrajectory.prototype = {
             dist_start = seg.global_mileage;
             dist_end = dist_start + seg_len;
 
-            uv_start = dist_start/step_len;
-            uv_end   = dist_end/step_len;
+            uv_start = dist_start/this.step_len;
+            uv_end   = dist_end/this.step_len;
 
             vx = seg.tan[0];
             vy = seg.tan[1];
 
-            nx = vy*seg_width;
-            ny = vx*seg_width;
+            nx = vy*this.seg_width;
+            ny = vx*this.seg_width;
 
             //L1
             vbuf[i*8 + 0] = x1 - nx;
@@ -8509,7 +9019,7 @@ YFM.Map.AnimationMgr.prototype = {
 
             this.current.step += 1;
             switch(this.current.type){
-            
+                
             case YFM.Map.AnimationMgr.prototype.ANIM_TYPE_PITCH:
                 var pitch;
                 if(this.current.step == this.current.frame){
@@ -8645,7 +9155,7 @@ YFM.Map.AnimationMgr.prototype = {
                         curLoc = this.current.lookAt.to;
                     }else{
                         var Vector = YFM.Math.Vector;
-                        curLoc = Vector.add(this.current.lookAt.from,
+                        curLoc = Vector.add(this.current.lookAt.from, 
                             Vector.scale(this.current.lookAt.direction, this.current.step*this.current.lookAt.interval));
                     }
                     this.camera.setLookAt(curLoc[0], curLoc[1], curLoc[2]);
@@ -8699,7 +9209,7 @@ YFM.Map.AnimationMgr.prototype = {
     animLookDistance : function(distance, tag, frame, exclusive){
 
         /*
-        var d = YFM.Math.clamp(distance,
+        var d = YFM.Math.clamp(distance, 
             this.touchMgr.getViewOffsetMin(),
             this.touchMgr.getViewOffsetMax());
             */
@@ -8943,7 +9453,7 @@ YFM.Map.Region = function(id, glCanvas, txtCanvas, listener){
     this.color2DShader          = new YFM.WebGL.Color2DProgram(this.gl);
     //this.pointSpiritShader    = new YFM.WebGL.PointSpiritProgram(this.gl);
     //this.panoramaShader       = new YFM.WebGL.RawPanoramaProgram(this.gl);
-    this.modelPhongShader       = new YFM.WebGL.ModelPhongProgram(this.gl);
+    //this.modelPhongShader       = new YFM.WebGL.ModelPhongProgram(this.gl);
     this.ssrShader              = new YFM.WebGL.SSRProgram(this.gl, this);
     this.trajectoryShader       = new YFM.WebGL.TrajectoryProgram(this.gl);
     this.maxSize = 0;
@@ -8954,7 +9464,7 @@ YFM.Map.Region = function(id, glCanvas, txtCanvas, listener){
     //this.dummyRays = new YFM.WebGL.Rays(this);
 
     var self = this;
-    this.touchMgr = new YFM.Map.RegionTouchMgr(this.camera, txtCanvas, this.ctx2d, this, {
+    this.touchMgr = new YFM.Map.RegionTouchMgr(this.camera, txtCanvas, this.ctx2d, this, { 
         onClick : function(x, y){
             if(self.listener && self.listener.onClick){
                 self.listener.onClick(x, y);
@@ -9008,13 +9518,14 @@ YFM.Map.Region = function(id, glCanvas, txtCanvas, listener){
 
 
     this.texturePool = new YFM.WebGL.TexturePool(this.gl);
+    //this.modelPool = new YFM.WebGL.ModelPool();
 
     //this.extrudeLightNormal = YFM.Math.Vector.normalize(YFM.Math.Vector.vec(0.5, 0.5, 1.0));
     //现在先用同一个光
     this.extrudeLightNormal = YFM.Math.Vector.normalize(YFM.Math.Vector.vec(0.0, 1.0, 1.0));
     this.extrudeLightOver = YFM.Math.Vector.normalize(YFM.Math.Vector.vec(0.0, 1.0, 1.0));
     this.extrudeLight = this.extrudeLightNormal;
-    this.modelLight = YFM.Math.Vector.normalize(YFM.Math.Vector.vec(-1.0, -1.0, 1.0));
+    this.modelLight = YFM.Math.Vector.normalize(YFM.Math.Vector.vec(0.5, 0.5, 1.0));
 
     this.overlook = false;
     this.drawUnitTextAlways = false;
@@ -9023,6 +9534,8 @@ YFM.Map.Region = function(id, glCanvas, txtCanvas, listener){
     this.customFloorHeight = null;
     this.regionThumbnail = new YFM.Map.RegionThumbnail(this);
     this.regionThumbnailFlag = false;
+
+    this.modelsVisibility = false;
 
 
     this.status = YFM.Map.STATUS_TOUCH;
@@ -9036,11 +9549,22 @@ YFM.Map.Region = function(id, glCanvas, txtCanvas, listener){
 
     this.markerAnim = {
     };
-    this._initMarkerAnim();
+    this._initMarkerAnim();    
 }
 
 YFM.Map.Region.prototype = {
-	constructor : YFM.Map.Region,
+	constructor : YFM.Map.Region, 
+
+    setModelsVisibility : function(value){
+        this.modelsVisibility = value;
+    },
+
+    setTrajectoryWidth : function(width){
+        
+        for(var i = 0, cnt = this.floors.length; i < cnt; i++){
+            this.floors[i].setTrajectoryWidth(width);
+        }
+    },
 
     /**
      * 设置楼层Marker动画的参数
@@ -9102,7 +9626,7 @@ YFM.Map.Region.prototype = {
 
     /**
      * thumbnailPersistence 将region缩略图的参数持久化出来 返回一个对象, 包含三个数组
-     *
+     * 
      * setThumbnailParam 将上面持久化得到的参数, 设置给region缩略图
      */
     thumbnailPersistence : function(){
@@ -9116,7 +9640,7 @@ YFM.Map.Region.prototype = {
      * startThumbnailSetting 进入设置region缩略图状态
      * 此时region会用正交投影渲染, region缩略图会同时渲染出来
      * 可对region进行操作, 调整region缩略图位置大小俯仰方向
-     *
+     * 
      * endThumbnailSetting 结束设置region缩略图状态
      * 同时会自动保存设置
      *
@@ -9351,7 +9875,7 @@ YFM.Map.Region.prototype = {
                 }
 
                 if(self.listener){
-                    self.listener.onLoadFinish(floor.id, floor.index);
+                    self.listener.onLoadFinish(floor.id, floor.index);    
 
                     if(allLoaded){
                         self._restructure();
@@ -9430,7 +9954,7 @@ YFM.Map.Region.prototype = {
      * 获取楼层地图尺寸
      */
     getFloorAspect : function(floorIndex){
-        return this.floors[floorIndex].getAspect();
+        return this.floors[floorIndex].getAspect(); 
     },
 
     /**
@@ -9547,6 +10071,14 @@ YFM.Map.Region.prototype = {
     animLookDistance : function(distance, tag){
 
         this.animMgr.animLookDistance(distance, tag);
+    },
+
+    /**
+     * 设置摄像机离观察点的距离
+     */
+    setLookAtDistance : function(distance){
+
+        this.camera.setLookOffset(0, 0, -distance);
     },
 
     /**
@@ -9795,28 +10327,89 @@ YFM.Map.Region.prototype = {
         this.floors[floor].setCalloutVisibility(visible);
     },
 
+    insertQuickCallout : function(calloutObj, floor, x, y, offsetX, offsetY){
+        this.floors[floor].insertQuickCallout(calloutObj, x, y, offsetX, offsetY);
+    },
+
+    setQuickCalloutVisibility : function(floor, visible){
+        this.floors[floor].setQuickCalloutVisibility(visible);
+    },
+
+    /**
+     * 将模型添加到模型池
+     */
+    loadModel2Pool : function(baseUrl, name, onFinish, onFailed){
+        var ctx = this;
+        var model = new YFM.Mesh.ObjModel(this, baseUrl, name, 
+                                            function(m){
+                                                ctx.modelPool.addModel(m.name, m);
+                                                if(onFinish){
+                                                    onFinish(m);
+                                                }
+                                            }, 
+                                            function(status){
+                                                console.log("load model %s failed status:%o", name, status);
+                                                if(onFailed){
+                                                    onFailed(status);
+                                                }
+                                            }
+                                           );
+    },
 
     
     /**
-     * 插入模型
+     * 插入模型实例
      * floor 模型所在楼层
-     * model 模型对象
+     * name 模型对象
      * azimuth 模型方向调整
      * scale 模型缩放调整
      * x, y 模型楼层坐标
      * height 模型原点相对楼层的高度调整
      */
-    insertModel : function(floor, model, azimuth, scale, x, y, height){
-        return this.floors[floor].insertModel(model, azimuth, scale, x, y, height);
+    insertModelInstance : function(floor, name, azimuth, scale, x, y, z){
+        return this.floors[floor].insertModelInstance(name, azimuth, scale, x, y, z);
     },
 
     /**
-     * 移除模型
+     * 移除模型实例
      */
-    removeModel : function(id){
-        var floor = this._calcModelFloor(id);
-        return this.floors[floor].removeModel(id);
+    removeModelInstance : function(instance){
+        this.floors[instance.index].removeModelInstance(instance);
     },
+
+    /**
+     * 通用的TextureRectList接口
+     * addTRLType(texName)          增加类型, 返回对应的类型
+     * addTRLRect(floor, type, pts) 向某楼层添加指定类型的矩形
+     * buildTRLRect(floor, type)    构建某层楼的某类型网格
+     * cleanTRLRect(floor, type)    清除某层楼的某类型网格
+     * buildAllTRLRect(floor)       构建某层楼的所有类型网格
+     * cleanAllTRLRect(floor)       清除某层楼的所有类型网格
+     */
+    addTRLType : function(texName){
+        var ret;
+        for(var i = 0; i < this.floors.length; i++){
+            ret = this.floors[i].texRectList.addTextureType(texName);
+        }
+        return ret;
+    },
+    addTRLRect : function(floor, type, pts){
+        this.floors[floor].texRectList.addTextureRect(type, pts);
+    },
+    buildTRLRect : function(floor, type){
+        this.floors[floor].texRectList.buildTextureRect(type);
+    },
+    cleanTRLRect : function(floor, type){
+        this.floors[floor].texRectList.cleanTextureRect(type);
+    },
+    buildAllTRLRect : function(floor){
+        this.floors[floor].texRectList.buildAllTextureRect();
+    },
+    cleanAllTRLRect : function(floor){
+        this.floors[floor].texRectList.cleanAllTextureRect();
+    },
+
+
 
     /**
      * floor是楼层索引
@@ -9955,7 +10548,7 @@ YFM.Map.Region.prototype = {
         var orgFloor = this._calcMarkerFloor(id);
         var marker = this.floors[orgFloor].markers.removeMarker(id);
         if(null !== marker){
-            
+             
             retval = this.floors[floor].markers.insertMarker(marker, x, y);
         }
 
@@ -10359,7 +10952,7 @@ YFM.Map.Region.prototype = {
         this.color2DShader.useProgram();
         this.color2DShader.setProjectionMatrix(this.orthMat);
 
-        this.floors[i].renderMarkers(this.frustum, this.color2DShader, this.marker2DShader,
+        this.floors[i].renderMarkers(this.frustum, this.color2DShader, this.marker2DShader, 
                                             this.renderParam.pvrMat, this.renderParam.eyePos);
     },
 
@@ -10428,14 +11021,20 @@ YFM.Map.Region.prototype = {
             this.color2DShader.useProgram();
             this.color2DShader.setProjectionMatrix(this.orthMat);
             this.floors[i].renderCallout(this.frustum, this.color2DShader);
-
-            this.modelPhongShader.useProgram();
-            this.modelPhongShader.setProjectionMatrix(this.renderParam.projMat);
-            this.modelPhongShader.setViewMatrix(this.renderParam.viewMat);
-            this.modelPhongShader.setRegionMatrix(this.matRegion);
-            this.floors[i].renderModels(this.frustum, this.modelPhongShader, this.renderParam.vrMat, this.modelLight);
+            this.floors[i].renderQuickCallout(this.frustum, this.color2DShader);
 
             this.floors[i].renderTrajectory();
+
+            /*
+            if(this.modelsVisibility){
+                this.modelPhongShader.useProgram();
+                this.modelPhongShader.setLightPos(this.modelLight);
+                this.modelPhongShader.setProjectionMatrix(this.renderParam.projMat);
+                this.modelPhongShader.setViewMatrix(this.renderParam.viewMat);
+                this.modelPhongShader.setRegionMatrix(this.matRegion);
+                this.modelPhongShader.setNormalMatrix(this.renderParam.itvrMat);
+                this.floors[i].renderModels(this.modelPhongShader, this.renderParam.pvrMat);
+            }*/
         }
     },
 
@@ -10687,8 +11286,8 @@ YFM.Map.RegionLocMarker.prototype = {
     updateLocation : function(){
 
         if(-1 !== this.floorLoc.floor){
-            this.regionLoc = this.region.floorPos2RegionPos(this.floorLoc.floor,
-                                                            this.floorLoc.x,
+            this.regionLoc = this.region.floorPos2RegionPos(this.floorLoc.floor, 
+                                                            this.floorLoc.x, 
                                                             this.floorLoc.y);
 
             if(YFM.Map.STATUS_TOUCH != this.region.getStatus()){
@@ -10791,12 +11390,12 @@ YFM.Map.RegionLocMarker.prototype = {
          * 所以相当于
          * 地图与正北方向的偏角 - 转动的总角度(指示器marker的角度+地图转动角度)
          */
-        var azimuth = this.region.getFloorDeflection(this.floorLoc.floor) -
+        var azimuth = this.region.getFloorDeflection(this.floorLoc.floor) - 
                             (this.region.azimuth + this.region.getFloorAngle(this.floorLoc.floor));
         m = YFM.Math.Matrix.scaleXYZ(this.locMarker.texSize, 0, 0, 0);
         m = YFM.Math.Matrix.postTranslate(YFM.Math.Matrix.postRotateXY(m, azimuth, 0, 0),
                                             screenPos[0], screenPos[1], 0);
-                                            
+                                                                           
         texShader.setModelMatrix(m);
         texShader.drawTriangles(this.quadVBO, 6, 0);
 
@@ -11043,7 +11642,7 @@ YFM.Map.RegionThumbnail.prototype = {
         for(i = 0; i < cnt; i++){
             this._renderFloor(i);
         }
-        
+         
         this.region.route.renderThumbnail();
     },
 
@@ -11119,7 +11718,7 @@ YFM.Map.RegionTouchMgr = function(camera, canvas, ctx2d, region, listener){
     };
 
     /**
-     * pos和offset这里不需要维护一份了, 这数据其实在相机那有一份,
+     * pos和offset这里不需要维护一份了, 这数据其实在相机那有一份, 
      * 这里再维护, 一来冗余, 而来浪费同步调用
      */
     this.viewZoom = {
@@ -11248,7 +11847,7 @@ YFM.Map.RegionTouchMgr = function(camera, canvas, ctx2d, region, listener){
                 mgr.planeRec.translateY = (cur[1] - mgr.planeRec.start0[1]);
 
 
-                var mat = YFM.Math.Matrix.postTranslate(mgr.touchRec.savedmat,
+                var mat = YFM.Math.Matrix.postTranslate(mgr.touchRec.savedmat, 
                                     mgr.planeRec.translateX, mgr.planeRec.translateY, 0);
                 //不检查这个条件就可以推广到全楼层
                 if(mgr.region.displayFloorIndex === mgr.touchFloorIndex){
@@ -11323,7 +11922,7 @@ YFM.Map.RegionTouchMgr = function(camera, canvas, ctx2d, region, listener){
                     this.deltaAngle -= 1.0;
                     rotateFlag = true;
                 }else if('w' == event.key){
-                    this.deltaPitch = -1.0;
+                    this.deltaPitch = -1.0;        
                     pitchFlag = true;
                 }else if('s' == event.key){
                     this.deltaPitch = 1.0;
@@ -11388,20 +11987,12 @@ YFM.Map.RegionTouchMgr = function(camera, canvas, ctx2d, region, listener){
     };
     this.strategy_none = {
         name : "none",
-        timeStampPrev : 0,
-        timeStampCur : 0,
-        clickFlag : false,
-        twoFingerClickFlag : false,
-        timeStampTwoFinger : 0,
 
         mouseDown : function(event){
             mgr._onMouseDown(mgr.touchRec.layer0x, mgr.touchRec.layer0y);
         },
 
         touchDown : function(event){
-            this.timeStampPrev = this.timeStampCur;
-            this.timeStampCur = new Date().getTime();
-            mgr.longPressFlag = false;
 
             if(1 == event.touches.length){
                 
@@ -11424,6 +12015,8 @@ YFM.Map.RegionTouchMgr = function(camera, canvas, ctx2d, region, listener){
                 mgr.planeRec.prev = mgr.planeRec.start0 = mgr._pos_in_world_space(mgr.touchRec.layer0x, mgr.touchRec.layer0y);
                 mgr.planeRec.translateX = 0.0;
                 mgr.planeRec.translateY = 0.0;
+
+                mgr.strategy = mgr.strategy_scroll;
 
             }else if(event.touches.length > 1){
                 if(!mgr.enable){
@@ -11487,75 +12080,12 @@ YFM.Map.RegionTouchMgr = function(camera, canvas, ctx2d, region, listener){
             }
         },
         touchMove : function(event){
-            if(!mgr.enable){
-                return ;
-            }
-            var dx, dy
-            dx = mgr.touchRec.layer0x - mgr.touchRec.start0x;
-            dy = mgr.touchRec.layer0y - mgr.touchRec.start0y;
-
-
-            if(1 == event.touches.length && (dx*dx + dy*dy) > 100){
-                mgr.strategy = mgr.strategy_scroll;
-            }
         },
         touchUp : function(event){
-            var timeStamp = new Date().getTime();
-            /**
-             * click标志为false时, 进入Click判断
-             */
-            if(!this.clickFlag){
-                var clickElapse = timeStamp - this.timeStampCur;
-                if(clickElapse < 100){//100毫秒内视为Click
-                    this.clickFlag = true;//click标志设为true
-                    var ctx = this;
 
-                    /**
-                     * 注意, 经测试, 手势的双击等待时间最好比鼠标的长点从200->300是个较好的选择
-                     * 延时300毫秒等待双击的判断
-                     * 如果没有检查到双击, click标志仍然是true, 就触发一个稍有延迟的click
-                     */
-                    setTimeout(function(){
-                        if(ctx.clickFlag){
-                            ctx.clickFlag = false;
-
-                            /**
-                             * click除了要被后续的dclick吞噬
-                             * 还会被它之前的twoFingerClick吞噬
-                             */
-                            if(ctx.twoFingerClickFlag){
-                                ctx.twoFingerClickFlag = false;
-                            }else{
-                                mgr._onClick(mgr.touchRec.start0x, mgr.touchRec.start0y);
-                            }
-                        }
-                    }, 300);
-
-                }else if(clickElapse > 800){
-                    /**
-                     * 在click标志false时检查长按
-                     */
-                    if(!mgr.longPressFlag)
-                        mgr._onLongPressUp(mgr.touchRec.start0x, mgr.touchRec.start0y);
-                }
-
-            }else{
-                /**
-                 * 如果已经是click标志为true了, 就检查双击
-                 */
-                var dclickElapse = timeStamp - this.timeStampPrev;
-                if(dclickElapse < 300){//第一次抬起三百毫秒内再次抬起视为双击
-                    mgr._onDClick(mgr.touchRec.start0x, mgr.touchRec.start0y);
-                }
-                /**
-                 * 只要进行了双击检定, 不论是否满足双击, 都清掉click标志
-                 */
-                this.clickFlag = false;
-            }
-
+            //mgr._onClick(mgr.touchRec.start0x, mgr.touchRec.start0y);
             if(0 == event.touches.length){
                 mgr.hangUp = false;
-                //mgr.touchFloorIndex = -2;
             }
         },
         touchCancel : function(event){
@@ -11652,7 +12182,7 @@ YFM.Map.RegionTouchMgr = function(camera, canvas, ctx2d, region, listener){
 
                 mgr.planeRec.prev = cur;
 
-                var mat = YFM.Math.Matrix.postTranslate(mgr.touchRec.savedmat,
+                var mat = YFM.Math.Matrix.postTranslate(mgr.touchRec.savedmat, 
                                     mgr.planeRec.translateX, mgr.planeRec.translateY, 0);
                 //不检查这个条件就可以推导到全楼层
                 if(mgr.region.displayFloorIndex === mgr.touchFloorIndex){
@@ -11708,19 +12238,20 @@ YFM.Map.RegionTouchMgr = function(camera, canvas, ctx2d, region, listener){
         },
         touchUp : function(event){
 
-            var timeStamp = new Date().getTime();
-            var clickElapse = timeStamp - mgr.strategy_none.timeStampCur;
-            if(clickElapse < 100){//100毫秒内为双指单击
-                //debug.log("scroll -- double finger click");
-            }else{
-                //debug.log("scroll -- double finger check faild elapse:"+clickElapse);
-            }
+
+            /**
+             * 之所以这样做, 是因为手机上的触摸消息有特殊之处
+             * 当手指抬起时, 是无法获取抬起时的触摸点的
+             * 所以需要去比较, translateX, translateY这一对积累值
+             * 发生触摸也只能用按下的位置触发, 不过这样处理, 表现上还算合理
+             */
+            var dx = mgr.planeRec.translateX;
+            var dy = mgr.planeRec.translateY;
+            if((dx*dx + dy*dy) <= 16)
+                mgr._onClick(mgr.touchRec.start0x, mgr.touchRec.start0y);
 
             mgr.hangUp = false;
             mgr.strategy = mgr.strategy_none;
-            if(0 == event.touches.length){
-                //mgr.touchFloorIndex = -1;
-            }
         },
         touchCancel : function(event){
 
@@ -11749,7 +12280,7 @@ YFM.Map.RegionTouchMgr = function(camera, canvas, ctx2d, region, listener){
              */
             if(YFM.Map.STATUS_TOUCH !== mgr.region.getStatus()){
                 var newScreenSpacing = mgr._spacingScreenSpace(
-                        mgr.touchRec.layer0x, mgr.touchRec.layer0y,
+                        mgr.touchRec.layer0x, mgr.touchRec.layer0y, 
                         mgr.touchRec.layer1x, mgr.touchRec.layer1y);
                 var delta = mgr.touchRec.screenSpacing - newScreenSpacing;
 
@@ -11801,14 +12332,14 @@ YFM.Map.RegionTouchMgr = function(camera, canvas, ctx2d, region, listener){
              * 后面用拉镜头模拟缩放, 以及处理旋转
              */
             var newScreenSpacing = mgr._spacingScreenSpace(
-                    mgr.touchRec.layer0x, mgr.touchRec.layer0y,
+                    mgr.touchRec.layer0x, mgr.touchRec.layer0y, 
                     mgr.touchRec.layer1x, mgr.touchRec.layer1y);
             if(newScreenSpacing < 200){
                 return;
             }else{
 
                 var newViewSpacing = mgr._spacingViewSpace(
-                    mgr.touchRec.layer0x, mgr.touchRec.layer0y,
+                    mgr.touchRec.layer0x, mgr.touchRec.layer0y, 
                     mgr.touchRec.layer1x, mgr.touchRec.layer1y);
 
                 var angle = mgr._calc_angle(event);
@@ -11821,7 +12352,7 @@ YFM.Map.RegionTouchMgr = function(camera, canvas, ctx2d, region, listener){
                  * 如果视空间中触摸点的z比较小, 这时的缩放效果会出现异常
                  * 最典型的情景就是多层地图, 触摸高层手势拉近, 当视空间原点离触摸的楼层很近时
                  * 这个spacing的值是很小的, 而人手触摸的信号有一些自然噪声, 导致spacing在0附近不断变动
-                 * 此时还通过spacing来计算拉近的deltaZoom, 会出现一些震荡的效果,
+                 * 此时还通过spacing来计算拉近的deltaZoom, 会出现一些震荡的效果, 
                  * 我们检测到z比较小, 又处于拉近时, 产生一个较大的deltaZoom直接跨过这段区域, 效果不错
                  */
                 var deltaZoom = (mgr.touchRec.viewSpacing - newViewSpacing.spacing)/2.0;
@@ -11873,45 +12404,8 @@ YFM.Map.RegionTouchMgr = function(camera, canvas, ctx2d, region, listener){
             mgr.focusFloorDirty = true;
         },
         touchUp : function(event){
-
-
-            if(event.touches.length>1){
-                mgr.hangUp = true;
-            }else if(event.touches.length>=0){
-                mgr.hangUp = false;
-                mgr.strategy = mgr.strategy_none;
-                mgr.longPressFlag = true;//这是为了兼容安卓和ios的双指状态放开的微小差异
-                mgr.touchRec.savedmat = YFM.Math.Matrix.matClone(mgr.region._getRegionMat());
-                mgr.touchRec.start0x = mgr.touchRec.layer0x;
-                mgr.touchRec.start0y = mgr.touchRec.layer0y;
-                
-
-                mgr.planeRec.prev = mgr.planeRec.start0 = mgr._pos_in_world_space(mgr.touchRec.layer0x, mgr.touchRec.layer0y);
-                mgr.planeRec.translateX = 0.0;
-                mgr.planeRec.translateY = 0.0;
-                
-                /**
-                 * 这里有蹊跷, safari 双指触摸touchend时touches长度为0, 而chrome为1
-                 * 先两个都视为停止楼层触摸
-                 */
-                //mgr.touchFloorIndex = -1;
-                //
-                var timeStamp = new Date().getTime();
-                var clickElapse = timeStamp - mgr.strategy_none.timeStampCur;
-                if(clickElapse < 100){//100毫秒内为双指单击
-
-                    /**
-                     * 如果双指间距大于300不再视为双指单击
-                     */
-                    if(mgr.touchRec.screenSpacing < 300){
-                        mgr._on2FClick(mgr.touchRec.start0x, mgr.touchRec.start0y);
-                    }
-                    mgr.strategy_none.twoFingerClickFlag = true;
-                }
-            }else{
-                mgr.strategy = mgr.strategy_none;
-                //mgr.touchFloorIndex = -1;
-            }
+            mgr.hangUp = false;
+            mgr.strategy = mgr.strategy_none;
         },
         touchCancel : function(event){
             mgr.hangUp = false;
@@ -11931,7 +12425,7 @@ YFM.Map.RegionTouchMgr = function(camera, canvas, ctx2d, region, listener){
             return;
         }
         event.preventDefault();
-        
+                
         /**
          * 计算得到与控件位置/滚动条 无关的事件位置
          */
@@ -11980,7 +12474,7 @@ YFM.Map.RegionTouchMgr = function(camera, canvas, ctx2d, region, listener){
             return;
         }
         event.preventDefault();
-        
+                
         /**
          * 计算得到与控件位置/滚动条 无关的事件位置
          */
@@ -11996,7 +12490,7 @@ YFM.Map.RegionTouchMgr = function(camera, canvas, ctx2d, region, listener){
 
                 /**
                  * 在鼠标按下时才监听键盘
-                 */
+                 */ 
                 document.onkeypress = arguments.callee;
 
                 mgr._updateEventLayerPos(event);
@@ -12287,7 +12781,7 @@ YFM.Map.RegionTouchMgr.prototype = {
 
         var dx = pos1[0] - pos0[0];
         var dy = pos1[1] - pos0[1];
-        return {
+        return { 
                 z : (pos0[2] + pos1[2])/2.0,
                 spacing : Math.sqrt(dx*dx + dy*dy)};
     },
@@ -12988,7 +13482,7 @@ YFM.Map.SSRoute.prototype = {
             var tex = texturePool.getTexture("route_tex");
             var displayLocation = true;
             if(null != tex){
-                shader.bindTexture(tex.tex);
+                shader.bindTexture(tex.tex); 
 
                 gl.enable(gl.BLEND);
                 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -13004,7 +13498,7 @@ YFM.Map.SSRoute.prototype = {
                 gl.disable(gl.DEPTH_TEST);
                 gl.disable(gl.BLEND);
 
-                this.timeThumbnail -= 0.01;
+                this.timeThumbnail -= 0.01;    
             }
         }
     },
@@ -13029,7 +13523,7 @@ YFM.Map.SSRoute.prototype = {
             var tex = texturePool.getTexture("route_tex");
             var displayLocation = true;
             if(null != tex){
-                shader.bindTexture(tex.tex);
+                shader.bindTexture(tex.tex); 
 
                 gl.enable(gl.BLEND);
                 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -13103,7 +13597,7 @@ YFM.Map.SSRoute.prototype = {
 
         while(len < max){
             pos = YFM.Math.Vector.add(start, YFM.Math.Vector.scale(direct, len));
-            shader.setModelMatrix(YFM.Math.Matrix.postTranslate(sMat,
+            shader.setModelMatrix(YFM.Math.Matrix.postTranslate(sMat, 
                     pos[0],
                     pos[1],
                     pos[2]+this.tailSize));
@@ -13589,7 +14083,7 @@ YFM.Map.SSRoute.prototype = {
         /**
          * 解决点在近平面之后的问题
          */
-        if(out[3] > 0.0){
+        if(out[3] > 0.0){  
             out[0] /= out[3];
             out[1] /= out[3];
             out[2] /= out[3];
@@ -13929,7 +14423,7 @@ YFM.Map.SSRoute.prototype.FloorRoute.prototype = {
             delta = 360.0 + delta;
         }
 
-        if((delta > 337.5  && delta <= 0) ||
+        if((delta > 337.5  && delta <= 0) || 
             (delta > 0      && delta <= 22.5)){
             sug = YFM.Map.Navigate.Suggestion.FRONT;
         }else if(delta > 22.5 && delta <= 67.5){
@@ -13953,7 +14447,7 @@ YFM.Map.SSRoute.prototype.FloorRoute.prototype = {
 
     getLength : function(){
         return this.segList.length;
-    },
+    }, 
     getSeg : function(i){
         return this.segList[i];
     }
@@ -14103,9 +14597,9 @@ YFM.Math.LDS = function(){
         return inverse;
     };
 
-    var primes = [  2, 3, 5, 7, 11,
-                    13, 17, 19, 23,
-                    29, 31, 37, 41,
+    var primes = [  2, 3, 5, 7, 11, 
+                    13, 17, 19, 23, 
+                    29, 31, 37, 41, 
                     43, 57];
 
     var nthPrimeNumber = function(n){
@@ -14119,7 +14613,7 @@ YFM.Math.LDS = function(){
 
     var halton = function(dimension, index){
         // 直接用第dimension个质数作为底数调用radicalInverse即可
-        return radicalInverse(nthPrimeNumber(dimension), index);
+        return radicalInverse(nthPrimeNumber(dimension), index);    
     };
 
 	return {
@@ -14184,14 +14678,14 @@ YFM.Math.Line = function(){
 
     var getPoint = function(line, t){
 
-        return YFM.Math.Vector.pos(
-                    line[0] + line[4]*t,
+        return YFM.Math.Vector.pos( 
+                    line[0] + line[4]*t, 
                     line[1] + line[5]*t,
                     line[2] + line[6]*t);
     };
 
     var projection = function(line, position){
-        var a = YFM.Math.Vector.pos(line[0], line[1], line[2]);
+        var a = YFM.Math.Vector.pos(line[0], line[1], line[2]); 
         var ab= YFM.Math.Vector.vec(line[4], line[5], line[6]);
         var ap= YFM.Math.Vector.sub(position, a);
     
@@ -14202,8 +14696,8 @@ YFM.Math.Line = function(){
         }else if(t >= 1){
             return YFM.Math.Vector.add(a, ab);
         }else{
-            return YFM.Math.Vector.pos(
-                    line[0] + line[4]*t,
+            return YFM.Math.Vector.pos( 
+                    line[0] + line[4]*t, 
                     line[1] + line[5]*t,
                     line[2] + line[6]*t);
         }
@@ -14251,7 +14745,7 @@ YFM.Math.Line = function(){
 
         delta = v1v2dotp * v1v2dotp - norm_sq_v1 * norm_sq_v2;
 
-        parallel = YFM.Math.floatEquals(delta, 0.0);
+        parallel = YFM.Math.floatEquals(delta, 0.0); 
 
         if(false == parallel){
             /**
@@ -14321,13 +14815,13 @@ YFM.Math.Line = function(){
 
 	return {
         line : line,
-        lineSV : lineSV,
-        linePP : linePP,
-        getPoint : getPoint,
+        lineSV : lineSV, 
+        linePP : linePP, 
+        getPoint : getPoint, 
         projection : projection,
-        distancePointSQ : distancePointSQ,
-        distancePoint : distancePoint,
-        distanceLinesRaw : distanceLinesRaw,
+        distancePointSQ : distancePointSQ, 
+        distancePoint : distancePoint, 
+        distanceLinesRaw : distanceLinesRaw, 
         distanceLines : distanceLines,
         transform : transform
     };
@@ -14728,7 +15222,7 @@ YFM.Math.Matrix = function(){
     };
 
     var invert = function(src){
-        var
+        var 
             a00 = src[0], a01 = src[1], a02 = src[2],  a03 = src[3],
             a10 = src[4], a11 = src[5], a12 = src[6],  a13 = src[7],
             a20 = src[8], a21 = src[9], a22 = src[10], a23 = src[11],
@@ -15196,7 +15690,7 @@ YFM.Math.Matrix = function(){
         eigvec.push(v[2][2]);
 
         return { value : eigvalue,
-                vec : eigvec};
+                vec : eigvec}; 
     };
 
     /**
@@ -15336,7 +15830,7 @@ YFM.Math.PPolyline.prototype = {
     constructor : YFM.Math.PPolyline,
 
     getSumLength : function(){
-        return this.sumLength;
+        return this.sumLength; 
     },
 
     /**
@@ -16383,10 +16877,1072 @@ YFM.Math.Mover.prototype = {
 }
 
 /**
+ * 轴对齐包围盒AABB
+ * 由于我们的轴对齐包围和需要和OBB, 视锥, 点, 直线, 做相交判断
+ * 故比常见的AABB多初始化了一些东西, 整体的结构类似于OBB
+ * 但由于不需要做特征分解, 初始化的成本还是小很多
+ * 一些判断操作开销也小得多
+ */
+YFM.Math.AABB = function(xMin, xMax, yMin, yMax, zMin, zMax){
+
+    this.isAABB = true;
+
+    /**
+     * 此范围向量, 用于以AABB的方式进行一些检定
+     */
+    this.min = new Array(xMin, yMin, zMin);
+    this.max = new Array(xMax, yMax, zMax);
+
+    var xHalf = (xMin + xMax)/2.0;
+    var yHalf = (yMin + yMax)/2.0;
+    var zHalf = (zMin + zMax)/2.0;
+
+    /**
+     * 三个半轴长度
+     */
+    this.half = new Array((xMax - xMin)/2.0, (yMax - yMin)/2.0, (zMax - zMin)/2.0);
+
+    var Vector = YFM.Math.Vector;
+    var Plane = YFM.Math.Plane;
+
+    /**
+     * 此六面, 用于以OBB的方式, 做直线的相交检定
+     */
+    var xMinPlane = Plane.plane(xMin,  yHalf,  zHalf,  1.0,     0.0,    0.0);
+    var xMaxPlane = Plane.plane(xMax,  yHalf,  zHalf,  -1.0,    0.0,    0.0);
+    var yMinPlane = Plane.plane(xHalf, yMin,   zHalf,  0.0,     1.0,    0.0);
+    var yMaxPlane = Plane.plane(xHalf, yMax,   zHalf,  0.0,     -1.0,   0.0);
+    var zMinPlane = Plane.plane(xHalf, yHalf,  zMin,   0.0,     0.0,    1.0);
+    var zMaxPlane = Plane.plane(xHalf, yHalf,  zMax,   0.0,     0.0,    -1.0);
+    this.minPlane = new Array(xMinPlane, yMinPlane, zMinPlane);
+    this.maxPlane = new Array(xMaxPlane, yMaxPlane, zMaxPlane);
+
+    /**
+     * 此三向量, 用来快速计算AABB和任意平面的有效距离
+     */
+    this.x = Vector.vec(1.0, 0.0, 0.0);
+    this.y = Vector.vec(0.0, 1.0, 0.0);
+    this.z = Vector.vec(0.0, 0.0, 1.0);
+    this.X = Vector.scale(this.x, xMax - xMin);
+    this.Y = Vector.scale(this.y, yMax - yMin);
+    this.Z = Vector.scale(this.z, zMax - zMin);
+
+    /**
+     * 此中心, 用于结合到任意平面的有效距离, 和任意平面做相交检定
+     */
+    this.center = Vector.pos(xHalf, yHalf, zHalf);
+}
+
+YFM.Math.AABB.prototype = {
+    constructor : YFM.Math.AABB,
+
+    LEVEL_COLOR : new Array(
+                YFM.Math.Vector.pos(1.0, 0.0, 0.0),
+                YFM.Math.Vector.pos(1.0, 0.5, 0.0),
+                YFM.Math.Vector.pos(1.0, 1.0, 0.0),
+                YFM.Math.Vector.pos(0.0, 1.0, 0.0),
+
+                YFM.Math.Vector.pos(0.0, 1.0, 1.0),
+                YFM.Math.Vector.pos(0.0, 0.0, 1.0),
+                YFM.Math.Vector.pos(0.5, 0.0, 1.0),
+                YFM.Math.Vector.pos(0.0, 0.0, 0.0)),
+
+    /**
+     * 与任意点做相交检定
+     * false代表相离
+     * true代表相交
+     */
+    posCheck : function(pos){
+        if(this.max[0] < pos[0] || this.min[0] > pos[0])
+            return false;
+        if(this.max[1] < pos[1] || this.min[1] > pos[1])
+            return false;
+        if(this.max[2] < pos[2] || this.min[2] > pos[2])
+            return false;
+
+        return true;
+    },
+
+    /**
+     * 与其他AABB做相交检定
+     * false代表相离
+     * true代表相交
+     */
+    aabbCheck : function(aabb){
+        if(this.max[0] < aabb.min[0] || this.min[0] > aabb.max[0])
+            return false;
+        if(this.max[1] < aabb.min[1] || this.min[1] > aabb.max[1])
+            return false;
+        if(this.max[2] < aabb.min[2] || this.min[2] > aabb.max[2])
+            return false;
+
+        return true;
+    },
+
+    /**
+     * 与其他AABB做相交检定
+     * 0代表相离
+     * 1代表包含
+     * 2代表相交
+     */
+    aabbCheckPlus : function(aabb){
+        if(this.max[0] < aabb.min[0] || this.min[0] > aabb.max[0])
+            return 0;
+        if(this.max[1] < aabb.min[1] || this.min[1] > aabb.max[1])
+            return 0;
+        if(this.max[2] < aabb.min[2] || this.min[2] > aabb.max[2])
+            return 0;
+
+        if(this.max[0] >= aabb.max[0] && this.min[0] <= aabb.min[0] &&
+            this.max[1] >= aabb.max[1] && this.min[1] <= aabb.min[1] &&
+            this.max[2] >= aabb.max[2] && this.min[2] <= aabb.min[2])
+            return 1;
+
+        return 2;
+    },
+
+
+    /**
+     * 本aabb, 与另一个obb的检定
+     * 返回1代表本aabb, 包含obb
+     * 返回0代表相交
+     * 返回-1代表相离
+     */
+    obbCheck : function(obb){
+        if(!obb || !obb.isOBB){
+            return -1;
+        }
+        var outCnt, inCnt, joinCnt;
+        var radius, distance;
+        var Plane = YFM.Math.Plane;
+
+        outCnt = 0;
+        inCnt = 0;
+        joinCnt = 0;
+
+        do{
+            radius = obb.effectiveRadius(this.minPlane[0]);
+            distance = Plane.distance(this.minPlane[0], obb.center);
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            radius = obb.effectiveRadius(this.maxPlane[0]);
+            distance = Plane.distance(this.maxPlane[0], obb.center);
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            radius = obb.effectiveRadius(this.minPlane[1]);
+            distance = Plane.distance(this.minPlane[1], obb.center);
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            radius = obb.effectiveRadius(this.maxPlane[1]);
+            distance = Plane.distance(this.maxPlane[1], obb.center);
+            if(distance < -radius)
+                outCnt ++;
+            else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            radius = obb.effectiveRadius(this.minPlane[2]);
+            distance = Plane.distance(this.minPlane[2], obb.center);
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            radius = obb.effectiveRadius(this.maxPlane[2]);
+            distance = Plane.distance(this.maxPlane[2], obb.center);
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+        }while(false);
+
+
+        /**
+         * 如果obb在frustum的6个面之内视作包含
+         * 只要obb在任意面之外视作外离
+         * 其他情况视作相交
+         */
+        if(6 == inCnt ){
+            return 1;
+        }else if(outCnt > 0){
+            return -1;
+        }else{
+            return 0;
+        }
+    },
+
+    /**
+     * 带交点参数的直线相交检定
+     */
+    lineCheckDetail : function(line){
+        var Vector = YFM.Math.Vector;
+        var o, d, p, tMax, tMin, t1, t2, e, f, tmp;
+        var ret = {
+                    result:false,
+                    tMax : Number.MAX_VALUE,
+                    tMin : -Number.MAX_VALUE};
+
+
+        tMax = Number.MAX_VALUE;
+        tMin = -Number.MAX_VALUE;
+        o = Vector.pos(line[0], line[1], line[2]);
+        d = Vector.normalize(Vector.vec(line[4], line[5], line[6]));
+        p = Vector.sub(this.center, o);
+
+        e = Vector.dot3(this.x, p);
+        f = Vector.dot3(this.x, d);
+        if(YFM.Math.floatNotZero(f)){
+            t1 = (e + this.half[0]) / f;
+            t2 = (e - this.half[0]) / f;
+            if(t1 > t2){
+                tmp = t2;
+                t2 = t1;
+                t1 = tmp;
+            }
+            if(t1 > tMin)
+                tMin = t1;
+            if(t2 < tMax)
+                tMax = t2;
+
+
+            if(tMin > tMax)
+                return ret;
+            if(tMax < 0)
+                return ret;
+        }else if((-e - this.half[0]) > 0 || (- e + this.half[0]) < 0)
+            return ret;
+
+        e = YFM.Math.Vector.dot3(this.y, p);
+        f = YFM.Math.Vector.dot3(this.y, d);
+        if(YFM.Math.floatNotZero(f)){
+            t1 = (e + this.half[1]) / f;
+            t2 = (e - this.half[1]) / f;
+            if(t1 > t2){
+                tmp = t2;
+                t2 = t1;
+                t1 = tmp;
+            }
+            if(t1 > tMin)
+                tMin = t1;
+            if(t2 < tMax)
+                tMax = t2;
+            if(tMin > tMax)
+                return ret;
+            if(tMax < 0)
+                return ret;
+        }else if((-e - this.half[1]) > 0 || (- e + this.half[1]) < 0)
+            return ret;
+
+        e = YFM.Math.Vector.dot3(this.z, p);
+        f = YFM.Math.Vector.dot3(this.z, d);
+        if(YFM.Math.floatNotZero(f)){
+            t1 = (e + this.half[2]) / f;
+            t2 = (e - this.half[2]) / f;
+            if(t1 > t2){
+                tmp = t2;
+                t2 = t1;
+                t1 = tmp;
+            }
+            if(t1 > tMin)
+                tMin = t1;
+            if(t2 < tMax)
+                tMax = t2;
+            if(tMin > tMax)
+                return ret;
+            if(tMax < 0)
+                return ret;
+        }else if((-e - this.half[2]) > 0 || (- e + this.half[2]) < 0)
+            return ret;
+
+        ret.result = true;
+        ret.tMax = tMax;
+        ret.tMin = tMin;
+        return ret;
+    },
+
+    /**
+     * 简化版 直线相交检定
+     */
+    lineCheck : function(line){
+        var ret = this.lineCheckDetail(line);
+        return ret.result;
+    },
+
+    /**
+     * 带距离的视锥检定
+     */
+    frustumCheckDetail : function(frustum){
+        var Plane = YFM.Math.Plane;
+        var ret = {check : -1,
+                    dist : Number.MAX_VALUE};
+        var outCnt, inCnt, joinCnt;
+        var radius, distance;
+
+        outCnt = 0;
+        inCnt = 0;
+        joinCnt = 0;
+
+        /**
+         * 依次比较视锥的六面
+         * 如果检测到AABB在任一面外, 就可以返回了
+         *  会确保返回AABB的中心到视锥近平面的距离
+         */
+        do{
+            radius = this.effectiveRadius(frustum.near);
+            ret.dist = distance = Plane.distance(frustum.near, this.center);
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            radius = this.effectiveRadius(frustum.far);
+            distance = Plane.distance(frustum.far, this.center);
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            radius = this.effectiveRadius(frustum.left);
+            distance = Plane.distance(frustum.left, this.center);
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            radius = this.effectiveRadius(frustum.right);
+            distance = Plane.distance(frustum.right, this.center);
+            if(distance < -radius)
+                outCnt ++;
+            else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            radius = this.effectiveRadius(frustum.bottom);
+            distance = Plane.distance(frustum.bottom, this.center);
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            radius = this.effectiveRadius(frustum.top);
+            distance = Plane.distance(frustum.top, this.center);
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+        }while(false);
+
+
+        /**
+         * 如果AABB在frustum的6个面之内视作包含
+         * 只要AABB在任意面之外视作外离
+         * 其他情况视作相交
+         */
+        if(6 == inCnt ){
+            ret.check = 1;
+        }else if(outCnt > 0){
+            ret.check = -1;
+        }else{
+            ret.check = 0;
+        }
+        return ret;
+    },
+
+    frustumCheckDetailPlus : function(frustum){
+        var Plane = YFM.Math.Plane;
+        var ret = {check : -1,
+                    dist : [1024, 1024, 1024, 1024, 1024, 1024],
+                    radius : [0, 0, 0, 0, 0, 0]
+                    };
+        var outCnt, inCnt, joinCnt;
+        var radius, distance;
+
+        outCnt = 0;
+        inCnt = 0;
+        joinCnt = 0;
+
+        /**
+         * 依次比较视锥的六面
+         * 如果检测到AABB在任一面外, 就可以返回了
+         *  会确保返回AABB的中心到视锥近平面的距离
+         */
+        do{
+            ret.radius[0] = radius = this.effectiveRadius(frustum.near);
+            ret.dist[0] = distance = Plane.distance(frustum.near, this.center);
+
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            ret.radius[1] = radius = this.effectiveRadius(frustum.far);
+            ret.dist[1] = distance = Plane.distance(frustum.far, this.center);
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            ret.radius[2] = radius = this.effectiveRadius(frustum.left);
+            ret.dist[2] = distance = Plane.distance(frustum.left, this.center);
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            ret.radius[3] = radius = this.effectiveRadius(frustum.right);
+            ret.dist[3] = distance = Plane.distance(frustum.right, this.center);
+            if(distance < -radius)
+                outCnt ++;
+            else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            ret.radius[4] = radius = this.effectiveRadius(frustum.bottom);
+            ret.dist[4] = distance = Plane.distance(frustum.bottom, this.center);
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            ret.radius[5] = radius = this.effectiveRadius(frustum.top);
+            ret.dist[5] = distance = Plane.distance(frustum.top, this.center);
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+        }while(false);
+
+
+        /**
+         * 如果AABB在frustum的6个面之内视作包含
+         * 只要AABB在任意面之外视作外离
+         * 其他情况视作相交
+         */
+        if(6 == inCnt ){
+            ret.check = 1;
+        }else if(outCnt > 0){
+            ret.check = -1;
+        }else{
+            ret.check = 0;
+        }
+        return ret;
+    },
+
+    /**
+     * AABB与视锥的检定
+     * 返回1代表视锥包含AABB
+     * 返回0代表相交
+     * 返回-1代表相离
+     */
+    frustumCheck : function(frustum){
+        var ret = this.frustumCheckDetailPlus(frustum);
+        return ret.check;
+    },
+
+    /**
+     * 计算AABB到某平面的有效半径
+     */
+    effectiveRadius : function(plane){
+        return (Math.abs(YFM.Math.Vector.dot3(this.X, plane)) + 
+                Math.abs(YFM.Math.Vector.dot3(this.Y, plane)) + 
+                Math.abs(YFM.Math.Vector.dot3(this.Z, plane)))/2.0;
+                
+    },
+
+    setDebugBox : function(level){
+        var color;
+        if(level < 7 && level >= 0){
+            color = YFM.Math.AABB.prototype.LEVEL_COLOR[level];
+        }else{
+            color = YFM.Math.AABB.prototype.LEVEL_COLOR[7];
+        }
+        this._makeBox(color);
+    },
+
+    renderDebugBox : function(mat){
+
+        if(this.boxBorders){
+            var gl = YFM.gs.gl;
+            var transform = YFM.gs.transform;
+
+            if(mat)
+                transform.pushMat(mat);
+
+            var shader = YFM.gs.colorShader;
+            shader.useProgram();
+            shader.setPVMMatrix(transform.getPVMMat());
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthFunc(gl.LEQUAL);
+            shader.drawLines(this.boxBorders, 2.0);
+
+            gl.disable(gl.DEPTH_TEST);
+
+            if(mat)
+                transform.popMat();
+        }
+
+    },
+
+    _makeBox : function(colorVec){
+       
+        var Vector = YFM.Math.Vector;
+        var boxPts = [];
+
+        boxPts.push(Vector.pos(this.min[0], this.min[1], this.min[2]));
+        boxPts.push(Vector.pos(this.max[0], this.min[1], this.min[2]));
+        boxPts.push(Vector.pos(this.max[0], this.max[1], this.min[2]));
+        boxPts.push(Vector.pos(this.min[0], this.max[1], this.min[2]));
+
+        boxPts.push(Vector.pos(this.min[0], this.min[1], this.max[2]));
+        boxPts.push(Vector.pos(this.max[0], this.min[1], this.max[2]));
+        boxPts.push(Vector.pos(this.max[0], this.max[1], this.max[2]));
+        boxPts.push(Vector.pos(this.min[0], this.max[1], this.max[2]));
+
+        this.boxBorders = new YFM.WebGL.VAttribs(YFM.gs.gl);
+        var bvb = [];
+        var bcb = [];
+        this._putLine(bvb, bcb, boxPts, 4, 5, colorVec);
+        this._putLine(bvb, bcb, boxPts, 5, 6, colorVec);
+        this._putLine(bvb, bcb, boxPts, 6, 7, colorVec);
+        this._putLine(bvb, bcb, boxPts, 7, 4, colorVec);
+        this._putLine(bvb, bcb, boxPts, 0, 4, colorVec);
+        this._putLine(bvb, bcb, boxPts, 1, 5, colorVec);
+        this._putLine(bvb, bcb, boxPts, 2, 6, colorVec);
+        this._putLine(bvb, bcb, boxPts, 3, 7, colorVec);
+        this._putLine(bvb, bcb, boxPts, 0, 1, colorVec);
+        this._putLine(bvb, bcb, boxPts, 1, 2, colorVec);
+        this._putLine(bvb, bcb, boxPts, 2, 3, colorVec);
+        this._putLine(bvb, bcb, boxPts, 3, 0, colorVec);
+        this.boxBorders.addAttribute("position", bvb, 3, false);
+        this.boxBorders.addAttribute("color", bcb, 3, false);
+    },
+
+    _putLine : function(bvb, bcb, pts, a, b, colorVec){
+        bvb.push(pts[a]);
+        bvb.push(pts[b]);
+        bcb.push(colorVec);
+        bcb.push(colorVec);
+    }
+}
+
+
+
+/**
+ * 轴对齐八叉树
+ * 
+ * 散布于楼层整个空间内的对象适合使用八叉树
+ *
+ * 八叉树的主轴和楼层坐标系的主轴对齐, 这样和由楼层矩形地图确定的园区空间配合
+ *
+ * 更便于计算子空间
+ */
+YFM.Math.AAOctTree = function(xMin, xMax, yMin, yMax, zMin, zMax){
+    this.root = new this.AAOctNode(null, xMin, xMax, yMin, yMax, zMin, zMax, "0", 0);
+    this.objMap = {};
+}
+
+YFM.Math.AAOctTree.prototype = {
+    constructor : YFM.Math.AAOctTree,
+
+    cursor : 0,
+
+    /**
+     * 节点触发划分的阈值
+     */
+    THRESHOLD : 8,
+
+    removeObject : function(id){
+        /**
+         * 从对象表中查询是否有此对象
+         */
+        var objWrap = this.objMap[id.toString()]
+
+        if(objWrap){
+            var node = objWrap.node;
+            var tmpList = [];
+            var it;
+            for(var i = 0, l = node.objectList.length; i < l ; i++){
+                it = node.objectList[i];
+
+                if(objWrap !== it)
+                    tmpList.push(it);
+            }
+            node.objectList = tmpList;
+
+            /**
+             * 如果删除对象后, 对象所在节点列表空了
+             * 触发节点的shrink检定
+             */
+            if(node.objectList.length <= 0){
+
+                node.shrink();
+            }
+            /**
+             * 最后从对象表中删除
+             */
+            delete this.objMap[id.toString()];
+        }
+
+        return objWrap;
+    },
+    
+    insertObject : function(obj, obb){
+        var id = YFM.Math.AAOctTree.prototype.cursor;
+
+        YFM.Math.AAOctTree.prototype.cursor += 1;
+        var objWrap = { 
+                        obj : obj,
+                        obb : obb
+                        };
+        this.objMap[id.toString()] = objWrap;
+        this.root.insertObject(objWrap);
+
+        return id;
+    },
+
+    updateObjectObb : function(id, obb){
+
+        /**
+         * 从对象表中查询是否有此对象
+         */
+        var objWrap = this.objMap[id.toString()]
+
+        if(objWrap){
+            var node = objWrap.node;
+            var tmpList = [];
+            var it;
+            for(var i = 0, l = node.objectList.length; i < l ; i++){
+                it = node.objectList[i];
+
+                if(objWrap !== it)
+                    tmpList.push(it);
+            }
+            node.objectList = tmpList;
+
+            /**
+             * 如果删除对象后, 对象所在节点列表空了
+             * 触发节点的shrink检定
+             */
+            if(node.objectList.length <= 0){
+                node.shrink();
+            }
+
+            /**
+             * 更新为新的obb
+             */
+            objWrap.obb = obb;
+            /**
+             * 再插入一次
+             */
+            this.root.insertObject(objWrap);
+        }
+
+        return objWrap;
+    },
+
+    frustumCheck : function(frustum){
+        return this.root.frustumCheck(frustum);
+    },
+
+    rayCheck : function(ray, result, once){
+        return this.root.rayCheck(ray, result, once);
+    },
+
+    render : function(frustum, fun){
+        this.root.renderCheck(frustum, fun);
+    },
+
+
+    AAOctNode : function(parentNode, xMin, xMax, yMin, yMax, zMin, zMax, mask, level){
+        this.parentNode = parentNode;
+        this.mask   = mask;
+        this.level  = level;
+
+        this.box = new YFM.Math.AABB(xMin, xMax, yMin, yMax, zMin, zMax);
+
+        this.objectList = [];
+        this.children = new Array(null, null, null, null);
+        this.splited = false;
+    }
+}
+
+
+YFM.Math.AAOctTree.prototype.AAOctNode.prototype = {
+    constructor : YFM.Math.AAOctTree.prototype.AAOctNode,
+
+    shrink : function(){
+        if(this.isNodeEmpty()){
+
+            this.children[0] = null;
+            this.children[1] = null;
+            this.children[2] = null;
+            this.children[3] = null;
+            this.splited = false;
+
+            /**
+             * 如果本节点shrink检定通过, 
+             * 继续检查父节点
+             */
+            if(null !== this.parentNode){
+                this.parentNode.shrink();
+            }
+        }
+    },
+
+    /**
+     * 检查节点是否没有容纳对象了
+     * 可能需要递归
+     */
+    isNodeEmpty : function(){
+
+        if(this.objectList.length > 0){
+            return false;
+        }
+
+        for(var i = 0; i < 4; i++){
+            if(null !== this.children[i] && !this.children[i].isNodeEmpty()){
+                return false;
+            }
+        }
+                
+        return true;
+    },
+
+    rayCheck : function(ray, result, once){
+        if(this.box.lineCheck(ray)){
+
+            var cnt = this.objectList.length;
+            var pos;
+            for(i = 0; i < cnt; i++){
+                if(this.objectList[i].obb.lineCheck(ray)){
+                    result.push(this.objectList[i]);
+                    if(once)
+                        return true;
+                }
+            }
+
+            /**
+             * 本节点和射线相交, 子节点需要检定
+             */
+            for(var i = 0; i < 4; i++){
+                if(null !== this.children[0] && this.children[0].rayCheck(ray, result, once)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    },
+
+    containCheck : function(frustum){
+
+
+        var check = this.box.frustumCheck(frustum);
+        var ret;
+
+        /**
+         * 如果本节点和视锥不相交, 子节点不用管了
+         */
+        if(-1 == check){
+            return null;
+        }
+
+        /**
+         * 本节点内含于视锥 返回自身
+         */
+        else if(1 == check){
+
+            return this;
+        }
+        /**
+         * 本节点和视锥相交, 子节点需要检定
+         */
+        else if(0 == check && null !== this.children[0]){
+
+            /**
+             * 这样是广度优先, 要这样才有效
+             */
+            var retList = [];
+            for(var i = 0; i < 4; i++){
+                if(null !== this.children[i]){
+                    retList.push(this.children[i].containCheck(frustum));
+                }
+            }
+
+            /**
+             * 要选尽量高层的节点
+             */
+            var minLevel = 1024;
+            var minRet = null;
+            for(i = 0; i < 4; i++){
+                if(null !== retList[i] && retList[i].level < minLevel){
+                    minRet = retList[i];
+                    minLevel = retList[i].level;
+                }
+            }
+            return minRet;
+        }
+
+        return null;
+    },
+
+    renderEver : function(fun){
+        var i, cnt;
+
+        for(i = 0; i < 4; i++){
+            if(null !== this.children[i]){
+                this.children[i].renderEver(fun);
+            }
+        }
+
+        for(i = 0, cnt = this.objectList.length; i < cnt; i++){
+            fun(this.objectList[i]);
+        }
+    },
+
+    renderCheck : function(frustum, fun){
+
+
+        var ret = this.box.frustumCheckDetailPlus(frustum);
+        var check = ret.check;
+        var i = 0;
+
+        /**
+         * 如果本节点和视锥不相交, 后面不用管了
+         */
+        if(-1 == check){
+            return;
+        }
+
+        /**
+         * 本节点内含于视锥, 子节点后续检定不需要做
+         * 直接调用子节点的总是渲染接口
+         *
+         */
+        if(1 === check){
+
+
+            for(i = 0; i < 4; i++){
+                if(null !== this.children[i]){
+                    this.children[i].renderEver(fun);
+                }
+            }
+
+            /**
+             * 本节点的对象列表, 都不需要检定
+             */
+            for(i = 0, cnt = this.objectList.length; i < cnt; i++){
+                fun(this.objectList[i]);
+            }
+
+        }
+        /**
+         * 本节点和视锥相交, 子节点需要检定
+         */
+        else{
+
+
+            for(i = 0; i < 4; i++){
+                if(null !== this.children[i]){
+                    this.children[i].renderCheck(frustum, fun);
+                }
+            }
+            /**
+             * 本节点的对象列表, 都要检定
+             */
+            for(i = 0, cnt = this.objectList.length; i < cnt; i++){
+                if(frustum.containCheckOBB(this.objectList[i].obb))
+                    fun(this.objectList[i]);
+            }
+        }
+
+    },
+
+    insertObject : function(objWrap){
+
+        /**
+         * 如果空间没有分裂过, 而且对象列表长度没有达到阈值, 
+         * 就直接插入对象列表
+         */
+        if(!this.splited && this.objectList.length < YFM.Math.AAOctTree.prototype.THRESHOLD){
+            this._insert2ObjList(objWrap);
+        }else{
+            
+            /**
+             * 如果首次达到阈值, 开始分裂空间
+             */
+            if(!this.splited){
+                this._spliteSpace();
+            }
+
+            this._insertToSubSpace(objWrap);
+        }
+    },
+
+    frustumCheck : function(frustum){
+        return this.box.frustumCheck(frustum);
+    },
+
+    _insert2ObjList : function(objWrap){
+        objWrap.node = this;
+        this.objectList.push(objWrap);
+    },
+
+    _spliteSpace : function(){
+
+        var objWrap, objCnt, i, j, check;
+        var tmpList;
+
+        this.splited = true;
+
+        //console.log("splite node:%o", this);
+
+        /**
+         * 限制一下空间树深度
+         */
+        if(this.level >= 6){
+            return;
+        }
+
+        this.children[0] = new YFM.Math.AAOctTree.prototype.AAOctNode(this,
+                                    this.box.min[0],
+                                    this.box.center[0], 
+                                    this.box.min[1], 
+                                    this.box.center[1],
+                                    this.box.min[2],
+                                    this.box.max[2],
+                                    this.mask + "0",
+                                    this.level+1);
+        this.children[1] = new YFM.Math.AAOctTree.prototype.AAOctNode(this,
+                                    this.box.center[0],
+                                    this.box.max[0],
+                                    this.box.min[1],
+                                    this.box.center[1],
+                                    this.box.min[2],
+                                    this.box.max[2],
+                                    this.mask + "1",
+                                    this.level+1);
+        this.children[2] = new YFM.Math.AAOctTree.prototype.AAOctNode(this,
+                                    this.box.center[0],
+                                    this.box.max[0],
+                                    this.box.center[1],
+                                    this.box.max[1],
+                                    this.box.min[2],
+                                    this.box.max[2],
+                                    this.mask + "2",
+                                    this.level+1);
+        this.children[3] = new YFM.Math.AAOctTree.prototype.AAOctNode(this,
+                                    this.box.min[0],
+                                    this.box.center[0],
+                                    this.box.center[1],
+                                    this.box.max[1],
+                                    this.box.min[2],
+                                    this.box.max[2],
+                                    this.mask + "3",
+                                    this.level+1);
+
+
+
+        tmpList = [];
+
+        for(j = 0, objCnt = this.objectList.length; j < objCnt; j++){
+            objWrap = this.objectList[j];
+
+            for(i = 0; i < 4; i++){
+                check = this.children[i].box.obbCheck(objWrap.obb);
+                if(1 === check){
+                    this.children[i].insertObject(objWrap);
+                    break;
+                }
+            }
+            if(4 == i){
+                tmpList.push(objWrap);
+            }
+        }
+
+        this.objectList = tmpList;
+    },
+
+    _insertToSubSpace : function(objWrap){
+
+        var check
+        if(null !== this.children[0]){
+            for(var i = 0; i < 4; i++){
+                check = this.children[i].box.obbCheck(objWrap.obb);
+                if(1 === check){
+                    this.children[i].insertObject(objWrap);
+                    return;
+                }
+            }
+        }
+        this._insert2ObjList(objWrap);
+    }
+}
+
+/**
  * 楼层四叉树
- *
+ * 
  * 分层地图的场景不适合八叉树
- *
+ * 
  * 用OBB描述节点的分层四叉树比较合适
  */
 YFM.Math.FloorQuadTree = function(floor, height){
@@ -16437,9 +17993,9 @@ YFM.Math.FloorQuadTree.prototype = {
         YFM.Math.FloorQuadTree.prototype.cursor += 1;
         var pos = this.floor.floorPos2Region(floorX, floorY);
         pos[2] += floorZ;
-        var objWrap = {
+        var objWrap = { 
                         id : id,
-                        obj : obj,
+                        obj : obj, 
                         pos : pos,
                         floor :floorIndex,
                         x : floorX,
@@ -16455,7 +18011,7 @@ YFM.Math.FloorQuadTree.prototype = {
     insertObjectOBB : function(obj, obb){
         var id = YFM.Math.FloorQuadTree.prototype.cursor * YFM.Math.FloorQuadTree.prototype.shift + this.floor.index;
         YFM.Math.FloorQuadTree.prototype.cursor += 1;
-        var objWrap = {
+        var objWrap = { 
                         id : id,
                         obj : obj,
                         pos : obb
@@ -16469,7 +18025,7 @@ YFM.Math.FloorQuadTree.prototype = {
         var id = YFM.Math.FloorQuadTree.prototype.cursor * YFM.Math.FloorQuadTree.prototype.shift + this.floor.index;
         var centerPos = this.floor.floorPos2Region(center[0], center[1]);
         YFM.Math.FloorQuadTree.prototype.cursor += 1;
-        var objWrap = {
+        var objWrap = { 
                         id : id,
                         obj : obj,
                         pos : obb,
@@ -16486,14 +18042,14 @@ YFM.Math.FloorQuadTree.prototype = {
 
 
     rayCheck : function(ray, distance, once){
-        var result = [];
+        var result = [];    
         this.root.rayCheck(ray, distance*distance, result, once);
 
         return result;
     },
 
     rayCheckOBB : function(ray, result, once){
-        var result = [];
+        var result = [];    
         var mapedRay = YFM.Math.Line.transform(ray, YFM.Math.Matrix.invert(this.floor.floorMat));
         this.root.rayCheckOBB(ray, mapedRay, result, once);
 
@@ -16616,7 +18172,7 @@ YFM.Map.FloorQuadNode.prototype = {
             this.splited = false;
 
             /**
-             * 如果本节点shrink检定通过,
+             * 如果本节点shrink检定通过, 
              * 继续检查父节点
              */
             if(null !== this.parentNode){
@@ -16655,7 +18211,7 @@ YFM.Map.FloorQuadNode.prototype = {
                 return false;
             }
         }
-        
+                
         return true;
     },
 
@@ -16829,7 +18385,7 @@ YFM.Map.FloorQuadNode.prototype = {
         
         /*
         if(cl._renderDummy){
-            cl._renderDummy(cl, this, this.LEVEL_COLOR[this.level]);
+            cl._renderDummy(cl, this, YFM.Math.FloorQuadTree.prototype.LEVEL_COLOR[this.level]);
         }*/
 
         for(i = 0; i < 4; i++){
@@ -16875,7 +18431,7 @@ YFM.Map.FloorQuadNode.prototype = {
 
         /*
         if(cl._renderDummy){
-            cl._renderDummy(cl, this, this.LEVEL_COLOR[this.level]);
+            cl._renderDummy(cl, this, YFM.Math.FloorQuadTree.prototype.LEVEL_COLOR[this.level]);
         }*/
 
 
@@ -16918,10 +18474,10 @@ YFM.Map.FloorQuadNode.prototype = {
     insertObject : function(objWrap){
 
         /**
-         * 如果空间没有分裂过, 而且对象列表长度没有达到阈值,
+         * 如果空间没有分裂过, 而且对象列表长度没有达到阈值, 
          * 就直接插入对象列表
          */
-        if(!this.splited && this.objectList.length < this.THRESHOLD){
+        if(!this.splited && this.objectList.length < YFM.Math.FloorQuadTree.prototype.THRESHOLD){
             this._insert2ObjList(objWrap);
         }else{
             
@@ -16956,40 +18512,40 @@ YFM.Map.FloorQuadNode.prototype = {
             return;
         }
 
-        this.children[this.NODE_0] = new YFM.Map.FloorQuadNode(this,
-                                    this.floor,
+        this.children[0] = new YFM.Map.FloorQuadNode(this,
+                                    this.floor, 
                                     this.xmin,
-                                    (this.xmin+this.xmax)/2.0,
-                                    this.ymin,
-                                    (this.ymin+this.ymax)/2.0,
-                                    this.height,
+                                    (this.xmin+this.xmax)/2.0, 
+                                    this.ymin, 
+                                    (this.ymin+this.ymax)/2.0, 
+                                    this.height, 
                                     this.mask + "0",
                                     this.level+1);
-        this.children[this.NODE_1] = new YFM.Map.FloorQuadNode(this,
-                                    this.floor,
-                                    (this.xmin+this.xmax)/2.0,
-                                    this.xmax,
-                                    this.ymin,
-                                    (this.ymin+this.ymax)/2.0,
-                                    this.height,
+        this.children[1] = new YFM.Map.FloorQuadNode(this,
+                                    this.floor, 
+                                    (this.xmin+this.xmax)/2.0, 
+                                    this.xmax, 
+                                    this.ymin, 
+                                    (this.ymin+this.ymax)/2.0, 
+                                    this.height, 
                                     this.mask + "1",
                                     this.level+1);
-        this.children[this.NODE_2] = new YFM.Map.FloorQuadNode(this,
-                                    this.floor,
-                                    (this.xmin+this.xmax)/2.0,
+        this.children[2] = new YFM.Map.FloorQuadNode(this,
+                                    this.floor, 
+                                    (this.xmin+this.xmax)/2.0, 
                                     this.xmax,
                                     (this.ymin+this.ymax)/2.0,
-                                    this.ymax,
-                                    this.height,
+                                    this.ymax, 
+                                    this.height, 
                                     this.mask + "2",
                                     this.level+1);
-        this.children[this.NODE_3] = new YFM.Map.FloorQuadNode(this,
-                                    this.floor,
+        this.children[3] = new YFM.Map.FloorQuadNode(this,
+                                    this.floor, 
                                     this.xmin,
-                                    (this.xmin+this.xmax)/2.0,
+                                    (this.xmin+this.xmax)/2.0, 
                                     (this.ymin+this.ymax)/2.0,
-                                    this.ymax,
-                                    this.height,
+                                    this.ymax, 
+                                    this.height, 
                                     this.mask + "3",
                                     this.level+1);
 
@@ -17044,17 +18600,10 @@ YFM.Map.FloorQuadNode.prototype = {
     /**
      * 节点触发划分的阈值
      */
-    THRESHOLD : 4,
+    THRESHOLD : 16,  
 
 
-    /**
-     * 子空间节点编码
-     */
-    NODE_0    : 0,
-    NODE_1    : 1,
-    NODE_2    : 2,
-    NODE_3    : 3,
-
+    /*
     LEVEL_COLOR : new Array(
                 YFM.Math.Vector.pos(1.0, 0.0, 0.0),
                 YFM.Math.Vector.pos(1.0, 0.5, 0.0),
@@ -17063,9 +18612,8 @@ YFM.Map.FloorQuadNode.prototype = {
                 YFM.Math.Vector.pos(0.0, 1.0, 1.0),
                 YFM.Math.Vector.pos(0.0, 0.0, 1.0),
                 YFM.Math.Vector.pos(0.5, 0.0, 1.0),
-                YFM.Math.Vector.pos(0.0, 0.0, 0.0))
+                YFM.Math.Vector.pos(0.0, 0.0, 0.0))*/
 }
-
 
 /**
  * 用于可见性判断的视锥
@@ -17074,14 +18622,16 @@ YFM.Map.FloorQuadNode.prototype = {
  * 而采用从PVM矩阵中提取视锥的办法
  */
 YFM.Math.FrustumWorldSpace = function(){
-    this.near = YFM.Math.Vector.vec();
-    this.far = YFM.Math.Vector.vec();
+    var Vector = YFM.Math.Vector;
 
-    this.left = YFM.Math.Vector.vec();
-    this.right = YFM.Math.Vector.vec();
+    this.near = Vector.vec();
+    this.far = Vector.vec();
 
-    this.top = YFM.Math.Vector.vec();
-    this.bottom = YFM.Math.Vector.vec();
+    this.left = Vector.vec();
+    this.right = Vector.vec();
+
+    this.top = Vector.vec();
+    this.bottom = Vector.vec();
 }
 
 YFM.Math.FrustumWorldSpace.prototype = {
@@ -17132,13 +18682,6 @@ YFM.Math.FrustumWorldSpace.prototype = {
 
     containCheckPoint : function(pos){
 
-        /**
-         * 使得本函数兼容OBB
-         */
-        if(pos.isOBB){
-            return -1 !== pos.frustumCheck(this);
-        }
-
         var ret = false;
 
         do{
@@ -17161,8 +18704,22 @@ YFM.Math.FrustumWorldSpace.prototype = {
         }while(false);
 
         return ret;
+    },
+
+    nearDistance : function(pos){
+
+        return YFM.Math.Vector.dot4(this.near, pos);
+    },
+
+    containCheckOBB : function(obb){
+        return -1 !== obb.frustumCheck(this);
+        /**
+        var ret = obb.frustumCheckDetailPlus(this);
+        console.log("(Frustum containCheckOBB check:%d, dists:%o, radius:%o", ret.check, ret.dist, ret.radius);
+        return -1 !== ret.check;*/
     }
 }
+
 
 
 /**
@@ -17170,44 +18727,26 @@ YFM.Math.FrustumWorldSpace.prototype = {
  */
 YFM.Math.OBB = function(pts){
     this.isOBB = true;
-    var c, eig;
 
     /**
-     * 生成协方差矩阵
+     * 此为拷贝构造
      */
-    c = YFM.Math.Matrix.covariance3x3(pts);
+    if(pts.isOBB){
+        this._copyConstruct(pts);        
+    }else{
+        /**
+         * 此为正常初始化
+         */
+        this._initWork(pts);
+    }
 
-    /**
-     * 特征分解
-     */
-    eig = YFM.Math.Matrix.eig3x3(c);
 
-    /**
-     * 上式分解的结果会按特征值的权重排序
-     * eigvalue[0] <= eigvalue[1] <= eigvalue[2]
-     * eigvec的三列与上面的三值对应
-     * 第一列代表t轴 第二列代表s轴 第三列代表r轴
-     *
-     * 自然坐标系3三个正交基
-     * r第一主轴
-     * s第二主轴
-     * t第三主轴
-     * 归一化
-     */
-    this.t = YFM.Math.Vector.vec(eig.vec[0], eig.vec[1], eig.vec[2]);
-    this.s = YFM.Math.Vector.vec(eig.vec[3], eig.vec[4], eig.vec[5]);
-    this.r = YFM.Math.Vector.vec(eig.vec[6], eig.vec[7], eig.vec[8]);
-
-    /**
-     * 计算OBB范围
-     */
-    this._calc_bounding(pts);
     /**
      * 下列属性在
      * _calc_bounding
      * 中初始化
      
-     *
+     * 
      * obb中心
      this.center
 
@@ -17243,6 +18782,7 @@ YFM.Math.OBB = function(pts){
 YFM.Math.OBB.prototype = {
     constructor : YFM.Math.OBB,
 
+
     /**
      * 对本OBB施以变换
      */
@@ -17257,11 +18797,11 @@ YFM.Math.OBB.prototype = {
 
         /**
          * 虽然有点怪, 但观察把点集全部用mat变换 再生成OBB
-         * 和用点集生成OBB, 在用mat对OBB变换的结果
+         * 和用点集生成OBB, 再用mat对OBB变换的结果
          * 总结如下:
          * 位置向量
          * center保持不变
-         *
+         * 
          * 标量
          * hr, hs, ht需要重新计算, 因为可能有缩放
          *
@@ -17275,41 +18815,67 @@ YFM.Math.OBB.prototype = {
          * t_min, t_max
          *
          * 需要对换, 不需要反向
+         *
+         * 注意接下来这里, 第一次给OBB附加变换前
+         * 将原始的数据另存了一份, 这是因为
+         * 我上面这个附加变换的办法, 对于一次附加是正确的
+         * 但是如果给obb迭代附加变换就不对了
+         * 一时没想到办法, 先弄一个快糙办法, 
          */
+        if(!this.raw){
+            this.raw = {
+                center  : this.center,
+                r       : this.r,
+                s       : this.s,
+                t       : this.t,
+                R       : this.R,
+                S       : this.S,
+                T       : this.T,
+                r_max   : this.r_max,
+                r_min   : this.r_min,
+                s_max   : this.s_max,
+                s_min   : this.s_min,
+                t_max   : this.t_max,
+                t_min   : this.t_min,
+                r_half  : this.r_half,
+                s_half  : this.s_half,
+                t_half  : this.t_half
+            };
+        }
         
         /**
          * 位置向量 直接变换
          */
-        this.center = M.mulVec(mat, this.center);
+        this.center = M.mulVec(mat, this.raw.center);
 
         /**
          * 方向向量
          * 需要校正:
          * 反向
          */
-        this.r      = this._reserse3(M.mulVec(mat, this.r));
-        this.s      = this._reserse3(M.mulVec(mat, this.s));
-        this.t      = this._reserse3(M.mulVec(mat, this.t));
-        this.R      = this._reserse3(M.mulVec(mat, this.R));
-        this.S      = this._reserse3(M.mulVec(mat, this.S));
-        this.T      = this._reserse3(M.mulVec(mat, this.T));
+        this.r      = this._reserse3(M.mulVec(mat, this.raw.r));
+        this.s      = this._reserse3(M.mulVec(mat, this.raw.s));
+        this.t      = this._reserse3(M.mulVec(mat, this.raw.t));
+        this.R      = this._reserse3(M.mulVec(mat, this.raw.R));
+        this.S      = this._reserse3(M.mulVec(mat, this.raw.S));
+        this.T      = this._reserse3(M.mulVec(mat, this.raw.T));
 
         /**
-         * 平面向量,
+         * 平面向量, 
          *
          * 校正:
          * 边界对应平面只需交换
          * 中间三平面需要反向
          */
-        this.r_max  = M.mulVec(timat, this.r_min);
-        this.r_min  = M.mulVec(timat, this.r_max);
-        this.s_max  = M.mulVec(timat, this.s_min);
-        this.s_min  = M.mulVec(timat, this.s_max);
-        this.t_max  = M.mulVec(timat, this.t_min);
-        this.t_min  = M.mulVec(timat, this.t_max);
-        this.r_half = this._reserse4(M.mulVec(timat, this.r_half));
-        this.s_half = this._reserse4(M.mulVec(timat, this.s_half));
-        this.t_half = this._reserse4(M.mulVec(timat, this.t_half));
+        this.r_max  = M.mulVec(timat, this.raw.r_min);
+        this.r_min  = M.mulVec(timat, this.raw.r_max);
+        this.s_max  = M.mulVec(timat, this.raw.s_min);
+        this.s_min  = M.mulVec(timat, this.raw.s_max);
+        this.t_max  = M.mulVec(timat, this.raw.t_min);
+        this.t_min  = M.mulVec(timat, this.raw.t_max);
+        this.r_half = this._reserse4(M.mulVec(timat, this.raw.r_half));
+        this.s_half = this._reserse4(M.mulVec(timat, this.raw.s_half));
+        this.t_half = this._reserse4(M.mulVec(timat, this.raw.t_half));
 
         this.hr     = V.norm3(this.R)/2.0;
         this.hs     = V.norm3(this.S)/2.0;
@@ -17318,6 +18884,7 @@ YFM.Math.OBB.prototype = {
 
 
     pointCheck : function(pos){
+
 
         /**
          * 让点检测 兼容obb检测
@@ -17406,8 +18973,13 @@ YFM.Math.OBB.prototype = {
         }
     },
 
-    lineCheck : function(line){
+    lineCheckDetail : function(line){
         var o, d, p, tMax, tMin, t1, t2, e, f, tmp;
+        var ret = {
+                    result:false,
+                    tMax : Number.MAX_VALUE,
+                    tMin : -Number.MAX_VALUE};
+
 
 
         tMax = Number.MAX_VALUE;
@@ -17433,11 +19005,11 @@ YFM.Math.OBB.prototype = {
 
 
             if(tMin > tMax)
-                return false;
+                return ret;
             if(tMax < 0)
-                return false;
+                return ret;
         }else if((-e - this.hr) > 0 || (- e + this.hr) < 0)
-            return false;
+            return ret;
 
         e = YFM.Math.Vector.dot3(this.s, p);
         f = YFM.Math.Vector.dot3(this.s, d);
@@ -17454,11 +19026,11 @@ YFM.Math.OBB.prototype = {
             if(t2 < tMax)
                 tMax = t2;
             if(tMin > tMax)
-                return false;
+                return ret;
             if(tMax < 0)
-                return false;
+                return ret;
         }else if((-e - this.hs) > 0 || (- e + this.hs) < 0)
-            return false;
+            return ret;
 
         e = YFM.Math.Vector.dot3(this.t, p);
         f = YFM.Math.Vector.dot3(this.t, d);
@@ -17475,13 +19047,21 @@ YFM.Math.OBB.prototype = {
             if(t2 < tMax)
                 tMax = t2;
             if(tMin > tMax)
-                return false;
+                return ret;
             if(tMax < 0)
-                return false;
+                return ret;
         }else if((-e - this.ht) > 0 || (- e + this.ht) < 0)
-            return false;
+            return ret;
 
-        return true;
+        ret.result = true;
+        ret.tMax = tMax;
+        ret.tMin = tMin;
+        return ret;
+    },
+
+    lineCheck : function(line){
+
+        return this.lineCheckDetail(line).result;
     },
 
     /**
@@ -17493,6 +19073,7 @@ YFM.Math.OBB.prototype = {
     obbCheck : function(x){
         var outCnt, inCnt, joinCnt;
         var radius, distance;
+
 
         outCnt = 0;
         inCnt = 0;
@@ -17575,15 +19156,12 @@ YFM.Math.OBB.prototype = {
         }
     },
 
-    /**
-     * OBB与视锥的检定
-     * 返回1代表视锥包含OBB
-     * 返回0代表相交
-     * 返回-1代表相离
-     */
-    frustumCheck : function(frustum){
+    frustumCheckDetail : function(frustum){
+        var ret = {check : -1,
+                    dist : Number.MAX_VALUE};
         var outCnt, inCnt, joinCnt;
         var radius, distance;
+
 
         outCnt = 0;
         inCnt = 0;
@@ -17591,7 +19169,7 @@ YFM.Math.OBB.prototype = {
 
         do{
             radius = this.effectiveRadius(frustum.near);
-            distance = YFM.Math.Plane.distance(frustum.near, this.center);
+            ret.dist = distance = YFM.Math.Plane.distance(frustum.near, this.center);
             if(distance < -radius){
                 outCnt ++;
                 break;
@@ -17658,12 +19236,113 @@ YFM.Math.OBB.prototype = {
          * 其他情况视作相交
          */
         if(6 == inCnt ){
-            return 1;
+            ret.check = 1;
         }else if(outCnt > 0){
-            return -1;
+            ret.check = -1;
         }else{
-            return 0;
+            ret.check = 0;
         }
+        return ret;
+    },
+
+    frustumCheckDetailPlus : function(frustum){
+        var ret = {check : -1,
+                    dist : [1024, 1024, 1024, 1024, 1024, 1024],
+                    radius : [0, 0, 0, 0, 0, 0, 0]};
+        var outCnt, inCnt, joinCnt;
+        var radius, distance;
+
+
+        outCnt = 0;
+        inCnt = 0;
+        joinCnt = 0;
+
+        do{
+            ret.radius[0] = radius = this.effectiveRadius(frustum.near);
+            ret.dist[0] = distance = YFM.Math.Plane.distance(frustum.near, this.center);
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            ret.radius[1] = radius = this.effectiveRadius(frustum.far);
+            ret.dist[1] = distance = YFM.Math.Plane.distance(frustum.far, this.center);
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            ret.radius[2] = radius = this.effectiveRadius(frustum.left);
+            ret.dist[2] = distance = YFM.Math.Plane.distance(frustum.left, this.center);
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            ret.radius[3] = radius = this.effectiveRadius(frustum.right);
+            ret.dist[3] = distance = YFM.Math.Plane.distance(frustum.right, this.center);
+            if(distance < -radius)
+                outCnt ++;
+            else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            ret.radius[4] = radius = this.effectiveRadius(frustum.bottom);
+            ret.dist[4] = distance = YFM.Math.Plane.distance(frustum.bottom, this.center);
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+            ret.radius[5] = radius = this.effectiveRadius(frustum.top);
+            ret.dist[5] = distance = YFM.Math.Plane.distance(frustum.top, this.center);
+            if(distance < -radius){
+                outCnt ++;
+                break;
+            }else if(distance > radius)
+                inCnt ++;
+            else
+                joinCnt ++;
+
+        }while(false);
+
+
+        /**
+         * 如果obb在frustum的6个面之内视作包含
+         * 只要obb在任意面之外视作外离
+         * 其他情况视作相交
+         */
+        if(6 == inCnt ){
+            ret.check = 1;
+        }else if(outCnt > 0){
+            ret.check = -1;
+        }else{
+            ret.check = 0;
+        }
+        return ret;
+    },
+
+    /**
+     * OBB与视锥的检定
+     * 返回1代表视锥包含OBB
+     * 返回0代表相交
+     * 返回-1代表相离
+     */
+    frustumCheck : function(frustum){
+        return this.frustumCheckDetail(frustum).check;
     },
 
 
@@ -17671,10 +19350,79 @@ YFM.Math.OBB.prototype = {
      * 计算OBB到某平面的有效半径
      */
     effectiveRadius : function(plane){
-        return (Math.abs(YFM.Math.Vector.dot3(this.R, plane)) +
-                Math.abs(YFM.Math.Vector.dot3(this.S, plane)) +
+        return (Math.abs(YFM.Math.Vector.dot3(this.R, plane)) + 
+                Math.abs(YFM.Math.Vector.dot3(this.S, plane)) + 
                 Math.abs(YFM.Math.Vector.dot3(this.T, plane)))/2.0;
                 
+    },
+
+
+    /**
+     * 通过obb的边界平面, 计算其8个顶点
+     */
+    getCornerPts : function(){
+        var Plane = YFM.Math.Plane;
+        var pts = new Array(8);
+
+        /**
+         * 由于obb的边界平面都是正交的, 不用检查是否相交于一点了
+         */
+        pts[0] = Plane.intersectionTriplePlane(this.r_min, this.s_max, this.t_min).point;
+        pts[1] = Plane.intersectionTriplePlane(this.r_min, this.s_max, this.t_max).point;
+        pts[2] = Plane.intersectionTriplePlane(this.r_min, this.s_min, this.t_max).point;
+        pts[3] = Plane.intersectionTriplePlane(this.r_min, this.s_min, this.t_min).point;
+        pts[4] = Plane.intersectionTriplePlane(this.r_max, this.s_max, this.t_min).point;
+        pts[5] = Plane.intersectionTriplePlane(this.r_max, this.s_max, this.t_max).point;
+        pts[6] = Plane.intersectionTriplePlane(this.r_max, this.s_min, this.t_max).point;
+        pts[7] = Plane.intersectionTriplePlane(this.r_max, this.s_min, this.t_min).point;
+
+        return pts;
+    },
+
+    /**
+     * 渲染调试用OBB盒子
+     * 用ColorShader来渲染
+     */
+    renderDebugBox : function(shader){
+
+        if(this.boxBorders){
+            shader.drawLines(this.boxBorders, 4.0);
+        }
+    },
+
+    /**
+     * 设置调试用OBB盒子
+     */
+    setDebugBox : function(color){
+
+        var Vector = YFM.Math.Vector;
+        var boxPts = this.getCornerPts();
+
+        this.boxBorders = new YFM.WebGL.VAttribs(YFM.gs.gl);
+        var bvb = [];
+        var bcb = [];
+        var colorVec = YFM.WebGL.Color.getRGBVec(color);
+        this._putLine(bvb, bcb, boxPts, 4, 5, colorVec);
+        this._putLine(bvb, bcb, boxPts, 5, 6, colorVec);
+        this._putLine(bvb, bcb, boxPts, 6, 7, colorVec);
+        this._putLine(bvb, bcb, boxPts, 7, 4, colorVec);
+        this._putLine(bvb, bcb, boxPts, 0, 4, colorVec);
+        this._putLine(bvb, bcb, boxPts, 1, 5, colorVec);
+        this._putLine(bvb, bcb, boxPts, 2, 6, colorVec);
+        this._putLine(bvb, bcb, boxPts, 3, 7, colorVec);
+        this._putLine(bvb, bcb, boxPts, 0, 1, colorVec);
+        this._putLine(bvb, bcb, boxPts, 1, 2, colorVec);
+        this._putLine(bvb, bcb, boxPts, 2, 3, colorVec);
+        this._putLine(bvb, bcb, boxPts, 3, 0, colorVec);
+        this.boxBorders.addAttribute("position", bvb, 3, false);
+        this.boxBorders.addAttribute("color", bcb, 3, false);
+    },
+
+    _putLine : function(bvb, bcb, pts, a, b, colorVec){
+        bvb.push(pts[a]);
+        bvb.push(pts[b]);
+        bcb.push(colorVec);
+        bcb.push(colorVec);
     },
     
     _reserse3 : function(v){
@@ -17706,7 +19454,7 @@ YFM.Math.OBB.prototype = {
 
 
         /**
-         * 为确定最大值和最小值的范围,
+         * 为确定最大值和最小值的范围, 
          * 可以通过计算每个顶点位置坐标Pi与单位向量R, S, T的內积来完成
          */
         pdr_min = Number.MAX_VALUE;
@@ -17790,7 +19538,70 @@ YFM.Math.OBB.prototype = {
         }else{
             throw new Error("obb calc center failed");
         }
-    }
+    },
+
+    _copyConstruct : function(other){
+        var V = YFM.Math.Vector;
+        var vecClone = V.vecClone;
+
+        this.center = vecClone(other.center);
+        this.r      = vecClone(other.r);
+        this.s      = vecClone(other.s);
+        this.t      = vecClone(other.t);
+        this.R      = vecClone(other.R);
+        this.S      = vecClone(other.S);
+        this.T      = vecClone(other.T);
+        this.r_max  = vecClone(other.r_max);
+        this.r_min  = vecClone(other.r_min);
+        this.s_max  = vecClone(other.s_max);
+        this.s_min  = vecClone(other.s_min);
+        this.t_max  = vecClone(other.t_max);
+        this.t_min  = vecClone(other.t_min);
+        this.r_half = vecClone(other.r_half);
+        this.s_half = vecClone(other.s_half);
+        this.t_half = vecClone(other.t_half);
+
+        this.hr     = V.norm3(this.R)/2.0;
+        this.hs     = V.norm3(this.S)/2.0;
+        this.ht     = V.norm3(this.T)/2.0;
+
+    },
+
+    _initWork : function(pts){
+        var c, eig;
+
+        /**
+         * 生成协方差矩阵
+         */
+        c = YFM.Math.Matrix.covariance3x3(pts);
+
+        /**
+         * 特征分解
+         */
+        eig = YFM.Math.Matrix.eig3x3(c);
+
+        /**
+         * 上式分解的结果会按特征值的权重排序
+         * eigvalue[0] <= eigvalue[1] <= eigvalue[2] 
+         * eigvec的三列与上面的三值对应
+         * 第一列代表t轴 第二列代表s轴 第三列代表r轴
+         *
+         * 自然坐标系3三个正交基
+         * r第一主轴
+         * s第二主轴
+         * t第三主轴
+         * 归一化
+         */
+        this.t = YFM.Math.Vector.vec(eig.vec[0], eig.vec[1], eig.vec[2]);
+        this.s = YFM.Math.Vector.vec(eig.vec[3], eig.vec[4], eig.vec[5]);
+        this.r = YFM.Math.Vector.vec(eig.vec[6], eig.vec[7], eig.vec[8]);
+
+        /**
+         * 计算OBB范围
+         */
+        this._calc_bounding(pts);
+
+    },
 }
 
 
@@ -18055,28 +19866,36 @@ YFM.Mesh.MtlItem.prototype = {
 }
 
 
-
-
 /**
  * OBJ模型封装, 从THREE.js抄了不少代码
  */
-YFM.Mesh.ObjModel = function(region){
-    this.region = region;
-    this.floor = null;
-    this.obb = null;
-    this.gl = region.gl;
-    this.objects = [];
-    this.texturePool = region.texturePool;
+YFM.Mesh.ObjModel = function(region, baseUrl, name, onFinish, onFailed){
 
-    this.modelMatrix = YFM.Math.Matrix.mat();
-    this.baseUrl = null;
+    this.baseUrl = baseUrl;
+    this.name = name;
+    this.obb = null;
+    this.objects = [];
+    this.gl = region.gl;
+    this.texturePool = region.texturePool;
 
     this.hasMaterials = false;
     this.materials = {};
+
+    this._loadURLDir(baseUrl, name, onFinish, onFailed);
 }
 
 YFM.Mesh.ObjModel.prototype = {
     constructor : YFM.Mesh.ObjModel,
+
+    persistence : function(){
+        var ret = {
+            baseUrl : this.baseUrl,
+            name : this.name
+        };
+
+        return ret;
+    },
+    
     /**
      * 用于解析OBJ文件时
      * 匹配各类行数据的
@@ -18088,46 +19907,40 @@ YFM.Mesh.ObjModel.prototype = {
      *  FacePattern1    匹配只有顶点的面:           f vertex vertex vertex ...
      *  FacePattern2    匹配有顶点和纹理坐标的面:   f vertex/uv vertex/uv vertex/uv ...
      *  FacePattern3    匹配有顶点纹理和法向的面:   f vertex/uv/normal vertex/uv/normal vertex/uv/normal ...
-     *  FacePattern4    匹配有顶点和法向的面:       f vertex//normal vertex//normal vertex//normal ...
+     *  FacePattern4    匹配有顶点和法向的面:       f vertex//normal vertex//normal vertex//normal ... 
      */
-    VPattern  : /v( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)/,
-    NPattern  : /vn( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)/,
+    VPattern : /v( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)/,
+    NPattern : /vn( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)/,
     UVPattern : /vt( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)/,
     FacePattern1 : /f( +-?\d+)( +-?\d+)( +-?\d+)( +-?\d+)?/,
     FacePattern2 : /f( +(-?\d+)\/(-?\d+))( +(-?\d+)\/(-?\d+))( +(-?\d+)\/(-?\d+))( +(-?\d+)\/(-?\d+))?/,
     FacePattern3 : /f( +(-?\d+)\/(-?\d+)\/(-?\d+))( +(-?\d+)\/(-?\d+)\/(-?\d+))( +(-?\d+)\/(-?\d+)\/(-?\d+))( +(-?\d+)\/(-?\d+)\/(-?\d+))?/,
     FacePattern4 : /f( +(-?\d+)\/\/(-?\d+))( +(-?\d+)\/\/(-?\d+))( +(-?\d+)\/\/(-?\d+))( +(-?\d+)\/\/(-?\d+))?/,
-    NsPattern  : /Ns( +[\d|\.|\+|\-|e|E]+)/,
-    KaPattern  : /Ka( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)/,
-    KdPattern  : /Kd( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)/,
-    KsPattern  : /Ks( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)/,
+    NsPattern : /Ns( +[\d|\.|\+|\-|e|E]+)/,
+    KaPattern : /Ka( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)/,
+    KdPattern : /Kd( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)/,
+    KsPattern : /Ks( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)/,
 
 
     setFloor : function(floor){
         this.floor = floor;
     },
 
-    setModelMatrix : function(m){
-        this.modelMatrix = m;
 
-        /**
-         * 变换更新时, 要对obb进行同步变换
-         */
-        var mat = YFM.Math.Matrix.mul(this.floor.getFloorMat(), this.modelMatrix);
-        this.obb.transform(mat);
-    },
+    render : function(shader, modelMatrix){
 
-    render : function(shader, vrfMat){
-        var vrfmMat = YFM.Math.Matrix.mul(vrfMat, this.modelMatrix);
-        var tvrfmMat = YFM.Math.Matrix.transpose(vrfmMat);
-        var itvrfmMat = YFM.Math.Matrix.invert(tvrfmMat);
-        shader.setNormalMatrix(itvrfmMat);
-        shader.setModelMatrix(this.modelMatrix);
+        /*
+        var vwMat = this.transform.getVWMat();
+        var vmMat = YFM.Math.Matrix.mul(vwMat, modelMatrix);
+        var tvmMat = YFM.Math.Matrix.transpose(vmMat);
+        var itmMat = YFM.Math.Matrix.invert(tvmMat);
+
+        shader.setNormalMatrix(itmMat);*/
+        shader.setModelMatrix(modelMatrix);
 		for(var i = 0, l = this.objects.length; i < l; i ++){
 
-
             if(this.hasMaterials && this.objects[i].material.mtl){
-                shader.setMTL(this.objects[i].material.mtl, this.texturePool);
+                shader.setMTL(this.objects[i].material.mtl, this.texturePool); 
             }else{
                 shader.setDefaultMTL();
             }
@@ -18135,7 +19948,26 @@ YFM.Mesh.ObjModel.prototype = {
         }
     },
 
-    loadURLDir : function(baseUrl, name, onFinish, onFailed){
+    renderWithColor : function(shader, modelMatrix, color){
+
+        /*
+        var vwMat = this.transform.getVWMat();
+        var vmMat = YFM.Math.Matrix.mul(vwMat, modelMatrix);
+        var tvmMat = YFM.Math.Matrix.transpose(vmMat);
+        var itmMat = YFM.Math.Matrix.invert(tvmMat);
+
+        shader.setColorFlag(1);
+        shader.setColor(color);
+
+        shader.setNormalMatrix(itmMat);
+        shader.setModelMatrix(modelMatrix);
+		for(var i = 0, l = this.objects.length; i < l; i ++){
+
+            shader.drawTriangles(this.objects[i].mesh);
+        }*/
+    },
+
+    _loadURLDir : function(baseUrl, name, onFinish, onFailed){
 
         this.baseUrl = baseUrl;
 
@@ -18180,75 +20012,10 @@ YFM.Mesh.ObjModel.prototype = {
         xhrMtl.send();
     },
 
-    loadURLWithMtl : function(objUrl, mtlUrl, onFinish, onFailed){
-
-        this.baseUrl = mtlUrl.substr(0, mtlUrl.lastIndexOf("/") + 1);
-
-		var ctx = this;
-        var xhrMtl = new XMLHttpRequest();
-        xhrMtl.open('GET', mtlUrl, true);
-        xhrMtl.responseType = 'text';
-        xhrMtl.onload	= function(e){
-
-            if(200 == this.status){
-                ctx._parseMtl(this.response);
-                var xhrObj = new XMLHttpRequest();
-                xhrObj.open('GET', objUrl, true);
-                xhrObj.responseType = 'text';
-                xhrObj.onload	= function(e){
-
-                    if(200 == this.status){
-                        ctx._parseObj(this.response);
-                        if(onFinish){
-                            onFinish(ctx);
-                        }
-                        ctx.hasMaterials = true;
-                    }else{
-                        if(onFailed){
-                            onFailed(this.status);
-                        }
-                    }
-                };
-                xhrObj.send();
-            }else{
-                if(onFailed){
-                    onFailed(this.status);
-                }
-            }
-
-        };
-        xhrMtl.send();
-    },
-    
-	loadURL : function(url, onFinish, onFailed){
-
-        this.baseUrl = url.substr(0, url.lastIndexOf("/") + 1);
-
-		var ctx = this;
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.responseType = 'text';
-        xhr.onload	= function(e){
-
-            if(200 == this.status){
-                ctx._parseObj(this.response);
-                if(onFinish){
-                    onFinish(ctx);
-                }
-            }else{
-                if(onFailed){
-                    onFailed(this.status);
-                }
-            }
-
-        };
-        xhr.send();
-
-	},
-
     _parseMtl : function(text){
         var mtlItem;
 		var lines = text.split( '\n' );
+        var a1, a2, a3;
 		for(var i = 0; i < lines.length; i ++){
 
 			var result;
@@ -18260,26 +20027,32 @@ YFM.Mesh.ObjModel.prototype = {
 			}else if(/^newmtl /.test(line)){
 
                 var name = line.substring(7).trim();
-                mtlItem = new MtlItem();
+                mtlItem = new YFM.Mesh.MtlItem();
                 this.materials[name] = mtlItem;
+
             }else if(/^map_Kd /.test(line)){
 
                 var mapName = line.substring(7).trim();
                 mtlItem.setMapKd(mapName);
                 this.texturePool.addTexture(mapName, this.baseUrl+"/"+mapName);
-            }else if((result = YFM.Mesh.ObjModel.NsPattern.exec(line)) !== null){
+            }else if((result = YFM.Mesh.ObjModel.prototype.NsPattern.exec(line)) !== null){
                 mtlItem.setNs(parseFloat(result[1]));
-			}else if((result = YFM.Mesh.ObjModel.KaPattern.exec(line)) !== null){
-                mtlItem.setKa(
-                    parseFloat(result[1]),
-                    parseFloat(result[2]),
-                    parseFloat(result[3]));
-			}else if((result = YFM.Mesh.ObjModel.KdPattern.exec(line)) !== null){
+			}else if((result = YFM.Mesh.ObjModel.prototype.KaPattern.exec(line)) !== null){
+                a1 = parseFloat(result[1]);
+                a2 = parseFloat(result[2]);
+                a3 = parseFloat(result[3]);
+
+                if(!YFM.Math.floatNotZero(a1) && !YFM.Math.floatNotZero(a1) && !YFM.Math.floatNotZero(a1)){
+                    mtlItem.setKa(0.6, 0.6, 0.6);
+                }else{
+                    mtlItem.setKa(a1, a2, a3);
+                }
+			}else if((result = YFM.Mesh.ObjModel.prototype.KdPattern.exec(line)) !== null){
                 mtlItem.setKd(
                     parseFloat(result[1]),
                     parseFloat(result[2]),
                     parseFloat(result[3]));
-			}else if((result = YFM.Mesh.ObjModel.KsPattern.exec(line)) !== null){
+			}else if((result = YFM.Mesh.ObjModel.prototype.KsPattern.exec(line)) !== null){
                 mtlItem.setKs(
                     parseFloat(result[1]),
                     parseFloat(result[2]),
@@ -18447,7 +20220,7 @@ YFM.Mesh.ObjModel.prototype = {
 			if(line.length === 0 || line.charAt(0) === '#'){
 
 				continue;
-			}else if((result = YFM.Mesh.ObjModel.VPattern.exec(line)) !== null){
+			}else if((result = YFM.Mesh.ObjModel.prototype.VPattern.exec(line)) !== null){
 
 				// ["v 1.0 2.0 3.0", "1.0", "2.0", "3.0"]
 				vertices.push(
@@ -18455,7 +20228,7 @@ YFM.Mesh.ObjModel.prototype = {
 					parseFloat(result[2]),
 					parseFloat(result[3])
 				);
-			}else if((result = YFM.Mesh.ObjModel.NPattern.exec(line)) !== null){
+			}else if((result = YFM.Mesh.ObjModel.prototype.NPattern.exec(line)) !== null){
 
 				// ["vn 1.0 2.0 3.0", "1.0", "2.0", "3.0"]
 				normals.push(
@@ -18463,27 +20236,27 @@ YFM.Mesh.ObjModel.prototype = {
 					parseFloat(result[2]),
 					parseFloat(result[3])
 				);
-			}else if((result = YFM.Mesh.ObjModel.UVPattern.exec(line)) !== null){
+			}else if((result = YFM.Mesh.ObjModel.prototype.UVPattern.exec(line)) !== null){
 
 				// ["vt 0.1 0.2", "0.1", "0.2"]
 				uvs.push(
 					parseFloat(result[1]),
 					parseFloat(result[2])
 				);
-			}else if((result = YFM.Mesh.ObjModel.FacePattern1.exec(line)) !== null){
+			}else if((result = YFM.Mesh.ObjModel.prototype.FacePattern1.exec(line)) !== null){
 
 				// ["f 1 2 3", "1", "2", "3", undefined]
 				addFace(
 					result[1], result[2], result[3], result[4]
 				);
-			}else if((result = YFM.Mesh.ObjModel.FacePattern2.exec(line)) !== null){
+			}else if((result = YFM.Mesh.ObjModel.prototype.FacePattern2.exec(line)) !== null){
 
 				// ["f 1/1 2/2 3/3", " 1/1", "1", "1", " 2/2", "2", "2", " 3/3", "3", "3", undefined, undefined, undefined]
 				addFace(
 					result[2], result[5], result[8], result[11],
 					result[3], result[6], result[9], result[12]
 				);
-			}else if((result = YFM.Mesh.ObjModel.FacePattern3.exec(line)) !== null){
+			}else if((result = YFM.Mesh.ObjModel.prototype.FacePattern3.exec(line)) !== null){
 
 				// ["f 1/1/1 2/2/2 3/3/3", " 1/1/1", "1", "1", "1", " 2/2/2", "2", "2", "2", " 3/3/3", "3", "3", "3", undefined, undefined, undefined, undefined]
 				addFace(
@@ -18491,7 +20264,7 @@ YFM.Mesh.ObjModel.prototype = {
 					result[3], result[7], result[11], result[15],
 					result[4], result[8], result[12], result[16]
 				);
-			}else if((result = YFM.Mesh.ObjModel.FacePattern4.exec(line)) !== null){
+			}else if((result = YFM.Mesh.ObjModel.prototype.FacePattern4.exec(line)) !== null){
 
 				// ["f 1//1 2//2 3//3", " 1//1", "1", "1", " 2//2", "2", "2", " 3//3", "3", "3", undefined, undefined, undefined]
 				addFace(
@@ -18499,7 +20272,7 @@ YFM.Mesh.ObjModel.prototype = {
 					undefined, undefined, undefined, undefined,
 					result[3], result[6], result[9], result[12]
 				);
-			}else if(/^o /.test(line)){
+			}else if(/^[og] /.test(line)){
 
 				geometry = {
 					vertices: [],
@@ -18518,12 +20291,12 @@ YFM.Mesh.ObjModel.prototype = {
 				};
 
                 this.objects.push(object);
-			}else if(/^g /.test(line)){
-				// group
 			}else if(/^usemtl /.test(line)){
-
-				material.name = line.substring(7).trim();
-                material.mtl = this.materials[material.name];
+                
+                if(material){
+                    material.name = line.substring(7).trim();
+                    material.mtl = this.materials[material.name];
+                }
 			}else if(/^mtllib /.test(line)){
 
 				// mtl file
@@ -18541,22 +20314,19 @@ YFM.Mesh.ObjModel.prototype = {
 
 			var obj = this.objects[i];
 			var geo = obj.geometry;
-            var meshBuffer = new MeshBuffer(this.gl);
+            var meshAttribs = new YFM.WebGL.VAttribs(this.gl)
 
-            meshBuffer.addAttribute("position", geo.vertices, 3);
-            //console.log("obj[%d], vertices length:"+geo.vertices.length);
+            meshAttribs.addAttributeFlat("position", geo.vertices, 3);
             
             if(geo.normals.length > 0){
-                meshBuffer.addAttribute("normal", geo.normals, 3);
+                meshAttribs.addAttributeFlat("normal", geo.normals, 3);
             }
-            //console.log("obj[%d], normals length:"+geo.normals.length);
 
             if(geo.uvs.length > 0){
-                meshBuffer.addAttribute("uv", geo.uvs, 2);
+                meshAttribs.addAttributeFlat("uv", geo.uvs, 2);
             }
-            //console.log("obj[%d], uvs length:"+geo.uvs.length);
 
-            obj.mesh = meshBuffer;
+            obj.mesh = meshAttribs;
 		}
 
         /**
@@ -18577,6 +20347,103 @@ YFM.Mesh.ObjModel.prototype = {
     }
 }
 
+
+
+/**
+ * OBJ模型实例, 为了复用资源, 灵活渲染而设
+ */
+YFM.Mesh.ObjModelInstance = function(set, pool, name){
+    this.set = set;
+    this.pool = pool;
+    this.name = name;
+    this.model = null;
+
+    this.model = this.pool.getModelByName(this.name);
+
+    /**
+     * 如果建实例时模型已经加载完毕了就可以直接拷贝模型obb
+     */
+    if(this.model){
+        this.obb = new YFM.Math.OBB(this.model.obb);
+        this.pending = false;
+    }else{
+        /**
+         * 生成占位OBB
+         */
+        var pts = [];
+        pts.push(YFM.Math.Vector.pos(1,  1, 1));
+        pts.push(YFM.Math.Vector.pos(-1, 1, 1));
+        pts.push(YFM.Math.Vector.pos(-1, -1,1));
+        pts.push(YFM.Math.Vector.pos(1,  -1,1));
+        pts.push(YFM.Math.Vector.pos(1,  1, -1));
+        pts.push(YFM.Math.Vector.pos(-1, 1, -1));
+        pts.push(YFM.Math.Vector.pos(-1, -1,-1));
+        pts.push(YFM.Math.Vector.pos(1,  -1,-1));
+        this.obb = new YFM.Math.OBB(pts);
+        this.pending = true;
+    }
+
+    /**
+     * 模型的实例矩阵
+     */
+    this.instanceMat = YFM.Math.Matrix.mat();
+
+    this.azimuth = 0;
+    this.scale = 1.0;
+    this.position = YFM.Math.Vector.pos(0, 0, 0);
+
+    this.visibility = true;
+}
+
+YFM.Mesh.ObjModelInstance.prototype = {
+    constructor : YFM.Mesh.ObjModelInstance,
+
+    setVisibility : function(value){
+        this.visibility = value;
+    },
+
+    setModelArguments : function(azimuth, scale, position){
+        var Matrix = YFM.Math.Matrix;
+        this.instanceMat = Matrix.postTranslate(
+                                                Matrix.postRotate3d(
+                                                    /**
+                                                     * 这个变换是为了直接使用2d的x, y坐标
+                                                     * 3d坐标系y方向是竖直方向, xy平面是与水平方向垂直的,
+                                                     * 故要做这个绕x轴的90度旋转
+                                                     */
+                                                    Matrix.postRotate3d(Matrix.scale(scale, 0, 0, 0), 90, 1, 0, 0),
+                                                    azimuth, 0, 0, 1),
+                                                position[0], position[1], position[2]);
+        this.azimuth = azimuth;
+        this.scale = scale;
+        this.position[0] = position[0];
+        this.position[1] = position[1];
+        this.position[2] = position[2];
+
+        this.obb.transform(YFM.Math.Matrix.matClone(this.instanceMat));
+    },
+
+    render : function(shader){
+
+        if(this.visibility){
+            if(!this.model){
+                var model = this.pool.getModelByName(this.name);
+
+                if(model){
+                    //this.obb = new YFM.Math.OBB(model.obb);
+                    //this.obb.transform(YFM.Math.Matrix.matClone(this.instanceMat));
+                    this.model = model;
+                    //this.set.updateInstanceRaw(this);
+                }
+            }
+
+            if(this.model){
+                this.model.render(shader, this.instanceMat);
+            }
+        }
+    }
+
+}
 
 YFM.Mesh.DodecahedronMesh = function(gl, t){
     this._init(gl, t);
@@ -18614,46 +20481,46 @@ YFM.Mesh.DodecahedronMesh.prototype = {
         var r = 1/t;
         var v = [];
 
-		//- 1, - 1, - 1,
+		//- 1, - 1, - 1,    
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(-1,    -1,     -1)));
         //- 1, - 1,  1,
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(-1,    -1,     1)));
-		//- 1,  1, - 1,
+		//- 1,  1, - 1,    
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(-1,    1,      -1)));
         //- 1,  1,  1,
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(-1,    1,      1)));
-		//  1, - 1, - 1,
+		//  1, - 1, - 1,     
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(1,     -1,     -1)));
         //  1, - 1,  1,
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(1,     -1,     1)));
-		//  1,  1, - 1,
+		//  1,  1, - 1,     
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(1,     1,      -1)));
         //  1,  1,  1,
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(1,     1,      1)));
 
-		//0, - r, - t,
+		//0, - r, - t,     
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(0,     -r,     -t)));
         //0, - r,  t,
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(0,     -r,     t)));
-		//0,  r, - t,
+		//0,  r, - t,     
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(0,     r,      -t)));
         //0,  r,  t,
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(0,     r,      t)));
 
-		//- r, - t,  0,
+		//- r, - t,  0,    
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(-r,    -t,     0)));
         //- r,  t,  0,
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(-r,    t,      0)));
-        //r, - t,  0,
+        //r, - t,  0,     
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(r,     -t,     0)));
         //r,  t,  0,
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(r,     t,      0)));
 
-		//- t,  0, - r,
+		//- t,  0, - r,     
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(-t,    0,      -r)));
         //t,  0, - r,
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(t,     0,      -r)));
-        //- t,  0,  r,
+        //- t,  0,  r,     
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(-t,    0,      r)));
         //t,  0,  r
         v.push(YFM.Math.Vector.normalize(YFM.Math.Vector.pos(t,     0,      r)));
@@ -19166,7 +21033,7 @@ YFM.WebGL.Camera = function(){
     this.zee = YFM.Math.Vector.vec(0, 0, 1);
 
     //由于我们地图建模时把xy平面作为水平面, z轴正向作为竖直方向, 左乘q0以提前校正这个旋转
-    this.q0 = new YFM.Math.Quaternion(Math.sqrt(0.5), 0, 0, Math.sqrt(0.5));
+    this.q0 = new YFM.Math.Quaternion(Math.sqrt(0.5), 0, 0, Math.sqrt(0.5));     
 
     //设备的方向传感器的坐标系是z轴垂直屏幕向用户, y向上, x向右, 右乘q1以做基变换
     this.q1 = new YFM.Math.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5));
@@ -19372,7 +21239,7 @@ YFM.WebGL.Camera.prototype = {
 
     _updaeQuaternion : function(){
 
-		if(false === this.enabled)
+		if(false === this.enabled) 
             return;
 
         if(null != this.deviceOrientation){
@@ -19434,6 +21301,168 @@ YFM.WebGL.Camera.prototype = {
         this.dirty = false;
     }
 }
+
+
+
+/**
+ * 模型池
+ */
+YFM.WebGL.ModelPool = function(){
+    this.list = [];
+    this.pool = {};
+}
+
+YFM.WebGL.ModelPool.prototype = {
+	constructor : YFM.WebGL.ModelPool,
+
+
+    /**
+     * 添加模型
+     */
+    addModel : function(name, model){
+        if(null != this.pool[name]){
+            return false;
+        }else{
+            this.pool[name] = model;
+            this.list.push(model);
+            return true;
+        }
+    },
+
+    getModelByName : function(name){
+        return this.pool[name];
+    },
+
+    getModelCount : function(){
+        return this.list.length;
+    },
+
+    getModelByIndex : function(index){
+        return this.list[index];
+    }
+}
+
+/**
+ * 贴图池
+ */
+YFM.WebGL.TexturePool = function(gl){
+    this.gl = gl;
+    this.pool = {};
+}
+
+YFM.WebGL.TexturePool.prototype = {
+	constructor : YFM.WebGL.TexturePool,
+
+    addTexture : function(name, url){
+        if(null != this.pool[name]){
+            return false;
+        }else{
+            var image = new Image();
+            var texWrap = new YFM.WebGL.TexturePool.prototype.TextureWrap(name, url, image);
+            var ctx = this;
+
+            image.crossOrigin = "Anonymous";
+            image.onload = function() { ctx._handleTextureLoaded(texWrap);}
+            image.src = url;
+        }
+    },
+
+    addTextureBase64 : function(name, str){
+        if(null != this.pool[name]){
+            return false;
+        }else{
+            var image = new Image();
+            var texWrap = new YFM.WebGL.TexturePool.prototype.TextureWrap(name, "data:base64", image);
+            var ctx = this;
+
+            image.crossOrigin = "Anonymous";
+            image.onload = function() { ctx._handleTextureLoaded(texWrap);}
+            image.src = str;
+        }
+    },
+
+    addTextureMip : function(name, url){
+        if(null != this.pool[name]){
+            return false;
+        }else{
+            var image = new Image();
+            var texWrap = new YFM.WebGL.TexturePool.prototype.TextureWrap(name, url, image);
+            var ctx = this;
+
+            image.crossOrigin = "Anonymous";
+            image.onload = function() { ctx._handleTextureLoadedMip(texWrap);}
+            image.src = url;
+        }
+    },
+
+    getTexture : function(name){
+        var texWrap = this.pool[name];
+        if(null != texWrap){
+            return {
+                    tex : texWrap.tex,
+                    w : texWrap.w,
+                    h : texWrap.h};
+        }else{
+            return null;
+        }
+    },
+
+    _handleTextureLoaded : function(texWrap){
+        this.pool[texWrap.name] = texWrap;
+
+
+        var tex = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, tex);
+
+        this.gl.pixelStorei(this.gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, texWrap.img);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+
+        this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+
+        texWrap.tex = tex;
+        texWrap.w   = texWrap.img.width;
+        texWrap.h   = texWrap.img.height;
+        delete texWrap.img;
+    },
+
+    _handleTextureLoadedMip : function(texWrap){
+        this.pool[texWrap.name] = texWrap;
+
+
+        var tex = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, tex);
+
+        this.gl.pixelStorei(this.gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, texWrap.img);
+
+        this.gl.generateMipmap(this.gl.TEXTURE_2D);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+
+        this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+
+        texWrap.tex = tex;
+        texWrap.w   = texWrap.img.width;
+        texWrap.h   = texWrap.img.height;
+        delete texWrap.img;
+    },
+
+    TextureWrap : function(name, url, img){
+        this.name = name;
+        this.url  = url;
+        this.img  = img;
+        this.w    = 0;
+        this.h    = 0;
+    }
+}
+
 
 
 
@@ -19560,7 +21589,7 @@ YFM.WebGL.BaseColorProgram.prototype = {
 		this.gl.uniformMatrix4fv(this.uModelMat, false, YFM.Math.flatten(mat) );
 	},
 
-	vshader :
+	vshader : 
 "attribute  vec4 aPosition;\n"+
 "attribute  vec4 aColor;\n"+
 "uniform mat4 uModelMat;\n"+
@@ -19586,7 +21615,7 @@ YFM.WebGL.BaseColorProgram.prototype = {
 "void main()\n"+
 "{\n"+
 "       if(1 == uColorFlag)\n"+
-"           gl_FragColor = vColor;\n"+
+"           gl_FragColor = vColor;\n"+ 
 "       else\n"+
 "           gl_FragColor = texture2D(uTex, vColor.xy);\n"+
 "}\n"
@@ -19694,7 +21723,7 @@ YFM.WebGL.BasePhongProgram.prototype = {
 	},
 
 
-	vshader :
+	vshader : 
 "attribute vec4 aPosition;  \n"+
 "attribute vec4 aNormal;    \n"+
 "attribute vec4 aColor;     \n"+
@@ -19720,7 +21749,7 @@ YFM.WebGL.BasePhongProgram.prototype = {
 "       vec4 diffuse = Kd*uDiffuse;                         \n"+
 "       vColor = aColor*uAmbient+aColor*diffuse;            \n"+
 "   }else{                                                  \n"+
-"       vColor = aColor;                                    \n"+
+"       vColor = aColor;                                    \n"+ 
 "   }                                                       \n"+
 "   gl_Position = uPVRMat * uFloorMat * tPos;               \n"+
 "}\n",
@@ -19801,7 +21830,7 @@ YFM.WebGL.BillboardIconProgram.prototype = {
 	},
 
 
-	vshader :
+	vshader : 
 "attribute vec4  aPosition; \n"+
 "attribute vec3  aTexCoord; \n"+
 "varying vec3 vTexCoord;    \n"+
@@ -19887,7 +21916,7 @@ YFM.WebGL.Color2DProgram.prototype = {
 	},
 
 
-	vshader :
+	vshader : 
 "attribute vec4 aPosition;\n"+
 "uniform mat4   uModelMat;\n"+
 "uniform mat4   uProjMat;\n"+
@@ -19961,7 +21990,7 @@ YFM.WebGL.Marker2DProgram.prototype = {
 	},
 
 
-	vshader :
+	vshader : 
 "attribute vec4  aPosition; \n"+
 "attribute vec3  aTexCoord; \n"+
 "uniform mat4   uModelMat;  \n"+
@@ -20104,7 +22133,7 @@ YFM.WebGL.ModelPhongProgram.prototype = {
             if(null != tex){
                 this.gl.uniform1i(this.uTexFlag, 1);
                 this.gl.uniform1i(this.uColorFlag, 0);
-                this.bindTexture(tex.tex);
+                this.bindTexture(tex.tex); 
                 return;
             }
         }
@@ -20164,7 +22193,7 @@ YFM.WebGL.ModelPhongProgram.prototype = {
 	},
 
 
-	vshader :
+	vshader : 
 "attribute vec4 aPosition;  \n"+
 "attribute vec4 aNormal;    \n"+
 "attribute vec3 aTexCoord;  \n"+
@@ -20200,7 +22229,7 @@ YFM.WebGL.ModelPhongProgram.prototype = {
 "   }                                                       \n"+
 "   vSpecular = specular;                                   \n"+
 "   if(1 == uTexFlag)                                       \n"+
-"       vTexCoord = aTexCoord;                              \n"+
+"       vTexCoord = vec3(aTexCoord.x, 1.0-aTexCoord.y,0.0); \n"+
 "   else                                                    \n"+
 "       vTexCoord = vec3(0.0, 0.0, 0.0);                    \n"+
 "   gl_Position = uProjMat * modelViewMatrix * aPosition;   \n"+
@@ -20218,7 +22247,7 @@ YFM.WebGL.ModelPhongProgram.prototype = {
 "void main() {                  \n"+
 "       vec4 color;                                                     \n"+
 "       if(1 == uColorFlag)                                             \n"+
-"           color = uColor;                                             \n"+
+"           color = uColor;                                             \n"+ 
 "       else                                                            \n"+
 "           color = texture2D(uTex, vTexCoord.xy);                      \n"+
 "       gl_FragColor = color*vAmbient+color*vDiffuse+color*vSpecular;   \n"+
@@ -20281,7 +22310,7 @@ YFM.WebGL.PointSpiritProgram.prototype = {
 	},
 
 
-	vshader :
+	vshader : 
 "attribute vec4  aPosition; \n"+
 "uniform mat4   uRegionMat; \n"+
 "uniform mat4   uViewMat;   \n"+
@@ -20351,7 +22380,7 @@ YFM.WebGL.RawPanoramaProgram.prototype = {
 		this.gl.uniformMatrix4fv(this.uModelMat, false, YFM.Math.flatten(mat) );
 	},
 
-	vshader :
+	vshader : 
 "attribute  vec4 aPosition;\n"+
 "uniform mat4 uModelMat;\n"+
 "uniform mat4 uViewMat;\n"+
@@ -20461,7 +22490,7 @@ YFM.WebGL.RegionPhongProgram.prototype = {
 	},
 
 
-	vshader :
+	vshader : 
 "attribute vec4 aPosition;  \n"+
 "attribute vec4 aNormal;    \n"+
 "uniform vec4   uColor;     \n"+
@@ -20588,7 +22617,7 @@ YFM.WebGL.SSRProgram.prototype = {
     },
 
 
-	vshader :
+	vshader : 
 "attribute  vec4 aPosition; \n"+
 "attribute vec3  aTexCoord; \n"+
 "uniform float uTime;       \n"+
@@ -20720,7 +22749,7 @@ YFM.WebGL.SelectColorProgram.prototype = {
 		this.gl.uniformMatrix4fv(this.uModelMat, false, YFM.Math.flatten(mat) );
 	},
 
-	vshader :
+	vshader : 
 "attribute  vec4 aPosition;\n"+
 "uniform vec4 uColor;\n"+
 "uniform mat4 uModelMat;\n"+
@@ -20819,7 +22848,7 @@ YFM.WebGL.TrajectoryProgram.prototype = {
         this.gl.uniform1f(this.uMapHeight, value);
     },
 
-    vshader :
+    vshader : 
 "attribute vec2 aPosition;  \n"+
 "attribute vec3 aTexCoord;  \n"+
 "uniform mat4 uPVRMat;      \n"+
@@ -20847,129 +22876,6 @@ YFM.WebGL.TrajectoryProgram.prototype = {
 }
 
 
-/**
- * 贴图池
- */
-YFM.WebGL.TexturePool = function(gl){
-    this.gl = gl;
-    this.pool = {};
-}
-
-YFM.WebGL.TexturePool.prototype = {
-	constructor : YFM.WebGL.TexturePool,
-
-    addTexture : function(name, url){
-        if(null != this.pool[name]){
-            return false;
-        }else{
-            var image = new Image();
-            var texWrap = new YFM.WebGL.TexturePool.prototype.TextureWrap(name, url, image);
-            var ctx = this;
-
-            image.crossOrigin = "Anonymous";
-            image.onload = function() { ctx._handleTextureLoaded(texWrap);}
-            image.src = url;
-        }
-    },
-
-    addTextureBase64 : function(name, str){
-        if(null != this.pool[name]){
-            return false;
-        }else{
-            var image = new Image();
-            var texWrap = new YFM.WebGL.TexturePool.prototype.TextureWrap(name, "data:base64", image);
-            var ctx = this;
-
-            image.crossOrigin = "Anonymous";
-            image.onload = function() { ctx._handleTextureLoaded(texWrap);}
-            image.src = str;
-        }
-    },
-
-    addTextureMip : function(name, url){
-        if(null != this.pool[name]){
-            return false;
-        }else{
-            var image = new Image();
-            var texWrap = new YFM.WebGL.TexturePool.prototype.TextureWrap(name, url, image);
-            var ctx = this;
-
-            image.crossOrigin = "Anonymous";
-            image.onload = function() { ctx._handleTextureLoadedMip(texWrap);}
-            image.src = url;
-        }
-    },
-
-    getTexture : function(name){
-        var texWrap = this.pool[name];
-        if(null != texWrap){
-            return {
-                    tex : texWrap.tex,
-                    w : texWrap.w,
-                    h : texWrap.h};
-        }else{
-            return null;
-        }
-    },
-
-    _handleTextureLoaded : function(texWrap){
-        this.pool[texWrap.name] = texWrap;
-
-
-        var tex = this.gl.createTexture();
-        this.gl.bindTexture(this.gl.TEXTURE_2D, tex);
-
-        this.gl.pixelStorei(this.gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, texWrap.img);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
-
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
-
-        this.gl.bindTexture(this.gl.TEXTURE_2D, null);
-
-        texWrap.tex = tex;
-        texWrap.w   = texWrap.img.width;
-        texWrap.h   = texWrap.img.height;
-        delete texWrap.img;
-    },
-
-    _handleTextureLoadedMip : function(texWrap){
-        this.pool[texWrap.name] = texWrap;
-
-
-        var tex = this.gl.createTexture();
-        this.gl.bindTexture(this.gl.TEXTURE_2D, tex);
-
-        this.gl.pixelStorei(this.gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, texWrap.img);
-
-        this.gl.generateMipmap(this.gl.TEXTURE_2D);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
-
-        this.gl.bindTexture(this.gl.TEXTURE_2D, null);
-
-        texWrap.tex = tex;
-        texWrap.w   = texWrap.img.width;
-        texWrap.h   = texWrap.img.height;
-        delete texWrap.img;
-    },
-
-    TextureWrap : function(name, url, img){
-        this.name = name;
-        this.url  = url;
-        this.img  = img;
-        this.w    = 0;
-        this.h    = 0;
-    }
-}
-
-
-
 
 /**
  * 测试用射线集合
@@ -20988,7 +22894,7 @@ YFM.WebGL.Rays.prototype = {
     addRay : function(ray){
 
         var Vector = YFM.Math.Vector;
-        var s = Vector.pos(ray[0], ray[1], ray[2]);
+        var s = Vector.pos(ray[0], ray[1], ray[2]); 
         var v = Vector.vec(ray[4], ray[5], ray[6]);
         var e = Vector.add(s, v);
 
@@ -21136,7 +23042,7 @@ YFM.WebGL.VAttribs.prototype = {
             var pending = this.attributes[a].vbo;
             var gl = this.gl;
             setTimeout(function(){
-                gl.deleteBuffer(pending);
+                gl.deleteBuffer(pending); 
             }, 2000);
         }
     }

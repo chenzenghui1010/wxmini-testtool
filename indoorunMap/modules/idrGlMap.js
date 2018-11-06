@@ -2,166 +2,157 @@
  * Created by ky on 17-6-20.
  */
 
-function idrGlMap(mapView) {
+class idrGlMap {
 	
-	var _csscale = 2.5
+	constructor(mapView) {
+		
+		var userAgent = navigator.userAgent.toLowerCase();
+		
+		this.isAndroid = userAgent.match(/android/i) == "android";
+		
+		this._csscale = 2.5
+		
+		this.screenwidth = 0
+		
+		this.screenheight = 0
+		
+		this._mapScale = 1
+		
+		this._mapView = mapView
+		
+		this._regionEx = null
+		
+		this._floor = null
+		
+		this._mapRoot = null
+		
+		this._canvas_txt = null
+		
+		this._canvas_gl = null
+		
+		this._floorList = []
+		
+		this._region = null
+		
+		this._currentFloorIndex = -1
+		
+		this._unitAddFloor = {}
+		
+		this.listener = {
+			
+			onAllFloorLoadFinish : () => {
+				
+				this.onAllFloorLoaded()
+			},
+			
+			onStatusChange : function(status){
+				
+				// console.log(status)
+			},
+			
+			onAnimStart : function(anim){
+			},
+			
+			onAnimFinish : function(anim){
+			},
+			
+			onAnimCancel : function(anim){
+			
+			},
+			
+			onClick : (x, y) => {
+				
+				this.handleClick(x, y)
+			},
+			
+			onScroll: (x, y) => {
+				
+				this.handleMapScroll(x, y)
+			}
+		}
+	}
 	
-	var screenwidth = 0
-	
-	var screenheight = 0
-	
-	var _mapScale = 1
+	init(regionEx, floorIndex, container) {
 
-  var _mapView = mapView
+    this._regionEx = regionEx
 
-  var _regionEx = null
+    this._currentFloorIndex = floorIndex
 
-  var _floor = null
+    this._floor = this._regionEx.getFloorByIndex(floorIndex)
 
-  var _mapRoot = null
+    this.createCanvas(container)
 
-  var _canvas_txt = null
-
-  var _canvas_gl = null
-
-  var _floorList = []
-
-  var _region = null
-
-  var _unitAddFloor = {}
-
-  var listener = {
-
-    onLoadFinish : function(floorId, floorIndex){
-
-      console.log('onLoadFinish')
-    },
-
-    onLoadFailed : function(floorId, floorIndex){
-
-      console.log('onLoadFailed')
-    },
-
-    onAllFloorLoadFinish : function(){
-
-      onAllFloorLoaded()
-    },
-
-    onStatusChange : function(status){
-
-    	console.log(status)
-    },
-
-    onAnimStart : function(anim){
-    },
-
-    onAnimFinish : function(anim){
-    },
-
-    onAnimCancel : function(anim){
-
-    },
-
-    onClick : function(x, y){
-
-      handleClick(x, y)
-    },
-
-    onDClick : function(x, y){
-
-    },
-
-    on2FClick : function(x, y){
-
-    },
-
-    onLongPressUp : function(x, y){
-
-      handleLongPressUp(x, y)
-    },
-
-    onScroll: function(x, y) {
-
-      handleMapScroll(x, y)
-    }
-  }
-
-  var _currentFloorId = null
-
-  this.init = function(regionEx, floorId, container) {
-
-    _regionEx = regionEx
-
-    _currentFloorId = floorId
-
-    _floor = _regionEx.getFloorbyId(floorId)
-
-    createCanvas(container)
-
-    for (var i = _regionEx.floorList.length - 1; i >= 0; --i) {
+    for (var i = 0; i < this._regionEx.floorList.length; ++i) {
 
       var data = {}
 
-      data.id = _regionEx.floorList[i].id
+      data.index = this._regionEx.floorList[i].floorIndex
 
-      data.svg = _regionEx.floorList[i].mapSvg
+      data.svg = this._regionEx.floorList[i].mapSvg
 
-      data.deflection = _regionEx.northDeflectionAngle
-
-      _floorList.push(data)
+      data.deflection = this._regionEx.northDeflectionAngle
+	
+	    this._floorList.push(data)
     }
-
-    _region = new YFM.Map.Region("testRegion", _canvas_gl, _canvas_txt, listener);
-	  
-    _region.setUIScaleRate(1/_csscale)
-
-    _region.addTexture("pubIcons", "./static/img_pub_icons.png");
-
-    _region.addTexture("parking", "./static/img_parking.png");
+		
+		this._region = new YFM.Map.Region("testRegion", this._canvas_gl, this._canvas_txt, this.listener);
+		
+		this._region.setUIScaleRate(1/this._csscale)
+		
+		this._region.addTexture("pubIcons", "./static/img_pub_icons.png");
+		
+		this._region.addTexture("parking", "./static/img_parking.png");
+		
+		this._region.addTextureMip("route_tex", "./static/tex_route.png");
+		
+		this._region.addFloorsSVG(this._floorList);
+		
+		this._region.setFontColor('#825537')
+		
+		this._region.setFontType('24px Arial')
+		
+		this._region.startRender();
+		
+		this._region.displayFloor(this._floor.floorIndex)
+		
+		this._region.animPitch(0)//设置为 2d
+		
+		this._region.setAlwaysDrawUnit(true)
 	
-	  _region.addTextureMip("route_tex", "./static/tex_route.png");
-
-    _region.addFloorsSVG(_floorList);
-
-    _region.setFontColor('#825537')
-
-    _region.setFontType('24px Arial')
-
-    _region.startRender();
-	
-	  _region.displayFloor(_floor.floorIndex)
-	
-	  _region.animPitch(0)//设置为 2d
-
-    _region.setAlwaysDrawUnit(true)
-
-    _region.addTexture('locatepos', './static/locatepos.png')
-
-    _region.setLocMarkerParam('locatepos', 0x70145082, 200, 75)
+	  if (this.isAndroid) {
+		
+		  this._region.addTexture('locatepos', './static/locatepos_noheading.png')
+	  }
+	  else {
+		
+		  this._region.addTexture('locatepos', './static/locatepos.png')
+	  }
+		
+		this._region.setLocMarkerParam('locatepos', 0x70145082, 200, 75)
   }
 
-  function changeToFloor(floorId) {
-
-    _currentFloorId = floorId
-
-    _floor = _regionEx.getFloorbyId(floorId)
+  changeToFloor(floorIndex) {
 	
-	  _region.displayFloor(_floor.floorIndex)
+	  this._currentFloorIndex = floorIndex
 	
-	  onAllFloorLoaded()
+	  this._floor = this._regionEx.getFloorByIndex(floorIndex)
+	
+	  this._region.displayFloor(this._floor.floorIndex)
+	
+	  this.onAllFloorLoaded()
   }
 
-  function onAllFloorLoaded() {
+  onAllFloorLoaded() {
 
-    _mapView.onLoadMapSuccess()
+    this._mapView.onLoadMapSuccess()
   }
 
-  function setStatus(type) {
+  setStatus(type) {
 
-    _region.setStatus(type)
+    this._region.setStatus(type)
   }
 
-  function createEle(type, id, className) {
+  createEle(type, id, className) {
 
     var ele = document.createElement(type)
 
@@ -172,92 +163,85 @@ function idrGlMap(mapView) {
     return ele
   }
   
-  function getWidthAndHeightOfCancas() {
+  getWidthAndHeightOfCancas() {
 	
 	  var canvas = document.getElementById("gl-canvas");
 	
 	  var style = window.getComputedStyle(canvas, null);
 	
-	  screenwidth = parseInt(style.getPropertyValue('width'))
+	  this.screenwidth = parseInt(style.getPropertyValue('width'))
 	
-	  screenheight = parseInt(style.getPropertyValue('height'))
+	  this.screenheight = parseInt(style.getPropertyValue('height'))
   }
 
-  function createCanvas(containor) {
-
-    _mapRoot = createEle('div', 'mapRoot', 'indoorunMap_map')
+  createCanvas(containor) {
 	
-	  containor.appendChild(_mapRoot)
+	  this._mapRoot = this.createEle('div', 'mapRoot', 'indoorunMap_map')
 	
-	  _canvas_gl = createEle('canvas', 'gl-canvas', 'canvas-frame')
+	  containor.appendChild(this._mapRoot)
 	
-	  _mapRoot.appendChild(_canvas_gl)
+	  this._canvas_gl = this.createEle('canvas', 'gl-canvas', 'canvas-frame')
 	
-	  _canvas_txt = createEle('canvas', 'txt-canvas', 'canvas-frame')
+	  this._mapRoot.appendChild(this._canvas_gl)
 	
-	  _mapRoot.appendChild(_canvas_txt)
+	  this._canvas_txt = this.createEle('canvas', 'txt-canvas', 'canvas-frame')
 	
-	  getWidthAndHeightOfCancas()
+	  this._mapRoot.appendChild(this._canvas_txt)
 	
-	  _canvas_gl.width = screenwidth * _csscale
+	  this.getWidthAndHeightOfCancas()
 	
-	  _canvas_gl.height = screenheight * _csscale
+	  this._canvas_gl.width = this.screenwidth * this._csscale
 	
-	  _canvas_txt.width = screenwidth * _csscale
+	  this._canvas_gl.height = this.screenheight * this._csscale
 	
-	  _canvas_txt.height = screenheight * _csscale
+	  this._canvas_txt.width = this.screenwidth * this._csscale
+	
+	  this._canvas_txt.height = this.screenheight * this._csscale
   }
 
-  function updateUnitsColor(units) {
+  updateUnitsColor(units, color) {
 
     units.forEach(unit => {
-    	
-    	if (unit.spaceStatus == undefined) {
-    		
-    		return
-	    }
-	    
-    	let color = unit.spaceStatus == 0 ? 0x5AAA0A : 0xDC1E1E
-	    
-	    _region.addQuickPolygon(_floor.floorIndex, unit.getPts(), color)
+	
+	    this._region.addQuickPolygon(this._floor.floorIndex, unit.getPts(), color)
     })
-
-    _region.buildQuickPolygonFloor(_floor.floorIndex)
+	
+	  this._region.buildQuickPolygonFloor(this._floor.floorIndex)
   }
 
-  function clearUnitsColor(units) {
+  clearUnitsColor(units) {
 
     units.forEach(unit => {
 
       unit.color = null
     })
-
-    _region.cleanQuickPolygonFloor(_floor.floorIndex)
+	
+	  this._region.cleanQuickPolygonFloor(this._floor.floorIndex)
   }
 
-  function clearFloorUnitsColor(allFloor) {
+  clearFloorUnitsColor(allFloor) {
 
     if (!allFloor) {
-
-      _region.cleanQuickPolygonFloor(_floor.floorIndex)
+	
+	    this._region.cleanQuickPolygonFloor(this._floor.floorIndex)
 
       return
     }
 
-    for (var i = 0; i < _regionEx.floorList.length; ++i) {
-
-      _region.cleanQuickPolygonFloor(_regionEx.floorList[i].floorIndex)
+    for (var i = 0; i < this._regionEx.floorList.length; ++i) {
+	
+	    this._region.cleanQuickPolygonFloor(this._regionEx.floorList[i].floorIndex)
     }
   }
 
-  function addUnits(unitList) {
+  addUnits(unitList) {
 
-    if (_floor.id in _unitAddFloor) {
+    if (this._floor.id in this._unitAddFloor) {
 
       return
     }
-
-    _unitAddFloor[_floor.id] = true
+	
+	  this._unitAddFloor[this._floor.id] = true
 
     for (var i = 0; i < unitList.length; ++i) {
 
@@ -277,158 +261,118 @@ function idrGlMap(mapView) {
 		
 		    unitMapObj.unitType = unit.unitTypeId
 		
-		    _region.insertUnit(unitMapObj, _floor.floorIndex)
+		    this._region.insertUnit(unitMapObj, this._floor.floorIndex)
 	    }
 	    else {
 		
-		    var pos = unit.getPos()
-		    
-		    _region.insertIcon({type:type, unitId:unit.id, unitType:unit.unitTypeId}, _floor.floorIndex, pos.x, pos.y)
+		    var pos = unit.position
+		
+		    this._region.insertIcon({type:type, unitId:unit.id, unitType:unit.unitTypeId}, this._floor.floorIndex, pos.x, pos.y)
 	    }
     }
   }
-  
-  function insertPaopao(obj, floor, x, y, offsetX, offsetY) {
-  
-	  _region.insertCallout(obj, floor, x, y, offsetX, offsetY)
-  }
 
-  function removeMarker(marker) {
+  removeMarker(marker) {
 
     if (marker) {
-
-      _region.removeMarker(marker.id)
-
-      // console.log('移除marker')
+	
+	    this._region.removeMarker(marker.id)
     }
   }
 
-  function handleMapScroll(x, y) {
-
-    _mapView.onMapScroll(x, y)
+  handleMapScroll(x, y) {
+	
+	  this._mapView.onMapScroll(x, y)
   }
 
-  function handleLongPressUp(x, y) {
+  handleClick(x, y) {
 
-    var mapLoc = _region.getTouchPosMapLoc(x, y)
+    var markerId = this._region.searchMarker(x, y)
 
-    _mapView.onMapLongPress({x:mapLoc.x, y:mapLoc.y, floorId:_currentFloorId})
-  }
-
-  function handleClick(x, y) {
-
-    var markerId = _region.searchMarker(x, y)
-
-    var mapLoc = _region.getTouchPosMapLoc(x, y)
-
-    console.log(mapLoc.x, mapLoc.y)
-
-    console.log(markerId)
-
+    var mapLoc = this._region.getTouchPosMapLoc(x, y)
+	  
     if (markerId !== -1) {
-
-      _mapView.onMarkerClick(_currentFloorId, markerId)
+	
+	    this._mapView.onMarkerClick(this._currentFloorIndex, markerId)
 
       return
     }
 
-    var units = _region.searchUnit(x, y)
+    var units = this._region.searchUnit(x, y)
 
     if (units.length > 0) {
     	
-    	let unit = _mapView.findUnitWithId(units[0].obj.unitId)
-
-      _mapView.onUnitClick(unit)
+    	let unit = this._mapView.findUnitWithId(units[0].obj.unitId)
+	
+	    this._mapView.onUnitClick(unit)
 
       return
     }
 
-    var icons = _region.searchIcon(x, y)
+    var icons = this._region.searchIcon(x, y)
 
     if (icons.length > 0) {
 	
-	    let unit = _mapView.findUnitWithId(icons[0].obj.unitId)
-
-      _mapView.onUnitClick(unit)
-
-      return
-    }
-
-    _mapView.onMapClick({x:mapLoc.x, y:mapLoc.y, floorId:_currentFloorId})
-  }
-
-  function addMarker(marker) {
-
-    _region.addTexture(marker.className, marker.image)
-
-    console.log('_floor.floorIndex' + _floor.floorIndex + ' ' + marker.position.x + ' ' + marker.position.y)
-
-    var floor = _regionEx.getFloorbyId(marker.position.floorId)
-
-    if (floor) {
-
-      marker.id = _region.insertTextureMarker(marker.className, floor.floorIndex, marker.position.x, marker.position.y, 0, 0, 80)
-    }
-  }
-
-  function detach() {
-
-
-  }
-
-  function attachTo(containor) {
-
-
-  }
-
-  function setPos(pos) {
-
-    if (!pos || pos.floorId !== _currentFloorId) {
-
-      _region.cleanLocation()
+	    let unit = this._mapView.findUnitWithId(icons[0].obj.unitId)
+	
+	    this._mapView.onUnitClick(unit)
 
       return
     }
+	
+	  this._mapView.onMapClick({x:mapLoc.x, y:mapLoc.y, floorIndex:this._currentFloorIndex})
+  }
 
-    var floor = _regionEx.getFloorbyId(pos.floorId)
-
-    if (floor) {
-
-      _region.setLocation(floor.floorIndex, pos.x, pos.y)
-
-      _region.locateLaunch()
-    }
+  addMarker(marker) {
+		
+		this._region.addTexture(marker.typename, marker.image)
+	
+	  marker.id = this._region.insertTextureMarker(marker.typename, marker.position.floorIndex, marker.position.x, marker.position.y, 0, 0, 80)
   }
   
-  function setUserDirection(angle) {
-	 
-		_region.setAzimuth(angle)
-  }
+  setPos(pos) {
 
-  function resetMap() {
-
-    _region.overlookMap(_regionEx.getFloorIndex(_currentFloorId))
+    if (!pos || pos.floorIndex !== this._currentFloorIndex) {
 	
-	  _region.displayFloor(_regionEx.getFloorIndex(_currentFloorId))
+	    this._region.cleanLocation()
 
-    _region.animPitch(0)//设置为 2d
+      return
+    }
+	
+	  this._region.setLocation(pos.floorIndex, pos.x, pos.y)
+	
+	  this._region.locateLaunch()
+  }
+  
+  setUserDirection(angle) {
+	
+	  this._region.setAzimuth(angle)
   }
 
-  function set25dMap() {
-
-    _region.animPitch(70)
-	  
-	  _region.displayRegion()
+  resetMap() {
+	
+	  this._region.overlookMap(this._currentFloorIndex)
+	
+	  this._region.displayFloor(this._currentFloorIndex)
+	
+	  this._region.animPitch(0)//设置为 2d
   }
 
-  function scroll(screenVec) {
+  set25dMap() {
+	
+	  this._region.animPitch(70)
+	
+	  this._region.displayRegion()
+  }
+
+  scroll(screenVec) {
 
 
   }
 
-  function zoom(scale) {
+  zoom(scale) {
 
-    var dis = _region.getLookDistance()
+    var dis = this._region.getLookDistance()
 
     if (dis < 100 || dis > 4000) {
 
@@ -440,237 +384,93 @@ function idrGlMap(mapView) {
     value = Math.min(value, 4000)
 
     value = Math.max(100, value)
-
-    _region.animLookDistance(value)
-  }
-
-  function birdLook() {
-	  
-  	_region.overlookRoute()
-  }
-
-  function showRoutePath(path) {
-
-    if (!path) {
-
-      _region.cleanRoute()
-
-      return
-    }
-
-    var pathInfloor = getTargetFloorPoints(path, _currentFloorId)
-
-    if (!pathInfloor) {
-
-      _region.cleanRoute()
-
-      return
-    }
-
-    var data = []
-
-    pathInfloor.forEach(function(p) {
-      "use strict";
-      var pos = {}
-
-      pos.floor = _regionEx.getFloorIndex(p.floorId)
-
-      pos.x = p.x
-
-      pos.y = p.y
-
-      data.push(pos)
-    })
-	  
-	  console.log(data)
-
-    _region.setRoute(data)
-  }
-  
-  function setRoutePath(path) {
 	
-	  _region.setRoute(path)
+	  this._region.animLookDistance(value)
   }
 
-  function getNaviStatus() {
+  birdLook() {
+	
+	  this._region.overlookRoute()
+  }
+	
+	showRoutePath(points) {
+		
+		if (!points) {
+			
+			this._region.cleanRoute()
+			
+			return
+		}
+		
+		this._region.setRoute(points)
+	}
 
-    if (_region) {
+  getNaviStatus() {
 
-      return _region.getNaviStatus()
+    if (this._region) {
+
+      return this._region.getNaviStatus()
     }
 
     return null
   }
+	
+	getScreenPos(mapPos) {
 
-  function getMapPos(svgPos) {
+    var v = this._region.floorPos2RegionPos(mapPos.floorIndex, mapPos.x, mapPos.y)
 
+    var p = this._region.regionPos2Screen(v)
 
+    return {x:p[0] / this._csscale, y:p[1] / this._csscale}
   }
 
-  function getScreenPos(mapPos) {
-
-    var floorIndex = _regionEx.getFloorbyId(mapPos.floorId).floorIndex
-
-    var v = _region.floorPos2RegionPos(floorIndex, mapPos.x, mapPos.y)
-
-    var p = _region.regionPos2Screen(v)
-
-    return {x:p[0] * 0.3833333, y:p[1] * 0.3833333}
-  }
-
-  function rotate(rad, anchor) {
-
-
-  }
-
-  function centerPos(mapPos, anim) {
-
-    var floor = _regionEx.getFloorbyId(mapPos.floorId)
+  centerPos(mapPos, anim) {
 
     if (anim) {
-
-      _region.animLookAt(floor.floorIndex, mapPos.x, mapPos.y)
+	
+	    this._region.animLookAt(mapPos.floorIndex, mapPos.x, mapPos.y)
     }
     else {
-
-      _region.lookAtMapLoc(floor.floorIndex, mapPos.x, mapPos.y)
-    }
-
-  }
-
-  function updateDisplay() {
-
-
-  }
-
-  function updateRoutePath() {
-
-  }
-
-  function getTargetFloorPoints(path, floorId) {
-
-    if (!path) {
-
-      return null
-    }
-
-    var result = []
-
-    for (var i = 0; i < path.paths.length; ++i) {
-
-      var floorPath = path.paths[i]
-
-      // if (floorPath.floorId === floorId) {
-
-        result = result.concat(floorPath.position)
-      // }
-    }
-
-    if (result.length == 0) {
-
-      return null
-    }
-
-    return result
-  }
-
-  function getMapScale() {
-
-    return _mapScale
-  }
-
-  function getMapRotate() {
-
-    var val = _region.getFloorAngle(_floor.floorIndex)
-
-    return val
-  }
-
-  this.updateMinScale = function() {
-
-  }
-
-  function updateMarkerLocation(marker, pos) {
-
-    var floor = _regionEx.getFloorbyId(pos.floorId)
-
-    marker.id = _region.updateMarkerLocation(marker.id, floor.floorIndex, pos.x, pos.y)
-
-    marker.position = pos
-  }
-
-  this.getMapScale = getMapScale
-
-  this.getMapRotate = getMapRotate
-
-  this.detach = detach
-
-  this.attachTo = attachTo
-
-  this.setPos = setPos
-
-  this.addMarker = addMarker
-
-  this.resetMap = resetMap
-
-  this.birdLook = birdLook
-
-  this.showRoutePath = showRoutePath
-
-  this.getScreenPos = getScreenPos
-
-  this.updateUnitsColor = updateUnitsColor
-
-  this.clearFloorUnitsColor = clearFloorUnitsColor
-
-  this.getMapPos = getMapPos
-
-  this.zoom = zoom
-
-  this.scroll = scroll
-
-  this.rotate = rotate
-
-  this.centerPos = centerPos
-
-  this.updateDisplay = updateDisplay
-
-  this.updateRoutePath = updateRoutePath
-
-  this.changeToFloor = changeToFloor
-
-  this.addUnits = addUnits
-
-  this.removeMarker = removeMarker
-
-  this.root = function () {
-
-    return _mapRoot
-  }
-
-  this.updateMarkerLocation = updateMarkerLocation
-
-  this.clearUnitsColor = clearUnitsColor
-
-  this.getNaviStatus = getNaviStatus
-
-  this.setDynamicNavi = function (value) {
-
-    if (_region) {
-
-      _region.setNavigateProj(value)
-    }
-  }
-
-  this.set25dMap = set25dMap
-
-  this.setStatus = setStatus
 	
-	this.setRoutePath = setRoutePath
+	    this._region.lookAtMapLoc(mapPos.floorIndex, mapPos.x, mapPos.y)
+    }
+
+  }
+
+  getMapScale() {
+
+    return this._mapScale
+  }
+
+  getMapRotate() {
+
+    return this._region.getFloorAngle(this._floor.floorIndex)
+  }
+
+  updateMarkerLocation(marker, {x,y,floorIndex}) {
+
+    marker.id = this._region.updateMarkerLocation(marker.id, floorIndex, x, y)
+
+    marker.position = {x,y,floorIndex}
+  }
+
+  setDynamicNavi(value) {
+
+    if (this._region) {
 	
-	this.setUserDirection = setUserDirection
+	    this._region.setNavigateProj(value)
+    }
+  }
   
-  this.insertPaopao = insertPaopao
+  root() {
+		
+		return this._mapRoot
+  }
+  
+  insertPaopao(obj, floor, x, y, offsetX, offsetY) {
+    
+    this._region.insertCallout(obj, floor, x, y, offsetX, offsetY)
+  }
 }
 
 export { idrGlMap as default }

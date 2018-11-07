@@ -5,7 +5,7 @@
 </template>
 
 <script>
-
+  
   export default {
     name: 'App'
   }
@@ -13,39 +13,47 @@
 </script>
 
 <style>
-
+  
   /** {*/
-    /*-webkit-user-select: none;*/
-    /*-webkit-touch-callout: none;*/
-    /*-webkit-tap-highlight-color: transparent;*/
-    /*user-select: none;*/
+  /*-webkit-user-select: none;*/
+  /*-webkit-touch-callout: none;*/
+  /*-webkit-tap-highlight-color: transparent;*/
+  /*user-select: none;*/
   /*}*/
-
-  .mint-msgbox-message{
+  
+  .mint-msgbox-message {
     color: #000;
   }
   
+  *{
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+    tap-highlight-color: rgba(0, 0, 0, 0) !important;
+  }
+  
   /*退出登陆*/
-  .mint-msgbox{
+  .mint-msgbox {
     border-radius: 10px;
   }
-  .mint-msgbox-cancel{
+  
+  .mint-msgbox-cancel {
     color: #007AFF;
     font-size: 1.6rem;
   }
-  .mint-msgbox-confirm{
+  
+  .mint-msgbox-confirm {
     color: #FF3B30;
     font-size: 1.6rem;
   }
   
-  .mint-search{
+  .mint-search {
     height: 100%;
   }
-  .mint-searchbar{
+  
+  .mint-searchbar {
     background: #F0EFF5;
   }
   
-  .mint-searchbar-cancel{
+  .mint-searchbar-cancel {
     font-size: 1.4rem;
     color: #00C203;
   }

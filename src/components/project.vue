@@ -1,7 +1,7 @@
 <template>
   <div @click="select" class="main">
     <div class="content">
-     {{ text }}
+      <div>{{ text }}</div>
     </div>
   
   </div>
@@ -34,6 +34,7 @@
     padding-left: 5%;
     
   }
+  
   .content {
     display: -webkit-flex;
     justify-content: space-between;
@@ -43,10 +44,15 @@
     height: 4.5rem;
     box-sizing: border-box;
     padding-right: 5%;
-    background: url("../assets/xiangqian.png") no-repeat  95%/0.8rem 1.3rem;
+    background: url("../assets/xiangqian.png") no-repeat 95%/0.8rem 1.3rem;
     font-family: PingFangSC-Regular;
-    font-size: 1.7rem;
-    color: #000;
+    font-size: 1.4rem;
+    color: #666;
   }
-
+  
+  .content > div {
+    box-sizing: border-box;
+    padding-left: 5%;
+    letter-spacing: 0.15rem;
+  }
 </style>

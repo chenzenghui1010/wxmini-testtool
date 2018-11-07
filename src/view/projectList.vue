@@ -1,56 +1,100 @@
 <template>
   <div class="main">
-    <form action="" v-on:submit.prevent="" target="frameFile">
-      <div class="page-search">
-        <mt-search
-          autofocus
-          v-model="inputValue"
-          :result="filterResult">
-        </mt-search>
-      </div>
-    </form>
-    <!--<project v-for='item  in  lists ' :text="item.title"></project>-->
+    
+    <input-box :showX="valueInfo !=''"
+               v-model="valueInfo"
+               @selectInput="selectInput"
+               @resetInput="resetInput"
+               @cancel="cancel"
+               :isShow='isShow'
+    >
+    
+    </input-box>
+    <div v-if="!cancelData" v-for='item  in  lists '>
+      <project :text="item.title"></project>
+    </div>
+    
+    <div v-if="cancelData" class="cancelData">
+        <div v-for="  item  in searedResult">{{ item.a }}</div>
+    </div>
+    
+    <no-results v-if="showResults"></no-results>
   </div>
 </template>
 
 <script>
   import project from '../components/project'
   import MtCell from "mint-ui/packages/cell/src/cell";
+  import inputBox from '../components/inputBoX'
+  import noResults from '../components/noResults'
   
   document.title = '项目列表'
   export default {
     components: {
-      MtCell,
-      project
+      project,
+      inputBox,
+      noResults,
     },
     name: "project-list",
     data() {
       return {
-        inputValue: '',
         lists: [{title: '项目名称一'}, {title: '项目名称二'}, {title: '项目名称三'}, {title: '项目名称三'}],
-        defaultResult: [
-          '项目名称一',
-          '项目名称二',
-          '项目名称三',
-          'Peanut',
-          'Other'
-        ]
+        valueInfo: '',
+        cancelData: false,
+        isShow: false,
+        val: '',
       }
     },
-    watch: {},
-    computed: {
-      filterResult() {
-        return this.defaultResult.filter(inputValue => new RegExp(this.inputValue, 'i').test(inputValue));
-      }
-    },
-    methods: {
-      selected1() {
-        console.log('项目一');
+    watch: {
+      
+      valueInfo: function (val) {
+        if (val.trim() == '') {
+          this.cancelData = false
+        } else {
+          this.cancelData = true
+          this.val = val;
+          this.searedResult
+          console.log(this.searedResult);
+        }
       },
-      selected2() {
-        console.log('项目二');
-      }
     },
+    
+    computed: {},
+    
+    methods: {
+      
+      resetInput() {
+        this.valueInfo = ''
+      },
+      
+      cancel() {
+        this.valueInfo = ''
+        this.isShow = false
+      },
+      
+      selectInput() {
+        this.isShow = true
+        this.valueInfo = ''
+      },
+    },
+    
+    
+    computed: {
+      searedResult() {
+        let arr = []
+        var len = this.lists.length
+        for (var i = 0; i < len; i++) {
+          if ((this.lists[i].title).includes(this.val) ) {
+            arr.push({a:this.lists[i].title});
+          }
+        }
+        return arr
+      },
+      showResults(){
+        
+        return this.valueInfo.trim() !='' && this.searedResult.length == 0
+      }
+    }
   }
 </script>
 
@@ -63,37 +107,21 @@
   .main {
     min-height: 100%;
   }
-  
-  .page-search {
-    height: 100%;
-  }
-  
-  .search {
-    
+  .cancelData{
     width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 0 5%;
+  }
+  .cancelData > div:first-child{
     height: 4.4rem;
-    background: #EFEFF4;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .search p {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 90%;
-    height: 2.8rem;
-    background: #fff;
-    border-radius: 0.5rem;
-    color: #B2B2B2;
-  }
-  
-  .search p:before {
-    content: '';
-    width: 1.5rem;
-    height: 1.5rem;
-    background: url("../assets/Home/搜索.png") no-repeat center /100% 100%;
-    margin-right: 0.2rem;
+    width: 100%;
+    border-bottom: 1px  solid #eee;
+    line-height: 4.4rem;
+    ont-size: 1.4rem;
+    color: #666;
+    letter-spacing: 0.15rem;
+    box-sizing: border-box;
+    padding-left:5% ;
   }
 </style>

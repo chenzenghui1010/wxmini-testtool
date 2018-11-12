@@ -506,7 +506,14 @@ export class idrMapView {
 	
 	onMarkerClick(floorIndex, markerId) {
 		
-		var marker = this._findMarker(floorIndex, markerId)
+    let marker = this._findMarker(floorIndex, markerId)
+    
+    if (marker.clickfn) {
+      
+      marker.clickfn(marker)
+      
+      return
+    }
 		
 		if (this._mapEvent.fireOnce(this.eventTypes.onMarkerClick, marker)) {
 			

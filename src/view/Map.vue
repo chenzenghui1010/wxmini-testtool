@@ -406,53 +406,34 @@
                   major: arr.major,
                   minor: arr.minor,
                   floorName: arr.floorName,
-                  showMac: false,
+                  visible: false,
                   color: '0xFFC0CB',
-                  text:'major:'+arr.major +',major:'+ arr.minor
+                  text:'major:'+arr.major +',major:'+ arr.minor,
+                  beaconUUID:arr.beaconUUID
                 };
                 
               })
               
+          
               for (let i = 0; i < this.obj.length; i++) {
+
                 
-                // 气泡
-                // this.map.inserPaopao({text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: this.showParameter,}, 0, data[i].pos.x, (data[i].pos.y)-20, 0, 10)
+                let marker = new idrMarker({pos: this.obj[i], image: './static/markericon/greymarker.png', callback:(marker)=>{
+                  
+                  alert(0)
+                  
+                  }})
                 
-                let marker = new idrMarker({pos: this.obj[i], image: './static/markericon/greymarker.png'})
-    
                 this.addedMarker = this.map.addMarker(marker)
                 
-                this.myMarker.push({mac: this.obj[i].major +''+ this.obj[i].minor, marker: this.addedMarker})
+                
+                // this.myMarker.push({mac: this.obj[i].major +''+ this.obj[i].minor, marker: this.addedMarker})
               }
               
             })
             .catch(msg => {
               alert(msg)
             })
-          
-          // getstatus()
-          //
-          //     .then(data => {
-          //
-          //       console.log(data);
-          //       this.statusList = data
-          //
-          //       for (let i = 0; i < data.length; i++) {
-          //
-          //         // 气泡
-          //         // this.map.inserPaopao({text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: this.showParameter,}, 0, data[i].pos.x, (data[i].pos.y)-20, 0, 10)
-          //
-          //         let marker = new idrMarker({pos: data[i].pos, image: './static/markericon/greymarker.png'})
-          //
-          //         this.addedMarker = this.map.addMarker(marker)
-          //
-          //         this.myMarker.push({mac: data[i].mac, marker: this.addedMarker})
-          //       }
-          //
-          //
-          //     })
-          
-        
           
           
           // setTimeout(() => {
@@ -733,13 +714,10 @@
       },
       
       isShowParameter(val) {
-        console.log(this.obj[0].text);
-        console.log('显示气泡');
+        console.log('显示气泡'+this.obj[0].visible);
         for (let i = 0; i < this.obj.length; i++) {
-       
           this.map.insertPaopao(this.obj[i], 0, this.obj[i].x, (this.obj[i].y) - 30, -40, 0)
-          
-          this.obj[i].showMac = !this.obj[i].showMac
+          this.obj[i].visible = !this.obj[i].visible
         }
       },
       

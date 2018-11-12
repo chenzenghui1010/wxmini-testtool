@@ -12,7 +12,7 @@ import Mint from 'mint-ui';
 import 'mint-ui/lib/style.css';
 
 Vue.use(Mint);
-import './mock'
+// import './mock'
 
 Vue.config.productionTip = false
 

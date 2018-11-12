@@ -10,8 +10,8 @@ import HeaderTip from './HeaderTip.js'
 import {FloatAlert} from "./FloatAlert";
 import Mint from 'mint-ui';
 import 'mint-ui/lib/style.css';
-Vue.use(Mint);
 
+Vue.use(Mint);
 import './mock'
 
 Vue.config.productionTip = false

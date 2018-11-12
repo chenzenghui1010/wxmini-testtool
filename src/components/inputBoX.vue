@@ -1,31 +1,29 @@
 <template>
   <div class="main">
-    <div @click="selectInput" v-if="!isShow" class="div-input">
-      <div>
-        <span></span>搜索
-      </div>
+    <div class="content">
+      <input
+        type="text"
+        @click='selectInput'
+        ref="input"
+        :class="{'input-show':isShow}"
+        :value="value"
+        @input="$emit('input',$event.target.value)"
+        placeholder="搜索"
+      >
+      <span v-if="value.trim() !=''" @click="resetInput" class="showX"></span>
     </div>
-    
-    <content v-if="isShow">
-      <div>
-        <span></span>
-        <input
-          ref="input"
-          :value="value"
-          @input="$emit('input',$event.target.value)"
-        >
-        <span @click="resetInput" v-if="showX"></span>
-      </div>
-      <div @click="cancel" class="cancel">取消</div>
-    </content>
+    <div @click='cancel' class="show-style" v-if="isShow">取消</div>
   </div>
 </template>
 <script>
   export default {
     props: ['value', 'showX', 'isShow'],
     data() {
-      return {}
+      return {
+      
+      }
     },
+    
     methods: {
       selectInput() {
         this.$emit('selectInput')
@@ -41,96 +39,62 @@
 </script>
 <style scoped>
   .main {
-    background: #efeff4;
+    width: 100%;
+    background: #ccc;
+    box-sizing: border-box;
+    padding: 0 2%;
   }
   
-  .div-input,
-    content {
+  .main > div:first-child {
     width: 100%;
     height: 5rem;
     display: flex;
     align-items: center;
+  }
+  
+  .content:before {
+    position: absolute;
+    display: inline-block;
+    content: '';
+    z-index: 2;
     box-sizing: border-box;
-    border-bottom: 0.1rem solid #ccc;
-  }
-  .div-input {
-    justify-content: center;
-  }
-  content {
-    padding: 0 2%;
-  }
-  .div-input > div {
-    width: 96%;
-    height: 3.2rem;
-    background: #fff;
-    border-radius: 0.5rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.5rem;
-    color: #B2B2B2;
-    letter-spacing: 0.13rem;
-  }
-  
-  .div-input > div > span {
-    margin-right: 0.2rem;
-    display: inline-block;
+    margin-left: 0.5rem;
     width: 1.5rem;
-    height: 1.4rem;
-    background: url("../assets/Home/搜索.png") no-repeat center/ 100% 100%;
-  }
-  
-
-  
-  content > div {
-    height: 3.2rem;
-    background: #fff;
-    display: flex;
-    align-items: center;
-  }
-  
-  content > div:first-child {
-    width: 100%;
-    height: 3.2rem;
-    border-radius: 0.5rem;
-  }
-  
-  content > div:last-child {
-    font-size: 1.6rem;
-    color: #00C203;
-    background: #efeff4;
-    width: 12%;
-    display: flex;
-    justify-content: flex-end;
-  }
-  
-  span, input {
-    display: inline-block;
-  }
-  
-  content > div > span {
-    
-    margin: 0 2%;
-  }
-  
-  span:first-child {
-    width: 1.5rem;
-    height: 1.4rem;
-    background: url("../assets/Home/搜索.png") no-repeat center/ 100% 100%;
-  }
-  
-  span:last-child {
-    background: url("../assets/Home/x.png") no-repeat center/ 100% 100%;
-    width: 2rem;
-    height: 1.7rem;
+    height: 1.5rem;
+    background: url("../assets/Home/搜索.png") no-repeat center/100% 100%;;
   }
   
   input {
-    display: block;
+    display: inline-block;
     width: 100%;
-    border: none;
+    height: 3rem;
     border-radius: 0.5rem;
+    border: none;
+    box-sizing: border-box;
+    padding-left: 2.2rem;
     outline: none;
+  }
+  
+  span {
+    position: absolute;
+    display: inline-block;
+    width: 1.5rem;
+    height: 1.5rem;
+    top: 1.75rem;
+    right: 15.5%;
+    content: url("../assets/Home/x.png");
+  }
+  .input-show {
+    width: 100% !important;
+    position: relative;
+  }
+  
+  .show-style {
+    display: flex;
+    justify-content: flex-end;
+    width: 14%;
+    color: #00C203;
+    font-size: 1.6rem;
   }
 
 </style>

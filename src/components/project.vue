@@ -51,6 +51,7 @@
   }
   
   .content > div {
+    width: 100%;
     box-sizing: border-box;
     padding-left: 5%;
     letter-spacing: 0.15rem;

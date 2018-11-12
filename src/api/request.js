@@ -26,12 +26,18 @@ service.interceptors.response.use(
     
     // console.log('返回', response)
     
-    const { code, msg, data } = response.data
+    const { code, msg, data,sessionKey } = response.data
+  
+    if (JSON.stringify(response.data).includes('sessionKey')) {
     
-    if (code === 'success') {
+      return sessionKey
+    }
+
+    if (code =='success') {
       
       return data
     }
+  
     
     return Promise.reject(msg)
   },

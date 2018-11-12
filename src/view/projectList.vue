@@ -10,14 +10,16 @@
     >
     
     </input-box>
-    <div v-if="!cancelData" v-for='item  in  lists '>
-      <project :text="item.title"></project>
+    <div class="showdata">
+      <div v-if="!cancelData" v-for='item  in  lists ' @click="select(item.id)">
+        <project :text="item.name"></project>
+      </div>
     </div>
+    
     
     <div v-if="cancelData" class="cancelData">
-        <div v-for="  item  in searedResult">{{ item.a }}</div>
+      <div v-for="  item  in searedResult" @click="go(item.id)">{{ item.name }}</div>
     </div>
-    
     <no-results v-if="showResults"></no-results>
   </div>
 </template>
@@ -27,6 +29,8 @@
   import MtCell from "mint-ui/packages/cell/src/cell";
   import inputBox from '../components/inputBoX'
   import noResults from '../components/noResults'
+  import {Toast} from 'mint-ui'
+  import {getRegionsOfUser} from '../api/locate'
   
   document.title = '项目列表'
   export default {
@@ -38,7 +42,7 @@
     name: "project-list",
     data() {
       return {
-        lists: [{title: '项目名称一'}, {title: '项目名称二'}, {title: '项目名称三'}, {title: '项目名称三'}],
+        lists: [],
         valueInfo: '',
         cancelData: false,
         isShow: false,
@@ -52,17 +56,33 @@
           this.cancelData = false
         } else {
           this.cancelData = true
-          this.val = val;
-          this.searedResult
+          this.val = val.trim();
           console.log(this.searedResult);
         }
       },
     },
     
+    mounted() {
+      getRegionsOfUser()
+        .then(data => {
+          for (let i = 0; i < data.length; i++) {
+            let {name, id} = data[i]
+            this.lists.push({name: name, id: id})
+          }
+          this.lists.push({name: '', id: ''})
+        }).catch(msg => {
+        alert(msg)
+      })
+      
+    },
+    
+    
     computed: {},
     
     methods: {
-      
+      go(id) {
+        console.log(id);
+      },
       resetInput() {
         this.valueInfo = ''
       },
@@ -74,8 +94,12 @@
       
       selectInput() {
         this.isShow = true
-        this.valueInfo = ''
       },
+      
+      select(id) {
+        this.$router.push({path: '/', query: {mapId: id}})
+        console.log(id);
+      }
     },
     
     
@@ -84,16 +108,17 @@
         let arr = []
         var len = this.lists.length
         for (var i = 0; i < len; i++) {
-          if ((this.lists[i].title).includes(this.val) ) {
-            arr.push({a:this.lists[i].title});
+          if ((this.lists[i].name).includes(this.val)) {
+            arr.push({name: this.lists[i].name, id: this.lists[i].id});
           }
         }
         return arr
       },
-      showResults(){
+      showResults() {
         
-        return this.valueInfo.trim() !='' && this.searedResult.length == 0
+        return this.valueInfo.trim() != '' && this.searedResult.length == 0
       }
+      
     }
   }
 </script>
@@ -105,23 +130,32 @@
   }
   
   .main {
-    min-height: 100%;
   }
-  .cancelData{
+  
+  .showdata {
+    width: 100%;
+    max-height: 100%;
+    position: absolute;
+    overflow: hidden;
+    overflow-y: scroll;
+  }
+  
+  .cancelData {
     width: 100%;
     height: 100%;
     box-sizing: border-box;
     padding: 0 5%;
   }
-  .cancelData > div:first-child{
+  
+  .cancelData > div {
     height: 4.4rem;
     width: 100%;
-    border-bottom: 1px  solid #eee;
+    border-bottom: 1px solid #eee;
     line-height: 4.4rem;
-    ont-size: 1.4rem;
+    font-size: 1.4rem;
     color: #666;
     letter-spacing: 0.15rem;
     box-sizing: border-box;
-    padding-left:5% ;
+    padding-left: 5%;
   }
 </style>

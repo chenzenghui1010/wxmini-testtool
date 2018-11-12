@@ -56,8 +56,9 @@
   import deviceParameter from '../components/deviceParameter'
   import parameter from '../components/parameter'
   import parameterDetails from '../components/parameterDetails'
-  import {getstatus, getDetectionStatus} from "../api/locate";
+  import {getstatus, getDetectionStatus, getBeaconMarksOfRegion} from "../api/locate";
   import {idrMarker} from "../../indoorunMap/modules/idrMarkers";
+  
   
   import floor from '../components/floor'
   
@@ -88,7 +89,7 @@
         currentFloorName: '',
         currentFloorIndex: null,
         locateFloorIndex: null,
-        regionEx: null,
+        mapInfo: null,
         map: null,
         dolocate: false,
         mapId: '15313792400143094',
@@ -97,13 +98,13 @@
         audioTime: 0,
         audio: null,
         errorCount: 0,
-        
+        obj: [],
         // showParameter: false,
         statusList: [],
         addedMarker: null,
         myMarker: [],
         paopao: null,
-        
+        deployList: [],
         myStatus: [{text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
           {text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
           {text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
@@ -130,6 +131,26 @@
       this.mapId = maPId
       
       this.initMap(maPId)
+      
+      
+      // getBeaconMarksOfRegion()
+      //   .then(data=>{
+      //    this.deployList=(data.floorList[0].deployList);
+      //    for(let i=0;i<this.deployList.length;i++){
+      //      // console.log(this.deployList[i].boundLeft);
+      //    }
+      //     // alert(obj[0].floorId)
+      //     // let floorIndex = this.mapInfo.getFloorIndex(obj[0].floorId)
+      //     // alert(floorIndex)
+      //     //
+      //      // console.log(obj[0].floorId);
+      //   })
+      //   .catch(msg=>{
+      //     alert(msg)
+      //   })
+      //
+      
+      
     },
     methods: {
       initMap() {
@@ -289,7 +310,7 @@
       },
       onNaviToOuter() {
         
-        let units = this.regionEx.findUnitsWithType([5])
+        let units = this.mapInfo.findUnitsWithType([5])
         
         console.log(units)
         
@@ -323,11 +344,11 @@
         
         this.showFacilityPanel = false
         
-        const units = this.regionEx.findUnitsWithType([unitType])
+        const units = this.map.findUnitsWithType([unitType])
         
         if (unitType in units) {
           
-          const unit = this.regionEx.findNearUnit(this.map.getUserPos(), units[unitType])
+          const unit = this.mapInfo.findNearUnit(this.map.getUserPos(), units[unitType])
           
           if (unit) {
             
@@ -343,15 +364,15 @@
           }
         }
       },
-      onInitMapSuccess(regionEx) {
+      onInitMapSuccess(mapInfo) {
         
-        document.title = regionEx.name
+        document.title = mapInfo.name
         
-        this.regionEx = regionEx
+        this.mapInfo = mapInfo
         
-        this.floorList = regionEx.floorList
+        this.floorList = mapInfo.floorList
         
-        this.map.changeFloor(regionEx.floorList[0].floorIndex)
+        this.map.changeFloor(mapInfo.floorList[0].floorIndex)
         
         if (this.carno) {
           
@@ -370,56 +391,97 @@
           this.doLocating()
           
           //请求
-          
-          getstatus()
-            
+          getBeaconMarksOfRegion()
             .then(data => {
               
-              this.statusList = data
+              let deployList = (data.floorList[0].deployList);
               
-              for (let i = 0; i < data.length; i++) {
+              
+              this.obj = deployList.map((arr) => {
+                
+                return {
+                  x: arr.boundLeft,
+                  y: arr.boundTop,
+                  floorIndex: this.mapInfo.getFloorIndex(arr.floorId),
+                  major: arr.major,
+                  minor: arr.minor,
+                  floorName: arr.floorName,
+                  showMac: false,
+                  color: '0xFFC0CB',
+                  text:'major:'+arr.major +',major:'+ arr.minor
+                };
+                
+              })
+              
+              for (let i = 0; i < this.obj.length; i++) {
                 
                 // 气泡
                 // this.map.inserPaopao({text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: this.showParameter,}, 0, data[i].pos.x, (data[i].pos.y)-20, 0, 10)
                 
-                let marker = new idrMarker({pos: data[i].pos, image: './static/markericon/greymarker.png'})
-                
+                let marker = new idrMarker({pos: this.obj[i], image: './static/markericon/greymarker.png'})
+    
                 this.addedMarker = this.map.addMarker(marker)
                 
-                this.myMarker.push({mac: data[i].mac, marker: this.addedMarker})
+                this.myMarker.push({mac: this.obj[i].major +''+ this.obj[i].minor, marker: this.addedMarker})
               }
+              
+            })
+            .catch(msg => {
+              alert(msg)
             })
           
+          // getstatus()
+          //
+          //     .then(data => {
+          //
+          //       console.log(data);
+          //       this.statusList = data
+          //
+          //       for (let i = 0; i < data.length; i++) {
+          //
+          //         // 气泡
+          //         // this.map.inserPaopao({text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: this.showParameter,}, 0, data[i].pos.x, (data[i].pos.y)-20, 0, 10)
+          //
+          //         let marker = new idrMarker({pos: data[i].pos, image: './static/markericon/greymarker.png'})
+          //
+          //         this.addedMarker = this.map.addMarker(marker)
+          //
+          //         this.myMarker.push({mac: data[i].mac, marker: this.addedMarker})
+          //       }
+          //
+          //
+          //     })
           
+        
+          
+          
+          // setTimeout(() => {
           //
+          //   getDetectionStatus()
           //
-          setTimeout(() => {
-            
-            getDetectionStatus()
-              
-              .then(data => {
-                
-                for (let i = 0; i < data.length; i++) {
-                  
-                  if (this.myMarker[i].mac === data[i].mac) {
-                    
-                    this.map.removeMarker(this.myMarker[i].marker)
-                    
-                    let zheng = new idrMarker({
-                      pos: this.statusList[i].pos,
-                      image: './static/markericon/zhengchang.png'
-                    })
-                    
-                    setTimeout(() => {
-                      
-                      this.myMarker[i].marker = this.map.addMarker(zheng)
-                      
-                    }, 10000)
-                    
-                  }
-                }
-              })
-          }, 2000)
+          //     .then(data => {
+          //
+          //       for (let i = 0; i < data.length; i++) {
+          //
+          //         if (this.myMarker[i].mac === data[i].mac) {
+          //
+          //           this.map.removeMarker(this.myMarker[i].marker)
+          //
+          //           let zheng = new idrMarker({
+          //             pos: this.statusList[i].pos,
+          //             image: './static/markericon/zhengchang.png'
+          //           })
+          //
+          //           setTimeout(() => {
+          //
+          //             this.myMarker[i].marker = this.map.addMarker(zheng)
+          //
+          //           }, 10000)
+          //
+          //         }
+          //       }
+          //     })
+          // }, 2000)
           
           
           this.startLocate = true
@@ -427,7 +489,12 @@
         
         this.currentFloorName = this.getCurrentName()
         
-        this.map.addUnit(this.regionEx.getFloorByIndex(floorIndex).unitList)
+        this.map.addUnit(this.mapInfo.getFloorByIndex(floorIndex).unitList)
+        
+        // let floorIndex1 = this.mapInfo.getFloorIndex(this.obj[9].floorId)
+        // alert(floorIndex1)
+        
+        
       },
       getCurrentName() {
         
@@ -666,12 +733,13 @@
       },
       
       isShowParameter(val) {
+        console.log(this.obj[0].text);
         console.log('显示气泡');
-        for (let i = 0; i < this.statusList.length; i++) {
-          // 气泡
-          this.map.insertPaopao(this.myStatus[i], 0, this.statusList[i].pos.x, (this.statusList[i].pos.y) - 30, 30, 0)
+        for (let i = 0; i < this.obj.length; i++) {
+       
+          this.map.insertPaopao(this.obj[i], 0, this.obj[i].x, (this.obj[i].y) - 30, -40, 0)
           
-          this.myStatus[i].visible = !this.myStatus[i].visible
+          this.obj[i].showMac = !this.obj[i].showMac
         }
       },
       

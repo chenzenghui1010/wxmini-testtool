@@ -2,7 +2,7 @@
   <div class="login">
     <p class="back"></p>
     <div class="user">
-      <input type="text" v-model="user" placeholder="请输入您的账号">
+      <input type="text"  v-model="user" placeholder="请输入您的账号">
       <span></span>
     </div>
     <div class="pwd">
@@ -19,6 +19,10 @@
 
 <script>
   import list from '../components/project'
+  import {login, initAppSession} from '../api/locate'
+  import md5 from 'js-md5';
+  import {timestampToTime} from '../Time'
+  import {Toasts, open, close} from '../mintUi'
   
   export default {
     components: {list},
@@ -32,9 +36,26 @@
         errorInfo: '',
       }
     },
+    beforeCreate() {
+      open()
+    },
     mounted() {
-    
+      
       document.title = '登录'
+      
+      initAppSession()
+        
+        .then(sessionKey => {
+          close()
+          sessionStorage.setItem('sessionKey', sessionKey)
+          
+          console.log(sessionStorage.getItem('sessionKey'));
+        })
+        .catch(msg => {
+          close()
+          Toasts(msg)
+        })
+      
     },
     methods: {
       
@@ -63,16 +84,32 @@
           
           return
         }
-        if (this.select) {
-          
-          localStorage.setItem('user', this.user)
-          
-          localStorage.setItem('pwd', this.pwd)
-        }
-        
-        this.$router.push({path: 'projectList'})
-      }
-    }
+        open()
+        let pwd = md5(this.pwd)
+        let pwdSign = md5(`${localStorage.getItem('sessionKey')}${pwd}`)
+        let loginUrl = `appId=${localStorage.getItem('appId')}&phoneUUID=${localStorage.getItem('phoneUUID')}
+        &OSType=${localStorage.getItem('OSType')}&sessionKey=${localStorage.getItem('sessionKey')}&userAccount=${this.user}&pwdSign=${pwdSign}`
+        sessionStorage.setItem('loginUrl', loginUrl)
+        login()
+          .then(data => {
+            close()
+            if (this.select) {
+              
+              localStorage.setItem('user', this.user)
+              
+              localStorage.setItem('pwd', this.pwd)
+            }
+            
+            this.$router.push({path: 'projectList'})
+            
+          })
+          .catch(msg => {
+            close()
+            Toasts(msg)
+          })
+      },
+    },
+    computed: {}
   }
 </script>
 
@@ -163,7 +200,7 @@
   button {
     width: 100%;
     height: 3.5rem;
-    background: #1D2027;
+    background: #373B43;
     border: 0.05rem solid #7F838B;
     outline: none;
     font-size: 1.6rem;
@@ -172,14 +209,13 @@
   }
   
   .error {
-    
     font-size: 1.4rem;
     color: #FA281E;
   }
   
   input {
     display: inline-block;
-    height: 1.6rem;
+    height: 2rem;
     border: none;
     font-size: 1.6rem;
     color: #64696E;

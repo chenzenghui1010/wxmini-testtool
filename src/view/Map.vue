@@ -1,5 +1,7 @@
 <template>
   <div>
+    <show-marker @showMarker="isShowMarker" v-if="showMarker" :markerInfo="markerInfo"></show-marker>
+    
     <div id="map" class="page"></div>
     <!--<find-car-btn v-if="!mapState.markInMap && !navigation.start" @find-car="beginFindCar"></find-car-btn>-->
     <zoom v-bind:map="map"></zoom>
@@ -58,7 +60,7 @@
   import parameterDetails from '../components/parameterDetails'
   import {getstatus, getDetectionStatus, getBeaconMarksOfRegion} from "../api/locate";
   import {idrMarker} from "../../indoorunMap/modules/idrMarkers";
-  
+  import showMarker from '../components/showMarker'
   
   import floor from '../components/floor'
   
@@ -80,6 +82,7 @@
       parameter,
       parameterDetails,
       floor,
+      showMarker,
     },
     data() {
       return {
@@ -105,17 +108,8 @@
         myMarker: [],
         paopao: null,
         deployList: [],
-        myStatus: [{text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
-          {text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
-          {text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
-          {text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
-          {text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
-          {text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
-          {text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
-          {text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
-          {text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
-          {text: 'Major:1211 Minor:12412', color: 0xFFC0CB, visible: false},
-        ]
+        showMarker: false,
+        markerInfo: {},
       }
     },
     computed: {
@@ -124,6 +118,7 @@
         'navigation'
       ])
     },
+    watch: {},
     mounted() {
       
       const maPId = this.$route.query.mapId || "14559560656150195" //项目地图
@@ -131,26 +126,6 @@
       this.mapId = maPId
       
       this.initMap(maPId)
-      
-      
-      // getBeaconMarksOfRegion()
-      //   .then(data=>{
-      //    this.deployList=(data.floorList[0].deployList);
-      //    for(let i=0;i<this.deployList.length;i++){
-      //      // console.log(this.deployList[i].boundLeft);
-      //    }
-      //     // alert(obj[0].floorId)
-      //     // let floorIndex = this.mapInfo.getFloorIndex(obj[0].floorId)
-      //     // alert(floorIndex)
-      //     //
-      //      // console.log(obj[0].floorId);
-      //   })
-      //   .catch(msg=>{
-      //     alert(msg)
-      //   })
-      //
-      
-      
     },
     methods: {
       initMap() {
@@ -386,56 +361,13 @@
         
         this.currentFloorIndex = floorIndex
         
+        this.reMarker(this.currentFloorIndex)
+        
         if (!this.startLocate) {
           
           this.doLocating()
           
           //请求
-          getBeaconMarksOfRegion()
-            .then(data => {
-              
-              let deployList = (data.floorList[0].deployList);
-              
-              
-              this.obj = deployList.map((arr) => {
-                
-                return {
-                  x: arr.boundLeft,
-                  y: arr.boundTop,
-                  floorIndex: this.mapInfo.getFloorIndex(arr.floorId),
-                  major: arr.major,
-                  minor: arr.minor,
-                  floorName: arr.floorName,
-                  visible: false,
-                  color: '0xFFC0CB',
-                  text:'major:'+arr.major +',major:'+ arr.minor,
-                  beaconUUID:arr.beaconUUID
-                };
-                
-              })
-              
-          
-              for (let i = 0; i < this.obj.length; i++) {
-
-                
-                let marker = new idrMarker({pos: this.obj[i], image: './static/markericon/greymarker.png', callback:(marker)=>{
-                  
-                  alert(0)
-                  
-                  }})
-                
-                this.addedMarker = this.map.addMarker(marker)
-                
-                
-                // this.myMarker.push({mac: this.obj[i].major +''+ this.obj[i].minor, marker: this.addedMarker})
-              }
-              
-            })
-            .catch(msg => {
-              alert(msg)
-            })
-          
-          
           // setTimeout(() => {
           //
           //   getDetectionStatus()
@@ -579,12 +511,10 @@
           HeaderTip.show(msg)
         }
       },
+      
       onSelect(val) {
-        
         this.currentFloorIndex = val
-        
         this.map.changeFloor(val)
-        
         this.map.autoChangeFloor = false
       },
       onMapClick(pos) {
@@ -712,15 +642,62 @@
         
         this.$store.dispatch('toggleSpeak')
       },
-      
       isShowParameter(val) {
-        console.log('显示气泡'+this.obj[0].visible);
+        console.log('显示气泡' + this.obj[0].visible);
         for (let i = 0; i < this.obj.length; i++) {
-          this.map.insertPaopao(this.obj[i], 0, this.obj[i].x, (this.obj[i].y) - 30, -40, 0)
+          this.map.insertPaopao(this.obj[i], this.currentFloorIndex, this.obj[i].x, (this.obj[i].y) - 20, -0, 0)
           this.obj[i].visible = !this.obj[i].visible
         }
       },
+      isShowMarker() {
+        
+        this.showMarker = false
+      },
       
+      
+      
+      reMarker(floorIndex) {
+        getBeaconMarksOfRegion()
+          .then(data => {
+            
+            let deployList = (data.floorList[floorIndex].deployList);
+            
+            this.obj = deployList.map((arr) => {
+              
+              return {
+                x: arr.boundLeft,
+                y: arr.boundTop,
+                floorIndex: this.mapInfo.getFloorIndex(arr.floorId),
+                major: arr.major,
+                minor: arr.minor,
+                floorName: arr.floorName,
+                visible: false,
+                color: '0xFFC0CB',
+                text: 'major:' + arr.major + ', minor:' + arr.minor,
+                uuId: arr.beaconUUID
+              };
+            })
+            console.log(this.obj);
+            for (let i = 0; i < this.obj.length; i++) {
+              if (this.obj[i].floorIndex != this.currentFloorIndex) continue
+              let marker = new idrMarker({
+                pos: this.obj[i], image: './static/markericon/greymarker.png', callback: (marker) => {
+                  this.showMarker = true
+                  const {major, minor, uuId} = this.obj[i]
+                  this.markerInfo.major = major
+                  this.markerInfo.minor = minor
+                  this.markerInfo.uuId = uuId
+                }
+              })
+              this.addedMarker = this.map.addMarker(marker)
+              // this.myMarker.push({mac: this.obj[i].major +''+ this.obj[i].minor, marker: this.addedMarker})
+            }
+          })
+          .catch(msg => {
+            
+            // alert(msg)
+          })
+      },
     }
   }
 </script>

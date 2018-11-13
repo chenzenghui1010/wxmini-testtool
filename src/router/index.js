@@ -21,7 +21,7 @@ export default new Router({
       component: EmptySpace
     },
     {
-      path: '/',
+      path: '/map',
       name: 'map',
       component: map
     },
@@ -36,7 +36,7 @@ export default new Router({
       component: ParkingList
     },
     {
-      path:'/login',
+      path:'/',
       name:'login',
       component:login
     },

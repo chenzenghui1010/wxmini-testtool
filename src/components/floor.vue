@@ -24,26 +24,31 @@
         showColor: false,
         showFloor: false,
         selectFloorName:null,
+        floorIndex:null
         // floorList: ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'B7', 'B8', 'C9', 'F10'],
       }
     },
     props: ['floorlist', 'selectfloorIndex', 'locatefloorIndex', 'currentName'],
+    
+    created(){
+    
+    },
     methods: {
       
       
       isShow() {
         
         this.showFloor = !this.showFloor
-        console.log(this.currentName);
-        console.log(this.selectfloorIndex);
+        console.log('name'+this.currentName);
+        console.log('index'+this.selectfloorIndex);
       },
       
       
       onSelect(floorIndex ,floorName) {
   
-        this.selectFloorName = floorName
+        console.log(floorIndex +' ' +floorName);
         
-        this.currentName = floorName
+        this.selectFloorName = floorName
         
         this.showColor = true
         
@@ -59,7 +64,7 @@
       
       isShowDian: function () {
         
-        return this.currentName == this.selectFloorName ? true : false
+        return this.selectfloorIndex == this.locatefloorIndex ? true : false
       }
     }
   }

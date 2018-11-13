@@ -40,7 +40,6 @@
       open()
     },
     mounted() {
-      
       document.title = '登录'
       
       initAppSession()
@@ -60,28 +59,20 @@
     methods: {
       
       isSelect() {
-        
         this.select = !this.select
       },
       
       login() {
         
         if (!this.user) {
-          
           this.errorInfo = '账号不能为空'
-          
           this.showError = true
-          
           return
-          
         }
         
         if (!this.pwd) {
-          
           this.errorInfo = '密码不能为空'
-          
           this.showError = true
-          
           return
         }
         open()
@@ -109,7 +100,8 @@
           })
       },
     },
-    computed: {}
+    computed: {
+    }
   }
 </script>
 

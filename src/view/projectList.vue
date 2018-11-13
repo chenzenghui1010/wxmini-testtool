@@ -47,6 +47,7 @@
         cancelData: false,
         isShow: false,
         val: '',
+        vals:9
       }
     },
     watch: {
@@ -71,7 +72,7 @@
           }
           this.lists.push({name: '', id: ''})
         }).catch(msg => {
-        alert(msg)
+        // alert(msg)
       })
       
     },
@@ -97,7 +98,7 @@
       },
       
       select(id) {
-        this.$router.push({path: '/', query: {mapId: id}})
+        this.$router.push({path: '/map', query: {mapId: id}})
         console.log(id);
       }
     },
@@ -117,7 +118,7 @@
       showResults() {
         
         return this.valueInfo.trim() != '' && this.searedResult.length == 0
-      }
+      },
       
     }
   }

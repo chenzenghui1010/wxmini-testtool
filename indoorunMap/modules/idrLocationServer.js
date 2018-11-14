@@ -100,7 +100,11 @@ class idrLocateServer {
 		
 		return {beacons:newBeacons, count:beacons.length};
 	}
-	
+  
+  /**
+   * 功能：收到beacons信号回调
+   * @param callback： （beacons）=>{}
+   */
 	setReceiveBeaconListener(callback) {
 	 
 	  this.receiveBeaconsBlock = callback

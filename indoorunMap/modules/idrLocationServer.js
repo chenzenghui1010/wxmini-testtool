@@ -41,6 +41,8 @@ class idrLocateServer {
 		this.debugPos = null
 		
 		this.result = null
+    
+    this.receiveBeaconsBlock = null
 	}
 	
 	_getValidBeacons(beacons) {
@@ -99,6 +101,11 @@ class idrLocateServer {
 		return {beacons:newBeacons, count:beacons.length};
 	}
 	
+	setReceiveBeaconListener(callback) {
+	 
+	  this.receiveBeaconsBlock = callback
+  }
+	
 	onReceiveBeacons(beacons) {
 		
 		var tempBeacons = beacons
@@ -109,6 +116,11 @@ class idrLocateServer {
 			
 			idrDebug.showDebugInfo(true)
 		}
+		
+		if (this.receiveBeaconsBlock) {
+      
+      this.receiveBeaconsBlock(beacons)
+    }
 		
 		var newBeacons = this.filterbeacons(tempBeacons)
 		

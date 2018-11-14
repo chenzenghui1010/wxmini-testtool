@@ -645,8 +645,9 @@
       isShowParameter(val) {
         console.log('显示气泡' + this.obj[0].visible);
         for (let i = 0; i < this.obj.length; i++) {
-          this.map.insertPaopao(this.obj[i], this.currentFloorIndex, this.obj[i].x, (this.obj[i].y) - 20, -0, 0)
-          this.obj[i].visible = !this.obj[i].visible
+          let item = this.obj[i]
+          this.map.insertPaopao(item, this.currentFloorIndex, item.x, (item.y) - 20, -0, 0)
+          item.visible = !item.visible
         }
       },
       isShowMarker() {
@@ -677,7 +678,9 @@
                 uuId: arr.beaconUUID
               };
             })
-            console.log(this.obj);
+            
+            
+            // console.log(this.obj);
             for (let i = 0; i < this.obj.length; i++) {
               if (this.obj[i].floorIndex != this.currentFloorIndex) continue
               let marker = new idrMarker({

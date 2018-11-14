@@ -91,7 +91,7 @@
               localStorage.setItem('pwd', this.pwd)
             }
             
-            this.$router.push({path: 'projectList'})
+            this.$router.push({path: 'Home'})
             
           })
           .catch(msg => {

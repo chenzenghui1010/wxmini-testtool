@@ -4,11 +4,11 @@
       <p></p>
       <p></p>
       <div class="footer">
-        <p class="first"><span>设备巡查</span></p>
-        <p class="last"><span>模拟导航</span></p>
+        <p class="first" @click="first"><span>设备巡查</span></p>
+        <p class="last" @click="last"><span>模拟导航</span></p>
       </div>
     </div>
-    <footer @click="a">
+    <footer @click="out">
     
     </footer>
   </div>
@@ -27,12 +27,19 @@
       document.title = '首页'
     },
     methods: {
-      a() {
+      first(){
+        this.$router.push({path:'projectList'})
+      
+      },
+      last(){
+        console.log('模拟导航');
+      },
+      out() {
         MessageBox.confirm(
           '是否确定退出登录',
           '退出登录',
         ).then(action => {
-          alert(action)
+          this.$router.push({path:'/'})
           
         }).catch(action => {
         })

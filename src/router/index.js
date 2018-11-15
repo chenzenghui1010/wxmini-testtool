@@ -9,31 +9,16 @@ import projectList from '../view/projectList'
 import home from '../view/Home'
 Vue.use(Router)
 
-const base = process.env.NODE_ENV === 'production' ? '/wxmini/' : '/'
+const base = process.env.NODE_ENV === 'production' ? '/indoorun/app/wxmini/' : '/'
 
 export default new Router({
   mode: 'history',
   base,
   routes: [
     {
-      path: '/emptyspace',
-      name: 'emptyspace',
-      component: EmptySpace
-    },
-    {
       path: '/map',
       name: 'map',
       component: map
-    },
-    {
-      path: 'emptylist',
-      name: 'emptylist',
-      component: EmptyList
-    },
-    {
-      path: '/parkinglist',
-      name: 'parkinglist',
-      component: ParkingList
     },
     {
       path:'/',

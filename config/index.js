@@ -51,7 +51,7 @@ module.exports = {
     // Paths
     assetsRoot: path.resolve(__dirname, '../wxmini'),
     assetsSubDirectory: 'static',
-    assetsPublicPath: '/wxmini/',
+    assetsPublicPath: '/indoorun/app/wxmini/',
 
     /**
      * Source Maps

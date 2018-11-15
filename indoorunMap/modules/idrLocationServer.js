@@ -134,7 +134,7 @@ class idrLocateServer {
 		
 		this._count = newBeacons.count
 		
-		idrDebug.debugInfo('蓝牙数量' + this._count)
+		// idrDebug.debugInfo('蓝牙数量' + this._count)
 	}
 	
 	onServerLocate_Debug() {

@@ -9,7 +9,7 @@ import projectList from '../view/projectList'
 import home from '../view/Home'
 Vue.use(Router)
 
-const base = process.env.NODE_ENV === 'production' ? '/thxz/' : '/'
+const base = process.env.NODE_ENV === 'production' ? '/wxmini/' : '/'
 
 export default new Router({
   mode: 'history',

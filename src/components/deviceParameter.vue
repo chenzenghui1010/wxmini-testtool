@@ -1,5 +1,5 @@
 <template>
-  <div @click="onClick" :class="{select: isShow , noselset:!isShow  }"></div>
+  <div @click="onClick" :class="{select: deviceParamers , noselset: !deviceParamers  }"></div>
 </template>
 
 <script>
@@ -10,12 +10,11 @@
         isShow: true,
       }
     },
+    props: ['deviceParamers'],
+  
     methods: {
       onClick() {
-        
-        this.isShow = !this.isShow
-        
-        this.$emit('isShow',this.isShow)
+        this.$emit('isShow')
       }
     }
   }
@@ -30,6 +29,7 @@
     border-width: 5px 5px 0;
     border-top-color: #000;
   }
+  
   .tooltip-arrow {
     position: absolute;
     width: 0;
@@ -52,6 +52,6 @@
   }
   
   .noselset {
-    background: url("../assets/shebexuanzhong.png") no-repeat center/ 3.5rem 3.5rem;
+    background: url("../assets/shebexuanzhong.png") no-repeat center/ 3.5rem 3.5rem !important;
   }
 </style>

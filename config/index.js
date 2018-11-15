@@ -46,12 +46,12 @@ module.exports = {
 
   build: {
     // Template for index.html
-    index: path.resolve(__dirname, '../thxz/index.html'),
+    index: path.resolve(__dirname, '../wxmini/index.html'),
 
     // Paths
-    assetsRoot: path.resolve(__dirname, '../thxz'),
+    assetsRoot: path.resolve(__dirname, '../wxmini'),
     assetsSubDirectory: 'static',
-    assetsPublicPath: '/thxz/',
+    assetsPublicPath: '/wxmini/',
 
     /**
      * Source Maps

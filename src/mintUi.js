@@ -5,7 +5,7 @@ export function Toasts(val) {
   Toast({
     message: val,
     position: 'middle',
-    duration: 3000
+    duration: 30000
   })
   
 }

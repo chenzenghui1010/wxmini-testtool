@@ -74,7 +74,6 @@
         }).catch(msg => {
         // alert(msg)
       })
-      
     },
     
     
@@ -82,7 +81,7 @@
     
     methods: {
       go(id) {
-        console.log(id);
+        this.$router.push({path: '/map', query: {mapId: id}})
       },
       resetInput() {
         this.valueInfo = ''

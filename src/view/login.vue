@@ -38,26 +38,14 @@
       }
     },
     beforeCreate() {
-      open()
+    
     },
     mounted() {
+      
       document.title = '登录'
 
       idrWxManager.init()
-
-      initAppSession()
-
-        .then(sessionKey => {
-          close()
-          sessionStorage.setItem('sessionKey', sessionKey)
-
-          console.log(sessionStorage.getItem('sessionKey'));
-        })
-        .catch(msg => {
-          close()
-          Toasts(msg)
-        })
-
+      
     },
     methods: {
 
@@ -79,11 +67,26 @@
           return
         }
         open()
+  
+        initAppSession()
+    
+          .then(sessionKey => {
+            close()
+            sessionStorage.setItem('sessionKey', sessionKey)
+      
+            console.log(sessionStorage.getItem('sessionKey'));
+          })
+          .catch(msg => {
+            close()
+            Toasts(msg)
+          })
+        
         let pwd = md5(this.pwd)
         let pwdSign = md5(`${localStorage.getItem('sessionKey')}${pwd}`)
         let loginUrl = `appId=${localStorage.getItem('appId')}&phoneUUID=${localStorage.getItem('phoneUUID')}
         &OSType=${localStorage.getItem('OSType')}&sessionKey=${localStorage.getItem('sessionKey')}&userAccount=${this.user}&pwdSign=${pwdSign}`
         sessionStorage.setItem('loginUrl', loginUrl)
+        
         login()
           .then(data => {
             close()

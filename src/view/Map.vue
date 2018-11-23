@@ -114,6 +114,7 @@
         markerInfo: {},
         deviceParamers: true,
         marker: null,
+        localMarker:{},
         
       }
     },
@@ -362,6 +363,7 @@
           
           this.$store.dispatch('startSearchCarByPlateNumber')
             .catch(e => {
+              
               console.log(e)
             })
         }
@@ -389,21 +391,34 @@
                 const mac = beacons[i].major + '' + beacons[i].minor
                 
                   if (mac in this.myMarker) {
+                  
                     beacons[i].x=this.myMarker[mac].position.x
+                    
                     beacons[i].y=this.myMarker[mac].position.y
+                    
                     beacons[i].floorIndex=this.myMarker[mac].position.floorIndex
+                    
                     let marker = new idrMarker({
+                      
                       pos: beacons[i], image: './static/markericon/zhengchang.png', callback: (marker) => {
+                        
                         this.showMarker = true
-                        const {major, minor, uuId} = beacons[i]
+                        
+                        const {major, minor, uuid} = beacons[i]
+                        
                         this.markerInfo.major = major
+                        
                         this.markerInfo.minor = minor
-                        this.markerInfo.uuId = uuId
+                        
+                        this.markerInfo.uuId = uuid
                       }
                     })
+                    
                     this.map.removeMarker(this.myMarker[mac])
+                    
                     this.map.addMarker(marker)
                   }
+                  this.localMarker[mac] = this.map.addMarker(marker)
               }
             }
           })

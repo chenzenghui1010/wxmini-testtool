@@ -114,7 +114,8 @@
         markerInfo: {},
         deviceParamers: true,
         marker: null,
-        localMarker:{},
+        localMarker: {},
+        mac: []
         
       }
     },
@@ -385,42 +386,55 @@
             if (beacons.length > 0) {
               
               // idrDebug.debugInfo(JSON.stringify(beacons[0]))
-        
+              
               for (let i = 0; i < beacons.length; ++i) {
-               
+                
                 const mac = beacons[i].major + '' + beacons[i].minor
                 
-                  if (mac in this.myMarker) {
+                if (mac in this.myMarker) {
                   
-                    beacons[i].x=this.myMarker[mac].position.x
+                  
+                  if (!this.mac.includes(mac)) {
                     
-                    beacons[i].y=this.myMarker[mac].position.y
-                    
-                    beacons[i].floorIndex=this.myMarker[mac].position.floorIndex
-                    
-                    let marker = new idrMarker({
-                      
-                      pos: beacons[i], image: './static/markericon/zhengchang.png', callback: (marker) => {
-                        
-                        this.showMarker = true
-                        
-                        const {major, minor, uuid} = beacons[i]
-                        
-                        this.markerInfo.major = major
-                        
-                        this.markerInfo.minor = minor
-                        
-                        this.markerInfo.uuId = uuid
-                      }
-                    })
-                    
-                    this.map.removeMarker(this.myMarker[mac])
-                    
-                    this.map.addMarker(marker)
+                    this.mac.push(mac)
                   }
+                  
+                  
+                  beacons[i].x = this.myMarker[mac].position.x
+                  
+                  beacons[i].y = this.myMarker[mac].position.y
+                  
+                  beacons[i].floorIndex = this.myMarker[mac].position.floorIndex
+                  
+                  let marker = new idrMarker({
+                    
+                    pos: beacons[i], image: './static/markericon/zhengchang.png', callback: (marker) => {
+                      
+                      this.showMarker = true
+                      
+                      const {major, minor, uuid} = beacons[i]
+                      
+                      this.markerInfo.major = major
+                      
+                      this.markerInfo.minor = minor
+                      
+                      this.markerInfo.uuId = uuid
+                    }
+                  })
+                  
+                  this.map.removeMarker(this.myMarker[mac])
+                  
+                  // this.map.addMarker(marker)
+                  
                   this.localMarker[mac] = this.map.addMarker(marker)
+                }
               }
+              
+              localStorage.setItem('localMac',this.mac)
+              
             }
+            
+            localStorage.setItem('localStorageMarker', this.localMarker)
           })
           
           this.startLocate = true
@@ -429,6 +443,8 @@
         this.currentFloorName = this.getCurrentName()
         
         this.map.addUnit(this.mapInfo.getFloorByIndex(floorIndex).unitList)
+        
+        
       },
       getCurrentName() {
         
@@ -673,6 +689,11 @@
       },
       isShowParameter() {
         
+        for (let i = 0; i < localStorage.getItem('localMac').length; ++i) {
+          alert(this.mac[i])
+        }
+        alert(this.mac)
+        
         console.log('显示气泡' + this.obj[0].visible);
         for (let i = 0; i < this.obj.length; i++) {
           let item = this.obj[i]
@@ -722,7 +743,28 @@
               })
               
               const mac = this.obj[i].major + '' + this.obj[i].minor
-              this.myMarker[mac] = this.map.addMarker(marker)
+              
+              if (localStorage.getItem('localMac')[i] == mac) {
+                
+                let markers = new idrMarker({
+                  pos: this.localMarker[this.mac[i]],
+                  image: './static/markericon/zhengchang.png',
+                  callback: (marker) => {
+                    this.showMarker = true
+                    const {major, minor, uuid} = this.localMarker[this.mac[i]]
+                    this.markerInfo.major = major
+                    this.markerInfo.minor = minor
+                    this.markerInfo.uuId = uuid
+                  }
+                })
+                
+                this.map.addMarker(markers)
+                
+              } else {
+                
+                this.myMarker[mac] = this.map.addMarker(marker)
+              }
+              // this.myMarker[mac] = this.map.addMarker(marker)
             }
           })
           .catch(msg => {

@@ -115,8 +115,6 @@
         deviceParamers: true,
         marker: null,
         localMarker: {},
-        mac: []
-        
       }
     },
     computed: {
@@ -393,13 +391,6 @@
                 
                 if (mac in this.myMarker) {
                   
-                  
-                  if (!this.mac.includes(mac)) {
-                    
-                    this.mac.push(mac)
-                  }
-                  
-                  
                   beacons[i].x = this.myMarker[mac].position.x
                   
                   beacons[i].y = this.myMarker[mac].position.y
@@ -429,12 +420,7 @@
                   this.localMarker[mac] = this.map.addMarker(marker)
                 }
               }
-              
-              localStorage.setItem('localMac',this.mac)
-              
             }
-            
-            localStorage.setItem('localStorageMarker', this.localMarker)
           })
           
           this.startLocate = true
@@ -688,18 +674,25 @@
         this.$store.dispatch('toggleSpeak')
       },
       isShowParameter() {
+        alert(JSON.stringify(this.localMarker))
         
-        for (let i = 0; i < localStorage.getItem('localMac').length; ++i) {
-          alert(this.mac[i])
+        localStorage.setItem('localStorageMarker', JSON.stringify(this.localMarker))
+        
+         let a =(JSON.stringify(JSON.parse(localStorage.getItem('localStorageMarker'))))
+        
+        let c =JSON.parse(localStorage.getItem('localStorageMarker'))
+        alert(a)
+        
+        for(let key  in c ){
+          alert(key)
         }
-        alert(this.mac)
-        
         console.log('显示气泡' + this.obj[0].visible);
         for (let i = 0; i < this.obj.length; i++) {
           let item = this.obj[i]
           this.map.insertPaopao(item, this.currentFloorIndex, item.x, (item.y) - 20, -0, 0)
           item.visible = !item.visible
         }
+        
         this.deviceParamers = !this.deviceParamers
       },
       isShowMarker() {
@@ -729,6 +722,8 @@
               };
             })
             
+            let localmac =JSON.parse(localStorage.getItem('localStorageMarker'))
+            
             // console.log(this.obj);
             for (let i = 0; i < this.obj.length; i++) {
               if (this.obj[i].floorIndex != this.currentFloorIndex) continue
@@ -743,28 +738,23 @@
               })
               
               const mac = this.obj[i].major + '' + this.obj[i].minor
-              
-              if (localStorage.getItem('localMac')[i] == mac) {
-                
-                let markers = new idrMarker({
-                  pos: this.localMarker[this.mac[i]],
-                  image: './static/markericon/zhengchang.png',
-                  callback: (marker) => {
-                    this.showMarker = true
-                    const {major, minor, uuid} = this.localMarker[this.mac[i]]
-                    this.markerInfo.major = major
-                    this.markerInfo.minor = minor
-                    this.markerInfo.uuId = uuid
-                  }
-                })
-                
-                this.map.addMarker(markers)
-                
-              } else {
-                
-                this.myMarker[mac] = this.map.addMarker(marker)
+              if(localmac !=null){
+                for(let key  in localmac ){
+                   if(key == mac){
+                     let markers = new idrMarker({
+                       pos: localmac[key], image: './static/markericon/zhengchang.png', callback: (marker) => {
+                         this.showMarker = true
+                         const {major, minor, uuid} = localmac[key]
+                         this.markerInfo.major = major
+                         this.markerInfo.minor = minor
+                         this.markerInfo.uuId = uuid
+                       }
+                     })
+                     this.map.addMarker(markers)
+                   }
+                }
               }
-              // this.myMarker[mac] = this.map.addMarker(marker)
+              this.myMarker[mac] = this.map.addMarker(marker)
             }
           })
           .catch(msg => {

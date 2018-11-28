@@ -116,7 +116,7 @@
         marker: null,
         localMarker: {},
         
-        localStorageMarker: {}
+        localStorageMarker: {'localStorageMarker':'localStorageMarker'}
         
       }
     },
@@ -547,8 +547,8 @@
       onSelect(val) {
         
         if (this.currentFloorIndex != val) {
-          let o = this.obj
-          for (let item of o) {
+          // let o = this.obj
+          for (let item of this.obj) {
             item.visible = false
             this.deviceParamers = true
           }
@@ -704,7 +704,7 @@
         getBeaconMarksOfRegion()
           
           .then(data => {
-            
+              
               let deployList = (data.floorList[floorIndex].deployList);
               
               this.obj = deployList.map((arr) => {
@@ -734,7 +734,7 @@
               })
               
               let localmac = JSON.parse(localStorage.getItem('localStorageMarker'))
-
+              
               for (let i = 0; i < this.obj.length; i++) {
                 
                 if (this.obj[i].floorIndex != this.currentFloorIndex) continue
@@ -742,25 +742,25 @@
                 const mac = this.obj[i].major + '' + this.obj[i].minor
                 
                 if (mac in localmac) {
-                  
+
                   let markers = new idrMarker({
-                    
+
                     pos: localmac[mac], image: './static/markericon/zhengchang.png', callback: (marker) => {
-                      
+
                       this.showMarker = true
-                      
+
                       const {major, minor, uuid} = localmac[mac]
-                      
+
                       this.markerInfo.major = major
-                      
+
                       this.markerInfo.minor = minor
-                      
+
                       this.markerInfo.uuId = uuid
                     }
                   })
-                  
+
                   this.map.addMarker(markers)
-                  
+
                 } else {
                   
                   let marker = new idrMarker({
@@ -790,15 +790,17 @@
           })
       },
       
-      deleteLocal(){ //每过一段时间清空 localStorage
+      deleteLocal() { //每过一段时间清空 localStorage
+  
         
+        let a ={'12110120':'a','44452114':'b'}
         if (localStorage.getItem('closeDate') == null) {
           
           let startDate = new Date().getTime() / 1000
           
-          let startFloor = Math.floor(startDate)
+          let startTime = Math.floor(startDate)
           
-          localStorage.setItem('closeDate', startFloor);
+          localStorage.setItem('closeDate', startTime);
           
         } else {
           
@@ -806,13 +808,13 @@
           
           let endDate = new Date().getTime() / 1000
           
-          let enfFloor = Math.floor(endDate)
+          let enfTime = Math.floor(endDate)
           
-          let num = (Number(enfFloor) - Number(newStartDate))
+          let num = (Number(enfTime) - Number(newStartDate))
           
           if (num > 43200) {
             
-            localStorage.setItem('localStorageMarker', null)
+            localStorage.setItem('localStorageMarker', JSON.stringify(a))
             
             localStorage.removeItem('closeDate')
           }

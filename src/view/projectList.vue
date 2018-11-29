@@ -47,7 +47,8 @@
         cancelData: false,
         isShow: false,
         val: '',
-        vals:9
+        vals: 9,
+        firstOrLast: this.$route.query.firstOrLast
       }
     },
     watch: {
@@ -64,15 +65,23 @@
     },
     
     mounted() {
+      
       getRegionsOfUser()
+        
         .then(data => {
+          
           for (let i = 0; i < data.length; i++) {
+            
             let {name, id} = data[i]
+            
             this.lists.push({name: name, id: id})
+            
           }
           this.lists.push({name: '', id: ''})
+          
         }).catch(msg => {
-        // alert(msg)
+        
+        alert(msg)
       })
     },
     
@@ -80,8 +89,17 @@
     computed: {},
     
     methods: {
+      
       go(id) {
-        this.$router.push({path: '/map', query: {mapId: id}})
+        if (this.firstOrLast == 0) {
+          
+          this.$router.push({path: '/map', query: {mapId: id}})
+          
+        } else {
+          
+          this.$router.push({path: '/simulation', query: {mapId: id}})
+        }
+        
       },
       resetInput() {
         this.valueInfo = ''
@@ -97,8 +115,16 @@
       },
       
       select(id) {
-        this.$router.push({path: '/map', query: {mapId: id}})
-        console.log(id);
+        
+        if (this.firstOrLast == 0) {
+    
+          this.$router.push({path: '/map', query: {mapId: id}})
+    
+        } else {
+    
+          this.$router.push({path: '/simulation', query: {mapId: id}})
+        }
+        
       }
     },
     

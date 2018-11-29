@@ -28,11 +28,11 @@
     },
     methods: {
       first(){
-        this.$router.push({path:'projectList'})
+        this.$router.push({path:'projectList',query:{firstOrLast:0}})
       
       },
       last(){
-        console.log('模拟导航');
+        this.$router.push({path:'projectList',query:{firstOrLast:1}})
       },
       out() {
         MessageBox.confirm(

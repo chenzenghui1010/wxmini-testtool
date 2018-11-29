@@ -6,21 +6,21 @@
     <!--<find-car-btn v-if="!mapState.markInMap && !navigation.start" @find-car="beginFindCar"></find-car-btn>-->
     <zoom v-bind:map="map"></zoom>
     <!--<public-facility-btn v-on:onclick='showFacilityPanel = true' v-if="!mapState.markInMap && !navigation.start"></public-facility-btn>-->
-    <locate-status-control :dolocate="dolocate" @onclick="doLocating"></locate-status-control>
+
     <find-car-with-plate-number v-if="mapState.searchCarWithPlate" v-on:navigatetocar="navigateToCar"
                                 v-bind:initcarno="carno" :region-id="mapId"></find-car-with-plate-number>
     <find-car-with-unit @onfindunits="navigateToCar" v-bind:map="map"
                         v-if="mapState.searchCarWithUnit"></find-car-with-unit>
+    
     <facility-panel v-if="showFacilityPanel" v-bind:map="map" @onnavigateto="onNavigateTo"
                     @onclose="showFacilityPanel = false"></facility-panel>
     
-    <status></status>
-    <device-parameter :deviceParamers='deviceParamers' @isShow="isShowParameter"></device-parameter>
-    <!--<parameter v-if="showParameter"></parameter>-->
     <parameter-details></parameter-details>
+
+    <!--<navigation v-if='navigation.start' @toggleSpeak="toggleSpeak" v-on:stop="onStopNavigate" @birdlook="onBirdLook"-->
+                <!--@followme="onFollowMe"></navigation>-->
     
-    <navigation v-if='navigation.start' @toggleSpeak="toggleSpeak" v-on:stop="onStopNavigate" @birdlook="onBirdLook"
-                @followme="onFollowMe"></navigation>
+    
     <mark-in-map v-if="mapState.markInMap"></mark-in-map>
     
     <!--<floor-list-control :floorlist="floorList" :currentName="currentFloorName" :selectfloorid="currentFloorId"-->
@@ -96,7 +96,6 @@
         locateFloorIndex: null,
         mapInfo: null,
         map: null,
-        dolocate: false,
         mapId: '15313792400143094',
         carno: null,
         endMarker: null,
@@ -132,8 +131,6 @@
       }
     },
     mounted() {
-      
-      this.deleteLocal()
       
       const maPId = this.$route.query.mapId || "14559560656150195" //项目地图
       
@@ -381,61 +378,11 @@
         
         this.currentFloorIndex = floorIndex
         
-        this.reMarker(this.currentFloorIndex)
-        
         if (!this.startLocate) {
           
-          this.doLocating()
           
           idrDebug.showDebugInfo(true)
           
-          
-          idrLocateServerInstance.setReceiveBeaconListener((beacons) => {
-            
-            if (beacons.length > 0) {
-              
-              // idrDebug.debugInfo(JSON.stringify(beacons[0]))
-              
-              for (let i = 0; i < beacons.length; ++i) {
-                
-                const mac = beacons[i].major + '' + beacons[i].minor
-                
-                if (mac in this.myMarker) {
-                  
-                  beacons[i].x = this.myMarker[mac].position.x
-                  
-                  beacons[i].y = this.myMarker[mac].position.y
-                  
-                  beacons[i].floorIndex = this.myMarker[mac].position.floorIndex
-                  
-                  let marker = new idrMarker({
-                    
-                    pos: beacons[i], image: './static/markericon/zhengchang.png', callback: (marker) => {
-                      
-                      this.showMarker = true
-                      
-                      const {major, minor, uuid} = beacons[i]
-                      
-                      this.markerInfo.major = major
-                      
-                      this.markerInfo.minor = minor
-                      
-                      this.markerInfo.uuId = uuid
-                    }
-                  })
-                  
-                  this.map.removeMarker(this.myMarker[mac])
-                  
-                  this.map.addMarker(marker)
-                  
-                  this.localMarker[mac] = beacons[i]
-                  
-                  localStorage.setItem('localStorageMarker', JSON.stringify(this.localMarker))
-                  
-                }
-              }
-            }
-          })
           
           this.startLocate = true
         }
@@ -504,35 +451,7 @@
             window.HeaderTip.show(res)
           })
       },
-      doLocating() {
-        
-        if (this.map.getUserPos()) {
-          
-          this.dolocate = true
-          
-          this.map.centerPos(this.map.getUserPos(), false)
-          
-          this.map.autoChangeFloor = true
-        }
-        else {
-          
-          this.map.doLocation(pos => this.onLocateSuccess(pos), ({msg}) => {
-            
-            this.onLocateFailed(msg)
-          })
-            .catch(msg => {
-              
-              if (msg == 'Bluetooth_poweroff') {
-                
-                HeaderTip.show('蓝牙未开启，请打开蓝牙')
-              }
-              else {
-                
-                HeaderTip.show(msg)
-              }
-            })
-        }
-      },
+
       onLocateSuccess(pos) {
         
         this.map.setUserPos(pos)
@@ -687,150 +606,12 @@
         
         this.$store.dispatch('toggleSpeak')
       },
-      isShowParameter() {
-        
-        console.log('显示气泡' + this.obj[0].visible);
-        
-        for (let i = 0; i < this.obj.length; i++) {
-          
-          let item = this.obj[i]
-         
-          this.map.insertPaopao(item, this.currentFloorIndex, item.x, (item.y) - 20, -0, 0)
-         
-          item.visible = !item.visible
-        }
-        
-        this.deviceParamers = !this.deviceParamers
-      },
-    
+      
       isShowMarker() {
         
         this.showMarker = false
       },
       
-      
-      reMarker(floorIndex) {
-        
-        getBeaconMarksOfRegion()
-          
-          .then(data => {
-              
-              let deployList = (data.floorList[floorIndex].deployList);
-              
-              this.obj = deployList.map((arr) => {
-                
-                return {
-                  
-                  x: arr.boundLeft,
-                  
-                  y: arr.boundTop,
-                  
-                  floorIndex: this.mapInfo.getFloorIndex(arr.floorId),
-                  
-                  major: arr.major,
-                  
-                  minor: arr.minor,
-                  
-                  floorName: arr.floorName,
-                  
-                  visible: false,
-                  
-                  color: '0xFFC0CB',
-                  
-                  text: 'major:' + arr.major + ', minor:' + arr.minor,
-                  
-                  uuId: arr.beaconUUID
-                };
-              })
-              
-              let localmac = JSON.parse(localStorage.getItem('localStorageMarker'))
-              
-              for (let i = 0; i < this.obj.length; i++) {
-                
-                if (this.obj[i].floorIndex != this.currentFloorIndex) continue
-                
-                const mac = this.obj[i].major + '' + this.obj[i].minor
-                
-                if (mac in localmac) {
-                  
-                  let markers = new idrMarker({
-                    
-                    pos: localmac[mac], image: './static/markericon/zhengchang.png', callback: (marker) => {
-                      
-                      this.showMarker = true
-                      
-                      const {major, minor, uuid} = localmac[mac]
-                      
-                      this.markerInfo.major = major
-                      
-                      this.markerInfo.minor = minor
-                      
-                      this.markerInfo.uuId = uuid
-                    }
-                  })
-                  
-                  this.deleteMarker[mac] = this.map.addMarker(markers)
-                  
-                } else {
-                  
-                  let marker = new idrMarker({
-                    
-                    pos: this.obj[i], image: './static/markericon/greymarker.png', callback: (marker) => {
-                      
-                      this.showMarker = true
-                      
-                      const {major, minor, uuId} = this.obj[i]
-                      
-                      this.markerInfo.major = major
-                      
-                      this.markerInfo.minor = minor
-                      
-                      this.markerInfo.uuId = uuId
-                    }
-                  })
-                  
-                  this.myMarker[mac] = this.map.addMarker(marker)
-                }
-              }
-            }
-          )
-          .catch(msg => {
-            
-            alert(msg)
-          })
-      },
-      
-      deleteLocal() { //每过一段时间清空 localStorage
-        
-        
-        let a = {'12110120': 'a', '44452114': 'b'}
-        
-        if (localStorage.getItem('closeDate') == null) {
-          
-          let startDate = new Date().getTime() / 1000
-          
-          let startTime = Math.floor(startDate)
-          
-          localStorage.setItem('closeDate', startTime);
-          
-        } else {
-          
-          let newStartDate = localStorage.getItem('closeDate')
-          
-          let endDate = new Date().getTime() / 1000
-          
-          let enfTime = Math.floor(endDate)
-          
-          let num = (Number(enfTime) - Number(newStartDate))
-          
-          if (num > 43200) {
-            
-            localStorage.setItem('localStorageMarker', JSON.stringify(a))
-            
-            localStorage.removeItem('closeDate')
-          }
-        }
-      },
     }
   }
 </script>

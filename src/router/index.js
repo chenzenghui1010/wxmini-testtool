@@ -7,6 +7,7 @@ import EmptyList from '@/view/EmptyList'
 import login from '../view/login'
 import projectList from '../view/projectList'
 import home from '../view/Home'
+import simulation from '../view/Simulation'
 Vue.use(Router)
 
 const base = process.env.NODE_ENV === 'production' ? '/indoorun/app/wxmini/' : '/'
@@ -35,6 +36,11 @@ export default new Router({
       path:'/home',
       name:'home',
       component:home
+    },
+    {
+      path:'/simulation',
+      name:'simulation',
+      component:simulation
     },
   ]
 })

@@ -671,11 +671,11 @@ export class idrMapView {
     
     let p = {x, y, floorIndex}
     
-    if (this._currentPos && this._currentPos.floorIndex === floorIndex) {
-      
-      this._Positionfilter(this._currentPos, p, 40)
-    }
-    
+    // if (this._currentPos && this._currentPos.floorIndex === floorIndex) {
+    //
+    //   this._Positionfilter(this._currentPos, p, 40)
+    // }
+    //
     this._currentPos = p
     
     if (floorIndex !== this._currentFloorIndex && this.autoChangeFloor) {

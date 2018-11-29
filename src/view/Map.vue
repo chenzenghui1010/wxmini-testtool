@@ -185,9 +185,10 @@
 
         this.map.setUserPos(unit.position)
 
-        window.HeaderTip.show("zhongdian")
+        // window.HeaderTip.show("zhongdian")
 
-        this.map.doRoute({start: null, end: unit})
+        // this.map.doRoute({start: null, end: unit})
+          
           .then(res => {
 
             this.onRouterSuccess(res)

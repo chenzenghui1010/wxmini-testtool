@@ -178,13 +178,14 @@
         return this.map.addMarker(marker)
       },
       onUnitClick(unit) {
-        //
-        console.log('起');
+ 
+        console.log('终点');
+        
         this.map.setUserPos(unit.position)
         
-        window.HeaderTip.show("zhongdian")
+        // window.HeaderTip.show("zhongdian")
         
-        this.map.doRoute({start: null, end: unit})
+        this.map.doRoute({start: window.end, end: unit})
           .then(res => {
             
             this.onRouterSuccess(res)
@@ -483,9 +484,17 @@
         this.map.autoChangeFloor = false
       },
       onMapClick(pos) {
-        console.log('终');
-        this.map.doRoute({start: null, end: {position: pos}})
+       
+        console.log(pos);
         
+        this.map.setUserPos(pos)
+        
+        console.log('起点');
+     
+        this.map.doRoute({start: pos, end: {position: pos}})
+       
+        window.end = pos
+      
         if (window.debugtest) {
           
           if (!this.paopao) {

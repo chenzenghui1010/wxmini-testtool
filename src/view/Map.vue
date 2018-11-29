@@ -694,15 +694,15 @@
         for (let i = 0; i < this.obj.length; i++) {
           
           let item = this.obj[i]
-         
+          
           this.map.insertPaopao(item, this.currentFloorIndex, item.x, (item.y) - 20, -0, 0)
-         
+          
           item.visible = !item.visible
         }
         
         this.deviceParamers = !this.deviceParamers
       },
-    
+      
       isShowMarker() {
         
         this.showMarker = false
@@ -744,34 +744,63 @@
               })
               
               let localmac = JSON.parse(localStorage.getItem('localStorageMarker'))
-              
-              for (let i = 0; i < this.obj.length; i++) {
+            
+              if (localmac) {
                 
-                if (this.obj[i].floorIndex != this.currentFloorIndex) continue
-                
-                const mac = this.obj[i].major + '' + this.obj[i].minor
-                
-                if (mac in localmac) {
+                for (let i = 0; i < this.obj.length; i++) {
                   
-                  let markers = new idrMarker({
+                  if (this.obj[i].floorIndex != this.currentFloorIndex) continue
+                  
+                  const mac = this.obj[i].major + '' + this.obj[i].minor
+                  if (mac in localmac) {
                     
-                    pos: localmac[mac], image: './static/markericon/zhengchang.png', callback: (marker) => {
+                    let markers = new idrMarker({
                       
-                      this.showMarker = true
+                      pos: localmac[mac], image: './static/markericon/zhengchang.png', callback: (marker) => {
+                        
+                        this.showMarker = true
+                        
+                        const {major, minor, uuid} = localmac[mac]
+                        
+                        this.markerInfo.major = major
+                        
+                        this.markerInfo.minor = minor
+                        
+                        this.markerInfo.uuId = uuid
+                      }
+                    })
+                    
+                    this.deleteMarker[mac] = this.map.addMarker(markers)
+                    
+                  } else {
+                    
+                    let marker = new idrMarker({
                       
-                      const {major, minor, uuid} = localmac[mac]
-                      
-                      this.markerInfo.major = major
-                      
-                      this.markerInfo.minor = minor
-                      
-                      this.markerInfo.uuId = uuid
-                    }
-                  })
+                      pos: this.obj[i], image: './static/markericon/greymarker.png', callback: (marker) => {
+                        
+                        this.showMarker = true
+                        
+                        const {major, minor, uuId} = this.obj[i]
+                        
+                        this.markerInfo.major = major
+                        
+                        this.markerInfo.minor = minor
+                        
+                        this.markerInfo.uuId = uuId
+                      }
+                    })
+                    
+                    this.myMarker[mac] = this.map.addMarker(marker)
+                  }
+                }
+                
+              }
+              if (localmac == null) {
+                for (let i = 0; i < this.obj.length; i++) {
                   
-                  this.deleteMarker[mac] = this.map.addMarker(markers)
+                  if (this.obj[i].floorIndex != this.currentFloorIndex) continue
                   
-                } else {
+                  const mac = this.obj[i].major + '' + this.obj[i].minor
                   
                   let marker = new idrMarker({
                     
@@ -788,7 +817,6 @@
                       this.markerInfo.uuId = uuId
                     }
                   })
-                  
                   this.myMarker[mac] = this.map.addMarker(marker)
                 }
               }

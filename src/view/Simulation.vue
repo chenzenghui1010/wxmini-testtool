@@ -179,7 +179,7 @@
       },
       onUnitClick(unit) {
         //
-        
+        console.log('起');
         this.map.setUserPos(unit.position)
         
         window.HeaderTip.show("zhongdian")
@@ -483,14 +483,14 @@
         this.map.autoChangeFloor = false
       },
       onMapClick(pos) {
-        
+        console.log('终');
         this.map.doRoute({start: null, end: {position: pos}})
         
         if (window.debugtest) {
           
           if (!this.paopao) {
             
-            this.paopao = {text: 'AA', color: 0x00ffff, visible: true}
+            this.paopao = {text: '起点', color: 0x00ffff, visible: true}
             
             this.map.insertPaopao(this.paopao, 0, pos.x, pos.y, 0, 10)
           }

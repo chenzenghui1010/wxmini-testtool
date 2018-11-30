@@ -117,7 +117,7 @@ class idrGlMap {
     
     this._region.startRender();
     
-    // this._region.displayFloor(this._floor.floorIndex)
+    this._region.displayFloor(this._floor.floorIndex)
     
     this._region.animPitch(0)//设置为 2d
     

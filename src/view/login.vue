@@ -37,9 +37,6 @@
         errorInfo: '',
       }
     },
-    beforeCreate() {
-    
-    },
     mounted() {
       
       document.title = '登录'

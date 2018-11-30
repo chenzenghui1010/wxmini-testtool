@@ -223,7 +223,7 @@ export class idrMapView {
   
   _onLoadMapSuccess() {
     
-    // this._addComposs()
+    this._addComposs()
     
     this._mapRoot = this._idrMap.root()
     
@@ -307,6 +307,13 @@ export class idrMapView {
   _onMarkerClick(floorIndex, markerId) {
     
     var marker = this._findMarker(floorIndex, markerId)
+    
+    if (marker.clickfn) {
+  
+      marker.clickfn(marker)
+      
+      return
+    }
     
     if (this._mapEvent.fireOnce(this.eventTypes.onMarkerClick, marker)) {
       
@@ -641,7 +648,7 @@ export class idrMapView {
     
     this._idrMap.resetMap()
     
-    this.set2DMap(false)
+    this.set2DMap(true)
   }
   
   /**

@@ -141,7 +141,7 @@ class idrGlMap {
     
     this._floor = this._regionEx.getFloorByIndex(floorIndex)
     
-    // this._region.displayFloor(this._floor.floorIndex)
+    this._region.displayFloor(this._floor.floorIndex)
     
     this.onAllFloorLoaded()
   }

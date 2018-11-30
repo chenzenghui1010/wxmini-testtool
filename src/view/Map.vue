@@ -13,7 +13,7 @@
                         v-if="mapState.searchCarWithUnit"></find-car-with-unit>
     <facility-panel v-if="showFacilityPanel" v-bind:map="map" @onnavigateto="onNavigateTo"
                     @onclose="showFacilityPanel = false"></facility-panel>
-    
+   
     <status></status>
     <device-parameter :deviceParamers='deviceParamers' @isShow="isShowParameter"></device-parameter>
     <!--<parameter v-if="showParameter"></parameter>-->
@@ -253,46 +253,46 @@
         
         this.map.setStatus(YFM.Map.STATUS_NAVIGATE)
       },
-      // onStopNavigate() {
-      //
-      //   if (!this.navigation.findCar) {
-      //
-      //     this.stopRouteAndClean(true)
-      //
-      //     return
-      //   }
-      //
-      //   var unfind = {
-      //     name: '未找到爱车', callback: () => {
-      //
-      //       Alertboxview.hide()
-      //
-      //       this.stopRouteAndClean(false)
-      //     }
-      //   }
-      //
-      //   var found = {
-      //     name: '已找到爱车', callback: () => {
-      //
-      //       Alertboxview.hide()
-      //
-      //       this.stopRouteAndClean(true)
-      //
-      //       this.playAudio('已找到爱车')
-      //
-      //       this.onNaviToOuter()
-      //     }
-      //   }
-      //
-      //   var cancel = {
-      //     name: '取消', callback: () => {
-      //
-      //       Alertboxview.hide()
-      //     }
-      //   }
-      //
-      //   Alertboxview.show('在中断导航前', '是否已找到您的爱车', [unfind, found, cancel])
-      // },
+      onStopNavigate() {
+
+        if (!this.navigation.findCar) {
+
+          this.stopRouteAndClean(true)
+
+          return
+        }
+
+        var unfind = {
+          name: '未找到爱车', callback: () => {
+
+            Alertboxview.hide()
+
+            this.stopRouteAndClean(false)
+          }
+        }
+
+        var found = {
+          name: '已找到爱车', callback: () => {
+
+            Alertboxview.hide()
+
+            this.stopRouteAndClean(true)
+
+            this.playAudio('已找到爱车')
+
+            this.onNaviToOuter()
+          }
+        }
+
+        var cancel = {
+          name: '取消', callback: () => {
+
+            Alertboxview.hide()
+          }
+        }
+
+        Alertboxview.show('在中断导航前', '是否已找到您的爱车', [unfind, found, cancel])
+      },
       onNaviToUnit(unit) {
         
         this.preparePlayAudio()
@@ -307,38 +307,38 @@
             window.HeaderTip.show(res)
           })
       },
-      // onNaviToOuter() {
-      //
-      //   let units = this.mapInfo.findUnitsWithType([5])
-      //
-      //   console.log(units)
-      //
-      //   if (!('5' in units)) {
-      //
-      //     return
-      //   }
-      //
-      //   let btns = units[5].map(unit => {
-      //
-      //     return {
-      //       name: unit.name, callback: () => {
-      //
-      //         Alertboxview.hide()
-      //
-      //         this.onNaviToUnit(unit)
-      //       }
-      //     }
-      //   })
-      //
-      //   btns.push({
-      //     name: '取消', callback: () => {
-      //
-      //       Alertboxview.hide()
-      //     }
-      //   })
-      //
-      //   Alertboxview.show('离场引导', null, btns)
-      // },
+      onNaviToOuter() {
+
+        let units = this.mapInfo.findUnitsWithType([5])
+
+        console.log(units)
+
+        if (!('5' in units)) {
+
+          return
+        }
+
+        let btns = units[5].map(unit => {
+
+          return {
+            name: unit.name, callback: () => {
+
+              Alertboxview.hide()
+
+              this.onNaviToUnit(unit)
+            }
+          }
+        })
+
+        btns.push({
+          name: '取消', callback: () => {
+
+            Alertboxview.hide()
+          }
+        })
+
+        Alertboxview.show('离场引导', null, btns)
+      },
       onNavigateTo(unitType) {
         
         this.showFacilityPanel = false

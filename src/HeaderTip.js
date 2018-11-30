@@ -33,7 +33,7 @@ function HeaderTip() {
     
         _vm.display = 0
     
-      }, 1000)
+      }, 5000)
       
       return
     }

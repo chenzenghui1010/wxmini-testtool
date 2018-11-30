@@ -17,8 +17,8 @@
     
     <parameter-details></parameter-details>
     
-    <!--<navigation v-if='navigation.start' @toggleSpeak="toggleSpeak" v-on:stop="onStopNavigate" @birdlook="onBirdLook"-->
-    <!--@followme="onFollowMe"></navigation>-->
+    <navigation v-if='navigation.start' @toggleSpeak="toggleSpeak" v-on:stop="onStopNavigate" @birdlook="onBirdLook"
+    @followme="onFollowMe"></navigation>
     
     
     <mark-in-map v-if="mapState.markInMap"></mark-in-map>
@@ -140,7 +140,11 @@
       this.initMap(maPId)
       
     },
+    
+    
+    
     methods: {
+      
       initMap() {
         
         this.map = new idrMapView()
@@ -184,11 +188,10 @@
         
         if (!this.isShowHeaderTip) {
           
-          window.HeaderTip.show("请选择起点")
+          window.HeaderTip.show("请点选地图空白位置选择起点")
         }
         
-        
-        this.map.doRoute({start: this.map.getUserPos(), end: unit})
+        this.map.doRoute({start: null, end: unit})
           
           .then(res => {
             
@@ -203,6 +206,7 @@
         this.addEndMarker(unit.position)
         
         this.$store.dispatch('finishMarkInMap')
+          
           .then(() => {
             
             if (!idrWxManager._beaconStart) {
@@ -239,6 +243,7 @@
               resolve()
             })
         }))
+       
       },
       onBirdLook() {
         
@@ -378,6 +383,10 @@
               console.log(e)
             })
         }
+        setTimeout(()=>{
+          window.HeaderTip.show("温馨提示：点选地图空白位置选择起点")
+        },2000)
+      
       },
       onFloorChangeSuccess({floorIndex}) {
         
@@ -490,6 +499,8 @@
         console.log(pos);
         
         this.map.setUserPos(pos)
+  
+        window.HeaderTip.show("温馨提示：点选车位设为终点")
         
       },
       preparePlayAudio() {
@@ -573,10 +584,8 @@
       stopRouteAndClean(removeEndMarker = true) {
         
         this.map.stopRoute()
-          .then(() => {
-            
-            return this.$store.dispatch('stopNavigation')
-          })
+        
+        this.$store.dispatch('stopNavigation')
           .then(() => {
             
             if (removeEndMarker) {
@@ -606,7 +615,7 @@
         
         this.showMarker = false
       },
-      
+    
     }
   }
 </script>

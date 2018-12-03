@@ -7,9 +7,11 @@
 <script>
   
   export default {
+    mounted(){
+    
+    },
     name: 'App'
   }
-
 </script>
 
 <style>

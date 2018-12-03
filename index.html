@@ -8,11 +8,10 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <!--<link rel="stylesheet" type="text/css" href="./static/global.css">-->
+    <link rel="stylesheet" type="text/css" href="./static/global.css">
     <script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.3.2.js"></script>
-    <script type="text/javascript" src="./static/yfmap.js"></script>
+    <script type="text/javascript" src="./static/yfmap.min.js"></script>
     <script>
-      
       (function () {
         var u = navigator.userAgent, app = navigator.appVersion;
         var isAndroid = u.includes('Android') || u.includes('Linux'); //g
@@ -30,6 +29,7 @@
         
         sessionStorage.removeItem('sessionKey')
       }());
+      
     </script>
     <style>
       .indoorunMap_map {
@@ -106,7 +106,6 @@
         visibility: hidden; }
 
     </style>
-    <script src="src/MD5.js"></script>
   </head>
   <body id="body">
     <div id="app"></div>

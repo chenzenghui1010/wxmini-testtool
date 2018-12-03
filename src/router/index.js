@@ -7,6 +7,7 @@ import home from '../view/Home'
 import simulation from '../view/Simulation'
 Vue.use(Router)
 
+
 const base = process.env.NODE_ENV === 'production' ? '/indoorun/app/wxmini/' : '/'
 
 export default new Router({

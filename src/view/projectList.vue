@@ -155,9 +155,6 @@
     margin: 0;
   }
   
-  .main {
-  }
-  
   .showdata {
     width: 100%;
     max-height: 100%;

@@ -42,7 +42,6 @@
   }
   
   content {
-    position: absolute;
     z-index: 11;
     width: 80%;
     height: 20rem;

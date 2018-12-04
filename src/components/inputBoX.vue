@@ -1,6 +1,7 @@
 <template>
   <div class="main">
     <div class="content">
+      <div class="ss"><p></p></div>
       <input
         type="text"
         @click='selectInput'
@@ -51,30 +52,32 @@
     display: flex;
     align-items: center;
   }
-  
-  .content:before {
-    position: absolute;
-    display: inline-block;
-    content: '';
-    z-index: 2;
-    box-sizing: border-box;
+  content{
+    position: relative;
+  }
+ .ss {
+   background: #fff !important;
+    height: 3rem;
+   border-radius: 0.5rem 0 0 0.5rem;
+  }
+  .ss p{
     margin-left: 0.5rem;
+    margin-top: 0.7rem;
     width: 1.5rem;
     height: 1.5rem;
     background: url("../assets/Home/搜索.png") no-repeat center/100% 100%;;
   }
-  
   input {
-    display: inline-block;
+    display: block;
     width: 100%;
     height: 3rem;
-    border-radius: 0.5rem;
+    border-radius: 0  0.5rem  0.5rem  0;
     border: none;
     box-sizing: border-box;
-    padding-left: 2.2rem;
+    padding-left: 0.5rem;
     outline: none;
-  }
   
+  }
   span {
     position: absolute;
     display: inline-block;

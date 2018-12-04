@@ -7,7 +7,7 @@
 <script>
   
   export default {
-    mounted(){
+    mounted() {
     
     },
     name: 'App'
@@ -27,9 +27,14 @@
     color: #000;
   }
   
-  *{
+  * {
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
     tap-highlight-color: rgba(0, 0, 0, 0) !important;
+  }
+  
+  input {
+    user-select: text !important;
+    -webkit-user-select: text !important;
   }
   
   /*退出登陆*/

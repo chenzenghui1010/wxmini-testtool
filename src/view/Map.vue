@@ -120,7 +120,7 @@
         
         isShowImg: true,
         deleteMarker: {},
-        a:{'a':'a','b':'b'}
+        a: {'a': 'a', 'b': 'b'}
       }
     },
     computed: {
@@ -138,8 +138,6 @@
       
       this.deleteLocal()
       
-      
-      
       const maPId = this.$route.query.mapId || "14559560656150195" //项目地图
       
       this.mapId = maPId
@@ -148,9 +146,9 @@
       
     },
     methods: {
-     
+      
       initMap() {
-  
+        
         this.reMarker()
         
         this.map = new idrMapView()
@@ -172,12 +170,12 @@
           this.onNaviStatusUpdate(data)
         })
         
-        this.map.addEventListener(idrMapEvent.types.onMapClick, (pos) => {
-          
-          this.onMapClick(pos)
-          
-        })
-        
+        // this.map.addEventListener(idrMapEvent.types.onMapClick, (pos) => {
+        //
+        //   this.onMapClick(pos)
+        //
+        // })
+        //
         this.map.addEventListener(idrMapEvent.types.onUnitClick, (unit) => {
           
           this.onUnitClick(unit)
@@ -193,15 +191,6 @@
       onUnitClick(unit) {
         
         this.map.setUserPos(unit.position)
-        
-        // window.HeaderTip.show("zhongdian")
-        
-        // this.map.doRoute({start: null, end: unit})
-        
-        // .then(res => {
-        //
-        //   this.onRouterSuccess(res)
-        // })
         
         if (!this.mapState.markInMap) {
           
@@ -399,53 +388,64 @@
           
           idrDebug.showDebugInfo(true)
           
+          let a =  this.obj[Math.floor(Math.random() * this.obj.length + 1)]
           
-          idrLocateServerInstance.setReceiveBeaconListener((beacons) => {
-            
-            if (beacons.length > 0) {
-              
-              // idrDebug.debugInfo(JSON.stringify(beacons[0]))
-              
-              for (let i = 0; i < beacons.length; ++i) {
-                
-                const mac = beacons[i].major + '' + beacons[i].minor
-                
-                if (mac in this.myMarker) {
-                  
-                  beacons[i].x = this.myMarker[mac].position.x
-                  
-                  beacons[i].y = this.myMarker[mac].position.y
-                  
-                  beacons[i].floorIndex = this.myMarker[mac].position.floorIndex
-                  
-                  let marker = new idrMarker({
-                    
-                    pos: beacons[i], image: './static/markericon/zhengchang.png', callback: (marker) => {
-                      
-                      this.showMarker = true
-                      
-                      const {major, minor, uuid} = beacons[i]
-                      
-                      this.markerInfo.major = major
-                      
-                      this.markerInfo.minor = minor
-                      
-                      this.markerInfo.uuId = uuid
-                    }
-                  })
-                  
-                  this.map.removeMarker(this.myMarker[mac])
-                  
-                  this.map.addMarker(marker)
-                  
-                  this.localMarker[mac] = beacons[i]
-                  
-                  localStorage.setItem('localStorageMarker', JSON.stringify(this.localMarker))
-                  
-                }
-              }
-            }
-          })
+          console.log(this.obj[Math.floor(Math.random() * this.obj.length + 1)]);
+          
+          const totalcount = this.obj.length
+          
+          const start = Math.floor(Math.random() * totalcount)
+          
+          const end = Math.min(totalcount, start + Math.floor(Math.random() * 40))
+          
+          setInterval(()=>this.setTimeOut(this.obj.slice(start,  end)), 1000);
+          
+          // idrLocateServerInstance.setReceiveBeaconListener((beacons) => {
+          //
+          //   if (beacons.length > 0) {
+          //
+          //     // idrDebug.debugInfo(JSON.stringify(beacons[0]))
+          //
+          //     for (let i = 0; i < beacons.length; ++i) {
+          //
+          //       const mac = beacons[i].major + '' + beacons[i].minor
+          //
+          //       if (mac in this.myMarker) {
+          //
+          //         beacons[i].x = this.myMarker[mac].position.x
+          //
+          //         beacons[i].y = this.myMarker[mac].position.y
+          //
+          //         beacons[i].floorIndex = this.myMarker[mac].position.floorIndex
+          //
+          //         let marker = new idrMarker({
+          //
+          //           pos: beacons[i], image: './static/markericon/zhengchang.png', callback: (marker) => {
+          //
+          //             this.showMarker = true
+          //
+          //             const {major, minor, uuid} = beacons[i]
+          //
+          //             this.markerInfo.major = major
+          //
+          //             this.markerInfo.minor = minor
+          //
+          //             this.markerInfo.uuId = uuid
+          //           }
+          //         })
+          //
+          //         this.map.removeMarker(this.myMarker[mac])
+          //
+          //         this.map.addMarker(marker)
+          //
+          //         this.localMarker[mac] = beacons[i]
+          //
+          //         localStorage.setItem('localStorageMarker', JSON.stringify(this.localMarker))
+          //
+          //       }
+          //     }
+          //   }
+          // })
           
           this.startLocate = true
         }
@@ -679,7 +679,7 @@
       isShowParameter() {
         
         console.log('显示气泡' + this.obj[0].visible);
-      
+        
         for (let i = 0; i < this.obj.length; i++) {
           
           let item = this.obj[i]
@@ -703,7 +703,7 @@
         getBeaconMarksOfRegion()
           
           .then(data => {
-         
+            
             this.deployList = data.floorList
             
           })
@@ -718,7 +718,7 @@
         
         let deploy = this.deployList[floorIndex]
         
-        this.obj =deploy.deployList.map((arr) => {
+        this.obj = deploy.deployList.map((arr) => {
           
           return {
             
@@ -826,12 +826,56 @@
       },
       
       
-      
-      
+      setTimeOut(beacons) {
+        
+        if (beacons.length > 0) {
+          
+          // idrDebug.debugInfo(JSON.stringify(beacons[0]))
+          
+          for (let i = 0; i < beacons.length; ++i) {
+            
+            const mac = beacons[i].major + '' + beacons[i].minor
+            
+            if (mac in this.myMarker) {
+              
+              beacons[i].x = this.myMarker[mac].position.x
+              
+              beacons[i].y = this.myMarker[mac].position.y
+              
+              beacons[i].floorIndex = this.myMarker[mac].position.floorIndex
+              
+              let marker = new idrMarker({
+                
+                pos: beacons[i], image: './static/markericon/zhengchang.png', callback: (marker) => {
+                  
+                  this.showMarker = true
+                  
+                  const {major, minor, uuid} = beacons[i]
+                  
+                  this.markerInfo.major = major
+                  
+                  this.markerInfo.minor = minor
+                  
+                  this.markerInfo.uuId = uuid
+                }
+              })
+              
+              this.map.removeMarker(this.myMarker[mac])
+              
+              this.map.addMarker(marker)
+              
+              this.localMarker[mac] = beacons[i]
+              
+              localStorage.setItem('localStorageMarker', JSON.stringify(this.localMarker))
+              
+            }
+          }
+        }
+        
+      },
       
       
       deleteLocal() { //每过一段时间清空 localStorage
-        
         
         let a = {'12110120': 'a', '44452114': 'b'}
         

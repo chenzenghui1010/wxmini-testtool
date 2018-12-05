@@ -293,17 +293,9 @@ export class idrMapView {
       return null
     }
     
-    var markersArray = this._markers[floorIndex]
+    var markers = this._markers[floorIndex]
     
-    for (var i = 0; i < markersArray.length; ++i) {
-      
-      if (markerId === markersArray[i].id) {
-        
-        return markersArray[i]
-      }
-    }
-    
-    return null
+    return markers[markerId]
   }
   
   _onMarkerClick(floorIndex, markerId) {

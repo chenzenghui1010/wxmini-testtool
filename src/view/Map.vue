@@ -91,7 +91,7 @@
     data() {
       return {
         showFacilityPanel: false,
-        startLocate: false,
+        firstTime: true,
         floorList: [],
         currentFloorName: '',
         currentFloorIndex: null,
@@ -120,14 +120,13 @@
         
         isShowImg: true,
         deleteMarker: {},
-        a: {'a': 'a', 'b': 'b'}
       }
     },
     computed: {
       ...mapGetters([
         'mapState',
         'navigation'
-      ])
+      ]),
     },
     watch: {
       currentFloorIndex() {
@@ -146,14 +145,14 @@
       
     },
     methods: {
-      
       initMap() {
-        
+        // localStorage.removeItem('localStorageMarker')
         this.reMarker()
         
         this.map = new idrMapView()
         
         this.map.initMap('yf1248331604', 'map', this.mapId)
+        
         
         this.map.addEventListener(idrMapEvent.types.onFloorChangeSuccess, data => {
           
@@ -380,25 +379,14 @@
         
         this.currentFloorIndex = floorIndex
         
-        this.selectFloor(floorIndex)
         
-        if (!this.startLocate) {
+        if (this.firstTime) {
+          
+          this.selectFloor()
           
           this.doLocating()
           
           idrDebug.showDebugInfo(true)
-          
-          let a =  this.obj[Math.floor(Math.random() * this.obj.length + 1)]
-          
-          console.log(this.obj[Math.floor(Math.random() * this.obj.length + 1)]);
-          
-          const totalcount = this.obj.length
-          
-          const start = Math.floor(Math.random() * totalcount)
-          
-          const end = Math.min(totalcount, start + Math.floor(Math.random() * 40))
-          
-          setInterval(()=>this.setTimeOut(this.obj.slice(start,  end)), 1000);
           
           // idrLocateServerInstance.setReceiveBeaconListener((beacons) => {
           //
@@ -447,8 +435,19 @@
           //   }
           // })
           
-          this.startLocate = true
+          this.firstTime = false
         }
+        const totalcount = this.obj[floorIndex].length
+        
+        setInterval(() => {
+            
+            const start = Math.floor(Math.random() * totalcount)
+            
+            const end = Math.min(totalcount, start + Math.floor(Math.random() * 40))
+            
+            this.setIntErval(this.obj[floorIndex].slice(start, end))
+          }
+          , 1000);
         
         this.currentFloorName = this.getCurrentName()
       },
@@ -677,12 +676,10 @@
         this.$store.dispatch('toggleSpeak')
       },
       isShowParameter() {
-        
-        console.log('显示气泡' + this.obj[0].visible);
-        
-        for (let i = 0; i < this.obj.length; i++) {
+        console.log('气泡');
+        for (let i = 0; i < this.obj[this.currentFloorIndex].length; i++) {
           
-          let item = this.obj[i]
+          let item = this.obj[this.currentFloorIndex][i]
           
           this.map.insertPaopao(item, this.currentFloorIndex, item.x, (item.y) - 20, -0, 0)
           
@@ -703,7 +700,7 @@
         getBeaconMarksOfRegion()
           
           .then(data => {
-            
+            console.log(data.floorList);
             this.deployList = data.floorList
             
           })
@@ -713,76 +710,109 @@
           })
       },
       
-      //floor
-      selectFloor(floorIndex) {
+      
+      selectFloor() {
         
-        let deploy = this.deployList[floorIndex]
-        
-        this.obj = deploy.deployList.map((arr) => {
+        for (let item = 0; item < this.deployList.length; item++) {
           
-          return {
-            
-            x: arr.boundLeft,
-            
-            y: arr.boundTop,
-            
-            floorIndex: floorIndex,
-            
-            major: arr.major,
-            
-            minor: arr.minor,
-            
-            floorName: arr.floorName,
-            
-            visible: false,
-            
-            color: '0xFFC0CB',
-            
-            text: 'major:' + arr.major + ', minor:' + arr.minor,
-            
-            uuId: arr.beaconUUID
-          };
-        })
-        
-        let localmac = JSON.parse(localStorage.getItem('localStorageMarker'))
-        
-        if (localmac) {
+          let deploy = this.deployList[item]
           
-          for (let i = 0; i < this.obj.length; i++) {
+          this.obj[item] = deploy.deployList.map((arr) => {
             
-            if (this.obj[i].floorIndex != this.currentFloorIndex) continue
+            return {
+              
+              x: arr.boundLeft,
+              
+              y: arr.boundTop,
+              
+              floorIndex: item,
+              
+              major: arr.major,
+              
+              minor: arr.minor,
+              
+              floorName: arr.floorName,
+              
+              visible: false,
+              
+              color: '0xFFC0CB',
+              
+              text: 'major:' + arr.major + ', minor:' + arr.minor,
+              
+              uuId: arr.beaconUUID
+            };
+          })
+          
+          let localmac = JSON.parse(localStorage.getItem('localStorageMarker'))
+        
+          if (localmac) {
+
+            for (let i = 0; i < this.obj[item].length; i++) {
+
+              // if (this.obj[i].floorIndex != this.currentFloorIndex) continue
+
+              const mac = this.obj[item][i].major + '' + this.obj[item][i].minor
+
+              if (mac in localmac) {
+
+                let markers = new idrMarker({
+
+                  pos: localmac[mac], image: './static/markericon/zhengchang.png', callback: (marker) => {
+
+                    this.showMarker = true
+
+                    const {major, minor, uuid} = localmac[mac]
+
+                    this.markerInfo.major = major
+
+                    this.markerInfo.minor = minor
+
+                    this.markerInfo.uuId = uuid
+                  }
+                })
+
+                this.deleteMarker[mac] = this.map.addMarker(markers)
+
+
+              } else {
+
+                let marker = new idrMarker({
+
+                  pos: this.obj[item][i], image: './static/markericon/greymarker.png', callback: (marker) => {
+
+                    this.showMarker = true
+
+                    const {major, minor, uuId} = this.obj[item][i]
+
+                    this.markerInfo.major = major
+
+                    this.markerInfo.minor = minor
+
+                    this.markerInfo.uuId = uuId
+                  }
+                })
+
+                this.myMarker[mac] = this.map.addMarker(marker)
+
+              }
+            }
+          }
+          
+          if (localmac == null ) {
             
-            const mac = this.obj[i].major + '' + this.obj[i].minor
-            
-            if (mac in localmac) {
+            for (let i = 0; i < this.obj[item].length; i++) {
               
-              let markers = new idrMarker({
-                
-                pos: localmac[mac], image: './static/markericon/zhengchang.png', callback: (marker) => {
-                  
-                  this.showMarker = true
-                  
-                  const {major, minor, uuid} = localmac[mac]
-                  
-                  this.markerInfo.major = major
-                  
-                  this.markerInfo.minor = minor
-                  
-                  this.markerInfo.uuId = uuid
-                }
-              })
-              
-              this.deleteMarker[mac] = this.map.addMarker(markers)
-              
-            } else {
-              
+              // if (this.obj[item][i] != this.currentFloorIndex) continue
+           
+              const mac = this.obj[item][i].major + '' + this.obj[item][i].minor
+          
               let marker = new idrMarker({
                 
-                pos: this.obj[i], image: './static/markericon/greymarker.png', callback: (marker) => {
+                pos: this.obj[item][i], image: './static/markericon/greymarker.png', callback: (marker) => {
                   
                   this.showMarker = true
                   
-                  const {major, minor, uuId} = this.obj[i]
+                  const {major, minor, uuId} = this.obj[item][i]
                   
                   this.markerInfo.major = major
                   
@@ -791,42 +821,14 @@
                   this.markerInfo.uuId = uuId
                 }
               })
-              
               this.myMarker[mac] = this.map.addMarker(marker)
             }
-          }
-          
-        }
-        if (localmac == null) {
-          
-          for (let i = 0; i < this.obj.length; i++) {
-            
-            if (this.obj[i].floorIndex != this.currentFloorIndex) continue
-            
-            const mac = this.obj[i].major + '' + this.obj[i].minor
-            
-            let marker = new idrMarker({
-              
-              pos: this.obj[i], image: './static/markericon/greymarker.png', callback: (marker) => {
-                
-                this.showMarker = true
-                
-                const {major, minor, uuId} = this.obj[i]
-                
-                this.markerInfo.major = major
-                
-                this.markerInfo.minor = minor
-                
-                this.markerInfo.uuId = uuId
-              }
-            })
-            this.myMarker[mac] = this.map.addMarker(marker)
           }
         }
       },
       
       
-      setTimeOut(beacons) {
+      setIntErval(beacons) {
         
         if (beacons.length > 0) {
           
@@ -850,13 +852,13 @@
                   
                   this.showMarker = true
                   
-                  const {major, minor, uuid} = beacons[i]
+                  const {major, minor, uuId} = beacons[i]
                   
                   this.markerInfo.major = major
                   
                   this.markerInfo.minor = minor
                   
-                  this.markerInfo.uuId = uuid
+                  this.markerInfo.uuId = uuId
                 }
               })
               
@@ -866,7 +868,9 @@
               
               this.localMarker[mac] = beacons[i]
               
-              localStorage.setItem('localStorageMarker', JSON.stringify(this.localMarker))
+              // console.log(JSON.stringify(this.localMarker))
+              
+              // localStorage.setItem('localStorageMarker', JSON.stringify(this.localMarker))
               
             }
           }

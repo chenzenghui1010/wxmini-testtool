@@ -531,26 +531,16 @@ export class idrMapView {
    * @param marker - idrMarker
    */
   removeMarker(marker) {
-    
+  
     if (!marker) {
-      
+    
       return
     }
-    
-    var temp = []
-    
-    for (var i = 0; i < this._markers[marker.position.floorIndex].length; ++i) {
-      
-      var tempMarker = this._markers[marker.position.floorIndex][i]
-      
-      if (tempMarker.id !== marker.id) {
-        
-        temp.push(tempMarker)
-      }
-    }
-    
-    this._markers[marker.position.floorIndex] = temp
-    
+  
+    this._markerCount -= 1
+  
+    this._markers[marker.position.floorIndex][marker.id] = null
+  
     this._idrMap.removeMarker(marker)
   }
   
@@ -560,16 +550,18 @@ export class idrMapView {
    * @returns {*} - 返回添加的marker，如果用户之后需要移除此marker，需保存返回值
    */
   addMarker(marker) {
-    
+  
+    this._markerCount += 1
+  
     if (!this._markers.hasOwnProperty(marker.position.floorIndex)) {
-      
-      this._markers[marker.position.floorIndex] = new Array()
+    
+      this._markers[marker.position.floorIndex] = {}
     }
-    
-    this._markers[marker.position.floorIndex].push(marker)
-    
+  
     this._idrMap.addMarker(marker)
-    
+  
+    this._markers[marker.position.floorIndex][marker.id] = marker
+  
     return marker
   }
   

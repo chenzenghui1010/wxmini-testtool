@@ -120,6 +120,7 @@
         
         isShowImg: true,
         deleteMarker: {},
+        arrMac: [],
       }
     },
     computed: {
@@ -135,7 +136,19 @@
     },
     mounted() {
       
-      this.deleteLocal()
+      this.resetLocalStorageMarker()
+      
+      let localArrMac = JSON.parse(localStorage.getItem('localStorageMarker'))
+      
+      if (localArrMac) {
+        
+        this.arrMac = localArrMac
+        
+      } else {
+        
+        this.arrMac = []
+      }
+      
       
       const maPId = this.$route.query.mapId || "14559560656150195" //项目地图
       
@@ -146,8 +159,8 @@
     },
     methods: {
       initMap() {
-        // localStorage.removeItem('localStorageMarker')
-        this.reMarker()
+        
+        this.requestData()
         
         this.map = new idrMapView()
         
@@ -382,58 +395,13 @@
         
         if (this.firstTime) {
           
-          this.selectFloor()
+          this.initialiZationMac()
           
           this.doLocating()
           
           idrDebug.showDebugInfo(true)
           
-          // idrLocateServerInstance.setReceiveBeaconListener((beacons) => {
-          //
-          //   if (beacons.length > 0) {
-          //
-          //     // idrDebug.debugInfo(JSON.stringify(beacons[0]))
-          //
-          //     for (let i = 0; i < beacons.length; ++i) {
-          //
-          //       const mac = beacons[i].major + '' + beacons[i].minor
-          //
-          //       if (mac in this.myMarker) {
-          //
-          //         beacons[i].x = this.myMarker[mac].position.x
-          //
-          //         beacons[i].y = this.myMarker[mac].position.y
-          //
-          //         beacons[i].floorIndex = this.myMarker[mac].position.floorIndex
-          //
-          //         let marker = new idrMarker({
-          //
-          //           pos: beacons[i], image: './static/markericon/zhengchang.png', callback: (marker) => {
-          //
-          //             this.showMarker = true
-          //
-          //             const {major, minor, uuid} = beacons[i]
-          //
-          //             this.markerInfo.major = major
-          //
-          //             this.markerInfo.minor = minor
-          //
-          //             this.markerInfo.uuId = uuid
-          //           }
-          //         })
-          //
-          //         this.map.removeMarker(this.myMarker[mac])
-          //
-          //         this.map.addMarker(marker)
-          //
-          //         this.localMarker[mac] = beacons[i]
-          //
-          //         localStorage.setItem('localStorageMarker', JSON.stringify(this.localMarker))
-          //
-          //       }
-          //     }
-          //   }
-          // })
+          // idrLocateServerInstance.setReceiveBeaconListener((beacons) => { })
           
           this.firstTime = false
         }
@@ -445,7 +413,7 @@
             
             const end = Math.min(totalcount, start + Math.floor(Math.random() * 40))
             
-            this.setIntErval(this.obj[floorIndex].slice(start, end))
+            this.foundMac(this.obj[floorIndex].slice(start, end))
           }
           , 1000);
         
@@ -695,11 +663,12 @@
       },
       
       
-      reMarker() {
+      requestData() {
         
         getBeaconMarksOfRegion()
           
           .then(data => {
+            
             console.log(data.floorList);
             this.deployList = data.floorList
             
@@ -711,7 +680,7 @@
       },
       
       
-      selectFloor() {
+      initialiZationMac() {
         
         for (let item = 0; item < this.deployList.length; item++) {
           
@@ -744,91 +713,63 @@
           })
           
           let localmac = JSON.parse(localStorage.getItem('localStorageMarker'))
-        
-          if (localmac) {
-
-            for (let i = 0; i < this.obj[item].length; i++) {
-
-              // if (this.obj[i].floorIndex != this.currentFloorIndex) continue
-
-              const mac = this.obj[item][i].major + '' + this.obj[item][i].minor
-
-              if (mac in localmac) {
-
-                let markers = new idrMarker({
-
-                  pos: localmac[mac], image: './static/markericon/zhengchang.png', callback: (marker) => {
-
-                    this.showMarker = true
-
-                    const {major, minor, uuid} = localmac[mac]
-
-                    this.markerInfo.major = major
-
-                    this.markerInfo.minor = minor
-
-                    this.markerInfo.uuId = uuid
-                  }
-                })
-
-                this.deleteMarker[mac] = this.map.addMarker(markers)
-
-
-              } else {
-
-                let marker = new idrMarker({
-
-                  pos: this.obj[item][i], image: './static/markericon/greymarker.png', callback: (marker) => {
-
-                    this.showMarker = true
-
-                    const {major, minor, uuId} = this.obj[item][i]
-
-                    this.markerInfo.major = major
-
-                    this.markerInfo.minor = minor
-
-                    this.markerInfo.uuId = uuId
-                  }
-                })
-
-                this.myMarker[mac] = this.map.addMarker(marker)
-
-              }
-            }
-          }
           
-          if (localmac == null ) {
+          if (localmac) {
             
             for (let i = 0; i < this.obj[item].length; i++) {
               
-              // if (this.obj[item][i] != this.currentFloorIndex) continue
-           
+              // if (this.obj[i].floorIndex != this.currentFloorIndex) continue
+              
               const mac = this.obj[item][i].major + '' + this.obj[item][i].minor
-          
-              let marker = new idrMarker({
+              
+              if (localmac.includes(mac)) {
                 
-                pos: this.obj[item][i], image: './static/markericon/greymarker.png', callback: (marker) => {
+                let markers = new idrMarker({
                   
-                  this.showMarker = true
+                  pos: this.obj[item][i], image: './static/markericon/zhengchang.png', callback: (marker) => {
+                    
+                    this.showMarker = true
+                    
+                    const {major, minor, uuid} = this.obj[item][i]
+                    
+                    this.markerInfo.major = major
+                    
+                    this.markerInfo.minor = minor
+                    
+                    this.markerInfo.uuId = uuid
+                  }
+                })
+                this.map.removeMarker(this.myMarker[mac]);
+                
+                this.map.addMarker(markers)
+                
+              } else {
+                
+                let marker = new idrMarker({
                   
-                  const {major, minor, uuId} = this.obj[item][i]
-                  
-                  this.markerInfo.major = major
-                  
-                  this.markerInfo.minor = minor
-                  
-                  this.markerInfo.uuId = uuId
-                }
-              })
-              this.myMarker[mac] = this.map.addMarker(marker)
+                  pos: this.obj[item][i], image: './static/markericon/greymarker.png', callback: (marker) => {
+                    
+                    this.showMarker = true
+                    
+                    const {major, minor, uuId} = this.obj[item][i]
+                    
+                    this.markerInfo.major = major
+                    
+                    this.markerInfo.minor = minor
+                    
+                    this.markerInfo.uuId = uuId
+                  }
+                })
+                
+                this.myMarker[mac] = this.map.addMarker(marker)
+                
+              }
             }
           }
         }
       },
       
-      
-      setIntErval(beacons) {
+      foundMac(beacons) {
         
         if (beacons.length > 0) {
           
@@ -838,7 +779,7 @@
             
             const mac = beacons[i].major + '' + beacons[i].minor
             
-            if (mac in this.myMarker) {
+            if (this.myMarker[mac] != null) {
               
               beacons[i].x = this.myMarker[mac].position.x
               
@@ -862,26 +803,68 @@
                 }
               })
               
+              this.map.removeMarker(this.myMarker[mac]);
+              
+              this.myMarker[mac] = null
+              
+              this.map.addMarker(marker)
+              
+              this.arrMac.includes(mac) ? '' : this.arrMac.push(mac)
+              
+            }
+          }
+          localStorage.setItem('localStorageMarker', JSON.stringify(this.arrMac))
+        }
+      },
+      
+      myFoundMac(beacons) {
+        if (beacons.length > 0) {
+          
+          // idrDebug.debugInfo(JSON.stringify(beacons[0]))
+          for (let i = 0; i < beacons.length; ++i) {
+            
+            const mac = beacons[i].major + '' + beacons[i].minor
+            
+            if (mac in this.myMarker) {
+              
+              beacons[i].x = this.myMarker[mac].position.x
+              
+              beacons[i].y = this.myMarker[mac].position.y
+              
+              beacons[i].floorIndex = this.myMarker[mac].position.floorIndex
+              
+              let marker = new idrMarker({
+                
+                pos: beacons[i], image: './static/markericon/zhengchang.png', callback: (marker) => {
+                  
+                  this.showMarker = true
+                  
+                  const {major, minor, uuid} = beacons[i]
+                  
+                  this.markerInfo.major = major
+                  
+                  this.markerInfo.minor = minor
+                  
+                  this.markerInfo.uuId = uuid
+                }
+              })
+              
               this.map.removeMarker(this.myMarker[mac])
               
               this.map.addMarker(marker)
               
               this.localMarker[mac] = beacons[i]
               
-              // console.log(JSON.stringify(this.localMarker))
-              
-              // localStorage.setItem('localStorageMarker', JSON.stringify(this.localMarker))
+              localStorage.setItem('localStorageMarker', JSON.stringify(this.localMarker))
               
             }
           }
         }
-        
       },
       
-      
-      deleteLocal() { //每过一段时间清空 localStorage
+      resetLocalStorageMarker() { //每过一段时间清空 localStorage
         
-        let a = {'12110120': 'a', '44452114': 'b'}
+        let resetMarker = []
         
         if (localStorage.getItem('closeDate') == null) {
           
@@ -901,9 +884,9 @@
           
           let num = (Number(enfTime) - Number(newStartDate))
           
-          if (num > 43200) {
+          if (num > 10) {
             
-            localStorage.setItem('localStorageMarker', JSON.stringify(a))
+            localStorage.setItem('localStorageMarker', JSON.stringify(resetMarker))
             
             localStorage.removeItem('closeDate')
           }

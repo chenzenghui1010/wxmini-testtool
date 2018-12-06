@@ -120,7 +120,7 @@
         
         isShowImg: true,
         deleteMarker: {},
-        arrMac: [],
+        arrMac: {},
       }
     },
     computed: {
@@ -146,7 +146,7 @@
         
       } else {
         
-        this.arrMac = []
+        this.arrMac ={}
       }
       
       
@@ -415,7 +415,7 @@
             
             this.foundMac(this.obj[floorIndex].slice(start, end))
           }
-          , 1000);
+          , 2000);
         
         this.currentFloorName = this.getCurrentName()
       },
@@ -521,7 +521,6 @@
           HeaderTip.show(msg)
         }
       },
-      
       onSelect(val) {
         
         if (this.currentFloorIndex != val) {
@@ -536,7 +535,6 @@
         this.map.changeFloor(val)
         this.map.autoChangeFloor = false
       },
-      
       preparePlayAudio() {
         
         if (!this.audio) {
@@ -656,13 +654,10 @@
         
         this.deviceParamers = !this.deviceParamers
       },
-      
       isShowMarker() {
         
         this.showMarker = false
       },
-      
-      
       requestData() {
         
         getBeaconMarksOfRegion()
@@ -678,8 +673,6 @@
             alert(msg)
           })
       },
-      
-      
       initialiZationMac() {
         
         for (let item = 0; item < this.deployList.length; item++) {
@@ -713,58 +706,54 @@
           })
           
           let localmac = JSON.parse(localStorage.getItem('localStorageMarker'))
-          
-          if (localmac) {
-            
-            for (let i = 0; i < this.obj[item].length; i++) {
+     
+          for (let i = 0; i < this.obj[item].length; i++) {
               
               // if (this.obj[i].floorIndex != this.currentFloorIndex) continue
               
               const mac = this.obj[item][i].major + '' + this.obj[item][i].minor
               
-              if (localmac.includes(mac)) {
-                
+              if (localmac[mac] !=null) {
+
                 let markers = new idrMarker({
-                  
+
                   pos: this.obj[item][i], image: './static/markericon/zhengchang.png', callback: (marker) => {
-                    
+
                     this.showMarker = true
-                    
+
                     const {major, minor, uuid} = this.obj[item][i]
-                    
+
                     this.markerInfo.major = major
-                    
+
                     this.markerInfo.minor = minor
-                    
+
                     this.markerInfo.uuId = uuid
                   }
                 })
                 this.map.removeMarker(this.myMarker[mac]);
-                
+
                 this.map.addMarker(markers)
-                
+
               } else {
-                
+
                 let marker = new idrMarker({
-                  
+
                   pos: this.obj[item][i], image: './static/markericon/greymarker.png', callback: (marker) => {
-                    
+
                     this.showMarker = true
-                    
+
                     const {major, minor, uuId} = this.obj[item][i]
-                    
+
                     this.markerInfo.major = major
-                    
+
                     this.markerInfo.minor = minor
-                    
+
                     this.markerInfo.uuId = uuId
                   }
                 })
-                
+
                 this.myMarker[mac] = this.map.addMarker(marker)
-                
               }
-            }
           }
         }
       },
@@ -809,8 +798,7 @@
               
               this.map.addMarker(marker)
               
-              this.arrMac.includes(mac) ? '' : this.arrMac.push(mac)
-              
+              this.arrMac[mac] = mac
             }
           }
           localStorage.setItem('localStorageMarker', JSON.stringify(this.arrMac))
@@ -884,7 +872,7 @@
           
           let num = (Number(enfTime) - Number(newStartDate))
           
-          if (num > 10) {
+          if (num > 43200) {
             
             localStorage.setItem('localStorageMarker', JSON.stringify(resetMarker))
             

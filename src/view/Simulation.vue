@@ -18,7 +18,7 @@
     <parameter-details></parameter-details>
     
     <navigation v-if='navigation.start' @toggleSpeak="toggleSpeak" v-on:stop="onStopNavigate" @birdlook="onBirdLook"
-    @followme="onFollowMe"></navigation>
+                @followme="onFollowMe"></navigation>
     
     
     <mark-in-map v-if="mapState.markInMap"></mark-in-map>
@@ -85,6 +85,7 @@
       parameterDetails,
       floor,
       showMarker,
+      
     },
     data() {
       return {
@@ -118,6 +119,7 @@
         isShowImg: true,
         deleteMarker: {},
         isShowHeaderTip: false,
+        one: true,
       }
     },
     computed: {
@@ -140,7 +142,6 @@
       this.initMap(maPId)
       
     },
-    
     
     
     methods: {
@@ -182,7 +183,15 @@
         
         return this.map.addMarker(marker)
       },
+      
+      
       onUnitClick(unit) {
+        
+        console.log(this.map._inNavi);
+       
+        if (this.map._inNavi) return  // 是否在导航
+        
+        this.one = true
         
         console.log('终点');
         
@@ -191,11 +200,13 @@
           window.HeaderTip.show("请点选地图空白位置选择起点")
         }
         
+        
         this.map.doRoute({start: null, end: unit})
           
           .then(res => {
             
             this.onRouterSuccess(res)
+            
           })
         
         if (!this.mapState.markInMap) {
@@ -243,7 +254,7 @@
               resolve()
             })
         }))
-       
+        
       },
       onBirdLook() {
         
@@ -270,6 +281,8 @@
             Alertboxview.hide()
             
             this.stopRouteAndClean(false)
+            
+            this.map._inNavi = false
           }
         }
         
@@ -283,6 +296,8 @@
             this.playAudio('已找到爱车')
             
             this.onNaviToOuter()
+    
+            this.map._inNavi = false
           }
         }
         
@@ -383,10 +398,10 @@
               console.log(e)
             })
         }
-        setTimeout(()=>{
+        setTimeout(() => {
           window.HeaderTip.show("温馨提示：点选地图空白位置选择起点")
-        },2000)
-      
+        }, 2000)
+        
       },
       onFloorChangeSuccess({floorIndex}) {
         
@@ -461,7 +476,6 @@
             window.HeaderTip.show(res)
           })
       },
-      
       onLocateSuccess(pos) {
         
         this.map.setUserPos(pos)
@@ -477,7 +491,6 @@
           HeaderTip.show(msg)
         }
       },
-      
       onSelect(val) {
         
         if (this.currentFloorIndex != val) {
@@ -493,14 +506,20 @@
         this.map.autoChangeFloor = false
       },
       onMapClick(pos) {
+        console.log(this.map._inNavi);
+        
+        if (this.map.isInNavi()) return  // 是否在导航
+        
+        this.one = true
         
         this.isShowHeaderTip = true
         
         console.log(pos);
         
         this.map.setUserPos(pos)
-  
+        
         window.HeaderTip.show("温馨提示：点选车位设为终点")
+        
         
       },
       preparePlayAudio() {
@@ -542,7 +561,7 @@
         
         if (projDist >= 150) {
           
-          this.map.reRoute()
+          // this.map.reRoute()
           
           return
         }
@@ -559,18 +578,23 @@
         
         if (totalDistance < 15) {
           
-          this.playAudio('您已到达目的地')
-          
-          var confirm = {
-            name: '知道了', callback: () => {
+          if (this.one) {
+            // this.playAudio('您已到达目的地')
+            
+            var confirm = {
               
-              window.Alertboxview.hide()
-              
-              this.stopRouteAndClean()
+              name: '知道了', callback: () => {
+                
+                window.Alertboxview.hide()
+                
+                this.stopRouteAndClean()
+              }
             }
+            
+            window.Alertboxview.show('您已到达目的地', null, [confirm])
+            
+            this.one = false
           }
-          
-          window.Alertboxview.show('您已到达目的地', null, [confirm])
         }
         else {
           
@@ -615,7 +639,7 @@
         
         this.showMarker = false
       },
-    
+      
     }
   }
 </script>
@@ -623,3 +647,4 @@
 
 
 </style>
+             

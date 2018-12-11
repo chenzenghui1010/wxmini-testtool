@@ -397,6 +397,9 @@ export class idrMapView {
     return Promise.resolve({start:start ? start : this._currentPos, end:end, path:routerData})
   }
   
+  /**
+   * 重新规划路径
+   */
   reRoute() {
   
     this._inNavi = false

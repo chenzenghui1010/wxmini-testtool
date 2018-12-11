@@ -120,6 +120,7 @@
         deleteMarker: {},
         isShowHeaderTip: false,
         one: true,
+        start: null,
       }
     },
     computed: {
@@ -163,7 +164,7 @@
         })
         
         this.map.addEventListener(idrMapEvent.types.onNaviStatusUpdate, (data) => {
-          
+         
           this.onNaviStatusUpdate(data)
         })
         
@@ -187,19 +188,19 @@
       
       onUnitClick(unit) {
         
-        console.log(this.map._inNavi);
-       
+        this.start = unit
+        
         if (this.map._inNavi) return  // 是否在导航
         
         this.one = true
         
         console.log('终点');
         
-        if (!this.isShowHeaderTip) {
-          
-          window.HeaderTip.show("请点选地图空白位置选择起点")
-        }
-        
+        // if (!this.isShowHeaderTip) {
+        //
+        //   window.HeaderTip.show("请点选地图空白位置选择起点")
+        // }
+        //
         
         this.map.doRoute({start: null, end: unit})
           
@@ -209,10 +210,10 @@
             
           })
         
-        if (!this.mapState.markInMap) {
-          
-          return
-        }
+        // if (!this.mapState.markInMap) {
+        //
+        //   return
+        // }
         
         this.addEndMarker(unit.position)
         
@@ -276,6 +277,7 @@
         }
         
         var unfind = {
+          
           name: '未找到爱车', callback: () => {
             
             Alertboxview.hide()
@@ -283,6 +285,8 @@
             this.stopRouteAndClean(false)
             
             this.map._inNavi = false
+            
+            this.start = null
           }
         }
         
@@ -296,8 +300,10 @@
             this.playAudio('已找到爱车')
             
             this.onNaviToOuter()
-    
+            
             this.map._inNavi = false
+            
+            this.start = null
           }
         }
         
@@ -476,6 +482,7 @@
             window.HeaderTip.show(res)
           })
       },
+      
       onLocateSuccess(pos) {
         
         this.map.setUserPos(pos)
@@ -506,21 +513,31 @@
         this.map.autoChangeFloor = false
       },
       onMapClick(pos) {
-        console.log(this.map._inNavi);
         
-        if (this.map.isInNavi()) return  // 是否在导航
+        if (this.map._inNavi) {
+          
+          this.map.setUserPos(pos)
+          
+          // this.map.doRoute({start: pos, end: this.start})
+          //
+          //   .then(res => {
+          //
+          //     this.onRouterSuccess(res)
+          //
+          //   })
+          //
+          // return
+        }
+        
+        console.log(this.map._inNavi);
         
         this.one = true
         
         this.isShowHeaderTip = true
         
-        console.log(pos);
-        
         this.map.setUserPos(pos)
         
         window.HeaderTip.show("温馨提示：点选车位设为终点")
-        
-        
       },
       preparePlayAudio() {
         
@@ -552,16 +569,13 @@
         this.audioTime = date
       },
       onNaviStatusUpdate({validate, projDist, goalDist, serialDist, nextSug}) {
-        
+       
         if (!validate) {
           
           return
         }
         
-        
         if (projDist >= 150) {
-          
-          // this.map.reRoute()
           
           return
         }

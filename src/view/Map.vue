@@ -184,12 +184,6 @@
           this.onNaviStatusUpdate(data)
         })
         
-        // this.map.addEventListener(idrMapEvent.types.onMapClick, (pos) => {
-        //
-        //   this.onMapClick(pos)
-        //
-        // })
-        //
         this.map.addEventListener(idrMapEvent.types.onUnitClick, (unit) => {
           
           this.onUnitClick(unit)
@@ -201,36 +195,6 @@
         var marker = new idrMarker({pos: pos, image: './static/markericon/greymarker.png'})
         
         return this.map.addMarker(marker)
-      },
-      onUnitClick(unit) {
-        
-        this.map.setUserPos(unit.position)
-        
-        if (!this.mapState.markInMap) {
-          
-          return
-        }
-        
-        this.addEndMarker(unit.position)
-        
-        this.$store.dispatch('finishMarkInMap')
-          .then(() => {
-            
-            if (!idrWxManager._beaconStart) {
-              
-              return Promise.reject('蓝牙未开启，请开启蓝牙')
-            }
-            
-            return this.map.doRoute({start: null, end: unit})
-          })
-          .then((res) => {
-            
-            return this.onRouterSuccess(res)
-          })
-          .catch(res => {
-            
-            window.HeaderTip.show(res)
-          })
       },
       onRouterSuccess({start, end}, findcar = true) {
         
@@ -251,17 +215,7 @@
             })
         }))
       },
-      onBirdLook() {
-        
-        this.map.birdLook()
-        
-        this.map.setStatus(YFM.Map.STATUS_TOUCH)
-      },
-      onFollowMe() {
-        
-        this.map.setStatus(YFM.Map.STATUS_NAVIGATE)
-      },
-    
+
       onNaviToUnit(unit) {
         
         this.preparePlayAudio()
@@ -351,6 +305,8 @@
             })
         }
       },
+      
+      
       onFloorChangeSuccess({floorIndex}) {
         
         this.currentFloorIndex = floorIndex
@@ -373,7 +329,9 @@
           
           this.firstTime = false
         }
-        
+  
+  
+        console.log(this.obj);
         // const totalcount = this.obj[floorIndex].length
         //
         // setInterval(() => {
@@ -606,10 +564,7 @@
         
         this.endMarker = this.map.addMarker(endMarker)
       },
-      toggleSpeak() {
-        
-        this.$store.dispatch('toggleSpeak')
-      },
+    
       isShowParameter() {
         console.log('气泡');
         for (let i = 0; i < this.obj[this.currentFloorIndex].length; i++) {
@@ -675,8 +630,9 @@
           })
           
           let localmac = JSON.parse(localStorage.getItem('localStorageMarker'))
-          
+         
           if (localmac == null) {
+            
             for (let i = 0; i < this.obj[item].length; i++) {
               
               // if (this.obj[i].floorIndex != this.currentFloorIndex) continue
@@ -701,6 +657,7 @@
               
               this.myMarker[mac] = this.map.addMarker(marker)
             }
+           
           } else {
             for (let i = 0; i < this.obj[item].length; i++) {
               
@@ -710,7 +667,7 @@
               
               if (localmac[mac] != null) {
                 
-                let markers = new idrMarker({
+                let marker = new idrMarker({
                   
                   pos: this.obj[item][i], image: './static/markericon/zhengchang.png', callback: (marker) => {
                     
@@ -727,7 +684,7 @@
                 })
                 this.map.removeMarker(this.myMarker[mac]);
                 
-                this.map.addMarker(markers)
+                this.map.addMarker(marker)
                 
               } else {
                 
@@ -751,7 +708,6 @@
               }
             }
           }
-          
         }
       },
       

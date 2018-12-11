@@ -58,8 +58,6 @@ export class idrMapView {
     
     this._idrMap = null
     
-    this._path = null
-    
     this._composs = null
     
     this._naviParm = null
@@ -399,12 +397,30 @@ export class idrMapView {
     return Promise.resolve({start:start ? start : this._currentPos, end:end, path:routerData})
   }
   
+  reRoute() {
+  
+    this._inNavi = false
+  
+    this._idrMap.showRoutePath(null)
+  
+    const routerData = this._router.routerPath(this._currentPos, this._naviParm.end.position, this._naviParm.car, this._naviParm.end.junctions)
+  
+    if (!routerData.path) {
+    
+      return
+    }
+  
+    const points = routerData.path
+  
+    this._inNavi = true
+  
+    this._showRoutePath(points)
+  }
+  
   /**
    * 停止导航
    */
   stopRoute() {
-    
-    this._path = null
     
     this._naviParm = null
     

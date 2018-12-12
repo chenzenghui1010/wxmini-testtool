@@ -21,9 +21,8 @@
     width: 100%;
     height: 4rem;
     line-height: 4rem;
-    background: rgba(255, 240, 204, 0.8);
+    background: rgba(0, 0, 0, 0.5);
     font-size: 1.2rem;
-    border-bottom: 1px solid #cccccc;
     z-index: 11;
     transition: opacity 1s;
     -webkit-transition: opacity 1s;
@@ -40,9 +39,10 @@
   }
 
   span {
-
+    color: #fff;
     line-height: 2rem;
     height: 2rem;
+    font-size: 1.2rem;
     display: inline-block;
     vertical-align: middle;
   }

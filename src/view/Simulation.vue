@@ -121,6 +121,7 @@
         isShowHeaderTip: false,
         one: true,
         start: null,
+        startOrEnd:true,
       }
     },
     computed: {
@@ -189,12 +190,13 @@
       onUnitClick(unit) {
         
         this.start = unit
-        
+        if(this.startOrEnd) return
         if (this.map._inNavi) return  // 是否在导航
         
         this.one = true
         
         console.log('终点');
+        
         
         // if (!this.isShowHeaderTip) {
         //
@@ -215,17 +217,17 @@
         //   return
         // }
         
-        this.addEndMarker(unit.position)
+        // this.addEndMarker(unit.position)//终
         
         this.$store.dispatch('finishMarkInMap')
           
           .then(() => {
             
-            if (!idrWxManager._beaconStart) {
-              
-              return Promise.reject('蓝牙未开启，请开启蓝牙')
-            }
-            
+            // if (!idrWxManager._beaconStart) {
+            //
+            //   return Promise.reject('蓝牙未开启，请开启蓝牙')
+            // }
+            alert(0)
             return this.map.doRoute({start: null, end: unit})
           })
           .then((res) => {
@@ -399,14 +401,15 @@
         if (this.carno) {
           
           this.$store.dispatch('startSearchCarByPlateNumber')
+            
             .catch(e => {
               
               console.log(e)
             })
         }
-        setTimeout(() => {
+        // setTimeout(() => {
           window.HeaderTip.show("温馨提示：点选地图空白位置选择起点")
-        }, 2000)
+        // }, 2000)
         
       },
       onFloorChangeSuccess({floorIndex}) {
@@ -474,8 +477,8 @@
         
         this.map.doRoute({start: null, end: unit})
           .then(res => {
-            
             return this.onRouterSuccess(res)
+            
           })
           .catch(res => {
             
@@ -528,6 +531,8 @@
           //
           // return
         }
+  
+        this.startOrEnd = false
         
         console.log(this.map._inNavi);
         
@@ -610,6 +615,7 @@
             window.Alertboxview.show('您已到达目的地', null, [confirm])
             
             this.one = false
+            window.HeaderTip.show("温馨提示：")
           }
         }
         else {
@@ -620,6 +626,7 @@
           
           this.playAudio(text)
         }
+       
       },
       stopRouteAndClean(removeEndMarker = true) {
         

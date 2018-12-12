@@ -10,13 +10,14 @@
     >
     
     </input-box>
-    <div class="showdata">
-      <div v-if="!cancelData" v-for='item  in  lists ' @click="select(item.id)">
-        <project :text="item.name"></project>
+    <div class="hd">
+      <div class="showdata">
+        <div v-if="!cancelData" v-for='item  in  lists ' @click="select(item.id)">
+          <project :text="item.name"></project>
+        </div>
       </div>
+    
     </div>
-    
-    
     <div v-if="cancelData" class="cancelData">
       <div v-for="  item  in searedResult" @click="go(item.id)">{{ item.name }}</div>
     </div>
@@ -117,11 +118,11 @@
       select(id) {
         
         if (this.firstOrLast == 0) {
-    
+          
           this.$router.push({path: '/map', query: {mapId: id}})
-    
+          
         } else {
-    
+          
           this.$router.push({path: '/simulation', query: {mapId: id}})
         }
         
@@ -155,12 +156,21 @@
     margin: 0;
   }
   
+  .main {
+  }
+  
+  .hd {
+  }
+  
   .showdata {
+    box-sizing: border-box;
     width: 100%;
     max-height: 100%;
     position: absolute;
     overflow: hidden;
     overflow-y: scroll;
+    overflow-scrolling: touch;
+    -webkit-overflow-scrolling: touch;
   }
   
   .cancelData {

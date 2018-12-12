@@ -323,7 +323,7 @@
           
           idrLocateServerInstance.setReceiveBeaconListener((beacons) => {
             
-              // this.foundMac(beacons)
+              this.foundMac(beacons)
             
           })
           
@@ -331,18 +331,18 @@
         }
   
   
-        console.log(this.obj);
-        const totalcount = this.obj[floorIndex].length
+        // console.log(this.obj);
+        // const totalcount = this.obj[floorIndex].length
 
-        setInterval(() => {
-
-            const start = Math.floor(Math.random() * totalcount)
-
-            const end = Math.min(totalcount, start + Math.floor(Math.random() * 40))
-
-            this.foundMac(this.obj[floorIndex].slice(start, end))
-          }
-          , 2000);
+        // setInterval(() => {
+        //
+        //     const start = Math.floor(Math.random() * totalcount)
+        //
+        //     const end = Math.min(totalcount, start + Math.floor(Math.random() * 40))
+        //
+        //     this.foundMac(this.obj[floorIndex].slice(start, end))
+        //   }
+        //   , 2000);
         
         this.currentFloorName = this.getCurrentName()
       },
@@ -830,7 +830,7 @@
           
           let num = (Number(enfTime) - Number(newStartDate))
           
-          if (num > 43200) {
+          if (num > 10) {
             
             localStorage.setItem('localStorageMarker', JSON.stringify(resetMarker))
             

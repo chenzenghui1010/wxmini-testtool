@@ -33,7 +33,7 @@ function HeaderTip() {
     
         _vm.display = 0
     
-      }, 5000)
+      }, 500000)
       
       return
     }
@@ -52,9 +52,9 @@ function HeaderTip() {
   
         _vm.$el.style.visibility = 'hidden'
         
-      }, 1000)
+      }, 1000000)
       
-    }, 1000)
+    }, 1000000)
   }
   
   this.show = show

@@ -3,7 +3,7 @@
     <div class="topbar">
       <div class="rightorleft">
         <img v-if="navigation.nextLeft" src="../assets/left.png"/>
-        <img v-else src="../assets/right.png"/>
+        <img v-else    src="../assets/right.png"/>
       </div>
       <div class="navistatus">
         <div class="total">
@@ -13,13 +13,13 @@
           <div>
             {{navigation.nextDistance}}米{{navigation.nextLeft?'  左转':'  右转'}}
           </div>
-          <div v-if="navigation.enableSpeack" class="speaker" @click="speakControl()"></div>
-          <div v-else class="speakeroff" @click="speakControl()"></div>
+          <!--<div v-if="navigation.enableSpeack" class="speaker" @click="speakControl()"></div>-->
+          <!--<div v-else class="speakeroff" @click="speakControl()"></div>-->
         </div>
       </div>
     </div>
     <div class='bottombar'>
-      <div onClick={this.close}>
+      <div onClick={close}>
         <img src="../assets/quit.png" v-on:click="exit" width="20"/>
         <span class="line"/>
       </div>
@@ -50,19 +50,19 @@
 
         this.$emit('stop')
       },
-      speakControl() {
-
-        this.$store.dispatch('toggleSpeak')
-
-        if (this.navigation.enableSpeack) {
-
-          window.FloatView.show('语音播报已开启')
-        }
-        else {
-
-          window.FloatView.show('语音播报已关闭')
-        }
-      },
+      // speakControl() {
+      //
+      //   this.$store.dispatch('toggleSpeak')
+      //
+      //   if (this.navigation.enableSpeack) {
+      //
+      //     window.FloatView.show('语音播报已开启')
+      //   }
+      //   else {
+      //
+      //     window.FloatView.show('语音播报已关闭')
+      //   }
+      // },
       birdlook() {
 
         this.followMe = false

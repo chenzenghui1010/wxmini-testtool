@@ -136,7 +136,7 @@
     },
     mounted() {
       
-      // localStorage.removeItem('localStorageMarker')
+      localStorage.removeItem('localStorageMarker')
       
       this.resetLocalStorageMarker()
       

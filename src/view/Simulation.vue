@@ -577,6 +577,8 @@
         
         if (projDist >= 150) {
           
+          this.map.reRoute()
+          
           return
         }
         

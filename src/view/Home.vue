@@ -89,26 +89,25 @@
   }
   
   .content > .footer > P {
-    width: 4rem;
-    height: 6.4rem;
-    font-size: 0.8rem;
+    width: 5rem;
+    height: 7.4rem;
+    font-size: 1.2rem;
     display: inline-block;
     text-align: center;
   }
   
   .content > .footer > .first {
     margin: 0 3rem 0 4.5rem;
-    background: url("../assets/Home/jianche.png") no-repeat top /100% 4rem;
-    
+    background: url("../assets/Home/jianche.png") no-repeat top /100% 5rem;
   }
   
   .content > .footer > .last {
-    background: url("../assets/Home/moni.png") no-repeat top /100% 4rem;
+    background: url("../assets/Home/moni.png") no-repeat top /100% 5rem;
   }
   
   .content > .footer > P > span {
-    font-size: 0.8rem;
-    margin-top: 5rem;
+    font-size: 1.2rem;
+    margin-top: 6rem;
     color: #7F838B;
     display: inline-block;
   }

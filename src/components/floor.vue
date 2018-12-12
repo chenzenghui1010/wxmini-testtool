@@ -82,6 +82,8 @@
   }
   
   .main {
+    box-sizing: border-box;
+    border: 1px solid #DDDDDD;
     width: 3.5rem;
     height: 3.5rem;
     border-radius: 0.25rem;

@@ -42,12 +42,13 @@ export function getDetectionStatus(data) {
 export function login(data) {
   
   return request({
-    url: 'login.html?' + sessionStorage.getItem('loginUrl'),
+    url: 'login.html?' + localStorage.getItem('loginUrl'),
     method: 'get',
     params: data
     
   })
 }
+
 
 //获取sessionKey
 let reInfo = {
@@ -72,11 +73,13 @@ export function initAppSession(data) {
 }
 
 // 获取当前用户关联的项目列表
-let OfUserUrl = `sessionKey=${sessionStorage.getItem('sessionKey')}&phoneUUID=${localStorage.getItem('phoneUUID')}&appId=${localStorage.getItem('appId')}`
-console.log('你'+sessionStorage.getItem('sessionKey'))
+
+let OfUserUrl = `sessionKey=${localStorage.getItem('sessionKey')}&phoneUUID=${localStorage.getItem('phoneUUID')}&appId=${localStorage.getItem('appId')}`
+console.log(OfUserUrl);
+console.log('你'+localStorage.getItem('sessionKey'))
 
 export function getRegionsOfUser(data) {
-  
+ 
   return request({
     url: 'getRegionsOfUser.html?' + OfUserUrl,
     method: 'get',

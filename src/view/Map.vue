@@ -712,14 +712,9 @@
       },
       
       foundMac(beacons) {
-        
-        if (!beacons) {
-          
-          return
-        }
-        
+     
         if (beacons.length > 0) {
-          
+        
           // idrDebug.debugInfo(JSON.stringify(beacons[0]))
           
           for (let i = 0; i < beacons.length; ++i) {
@@ -810,8 +805,6 @@
       
       resetLocalStorageMarker() { //每过一段时间清空 localStorage
         
-        let resetMarker = []
-        
         if (localStorage.getItem('closeDate') == null) {
           
           let startDate = new Date().getTime() / 1000
@@ -832,7 +825,7 @@
           
           if (num > 10) {
             
-            localStorage.setItem('localStorageMarker', JSON.stringify(resetMarker))
+            localStorage.setItem('localStorageMarker', null)
             
             localStorage.removeItem('closeDate')
           }

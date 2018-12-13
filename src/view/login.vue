@@ -69,9 +69,10 @@
           
           .then(sessionKey => {
             close()
-            sessionStorage.setItem('sessionKey', sessionKey)
             
-            console.log(sessionStorage.getItem('sessionKey'));
+            localStorage.setItem('sessionKey', sessionKey)
+            
+            console.log(localStorage.getItem('sessionKey'));
           })
           .catch(msg => {
             
@@ -84,7 +85,7 @@
         let pwdSign = md5(`${localStorage.getItem('sessionKey')}${pwd}`)
         let loginUrl = `appId=${localStorage.getItem('appId')}&phoneUUID=${localStorage.getItem('phoneUUID')}
         &OSType=${localStorage.getItem('OSType')}&sessionKey=${localStorage.getItem('sessionKey')}&userAccount=${this.user}&pwdSign=${pwdSign}`
-        sessionStorage.setItem('loginUrl', loginUrl)
+      localStorage.setItem('loginUrl', loginUrl)
         
         login()
           .then(data => {

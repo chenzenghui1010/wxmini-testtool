@@ -30,7 +30,7 @@
   import MtCell from "mint-ui/packages/cell/src/cell";
   import inputBox from '../components/inputBoX'
   import noResults from '../components/noResults'
-  import {Toast} from 'mint-ui'
+  import {Toasts, open, close} from '../mintUi'
   import {getRegionsOfUser} from '../api/locate'
   
   document.title = '项目列表'
@@ -66,24 +66,8 @@
     },
     
     mounted() {
+      this.requestList()
       
-      getRegionsOfUser()
-        
-        .then(data => {
-          
-          for (let i = 0; i < data.length; i++) {
-            
-            let {name, id} = data[i]
-            
-            this.lists.push({name: name, id: id})
-            
-          }
-          this.lists.push({name: '', id: ''})
-          
-        }).catch(msg => {
-        
-        alert(msg)
-      })
     },
     
     
@@ -91,6 +75,27 @@
     
     methods: {
       
+      requestList() {
+        open()
+        getRegionsOfUser()
+          
+          .then(data => {
+            
+            close()
+            for (let i = 0; i < data.length; i++) {
+              
+              let {name, id} = data[i]
+              
+              this.lists.push({name: name, id: id})
+              
+            }
+            this.lists.push({name: '', id: ''})
+            
+          }).catch(msg => {
+          close()
+          Toasts(msg)
+        })
+      },
       go(id) {
         if (this.firstOrLast == 0) {
           

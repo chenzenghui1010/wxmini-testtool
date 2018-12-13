@@ -87,7 +87,9 @@
     height: 2.6rem;
     background: url("../assets/Home/homelogo.png") no-repeat center/100% 100%;
   }
-  
+  .footer{
+    position: absolute;
+  }
   .content > .footer > P {
     width: 5rem;
     height: 7.4rem;
@@ -117,8 +119,9 @@
     height: 2.5rem;
     opacity: 0.44;
     background: url("../assets/Home/return.png") no-repeat center /100% 100%;
-    margin-left: 3rem;
+    margin-left: 5rem;
     position: absolute;
-    bottom: 12%;
+    bottom: 15%;
+   
   }
 </style>

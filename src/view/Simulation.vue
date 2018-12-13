@@ -17,8 +17,8 @@
     
     <parameter-details></parameter-details>
     
-    <navigation v-if='navigation.start' @toggleSpeak="toggleSpeak" v-on:stop="onStopNavigate" @birdlook="onBirdLook"
-                @followme="onFollowMe"></navigation>
+    <npm v-if='navigation.start' @toggleSpeak="toggleSpeak" v-on:stop="onStopNavigate" @birdlook="onBirdLook"
+                @followme="onFollowMe"></npm>
     
     
     <mark-in-map v-if="mapState.markInMap"></mark-in-map>

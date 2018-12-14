@@ -167,7 +167,7 @@
 
       width: 5.6rem;
       height: 100%;
-      position: absolute;
+      /*position: absolute;*/
       display: flex;
       align-items: center;
       z-index: 100;

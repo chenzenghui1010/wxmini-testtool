@@ -8,7 +8,6 @@
   
   export default {
     mounted() {
-    
     },
     name: 'App'
   }

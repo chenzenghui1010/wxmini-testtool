@@ -1,5 +1,6 @@
 <template>
   <div>
+    <simulation-prompt v-if="isShowPrompt" :promptValue="promptValue"></simulation-prompt>
     <show-marker @showMarker="isShowMarker" v-if="showMarker" :markerInfo="markerInfo"></show-marker>
     
     <div id="map" class="page"></div>
@@ -67,6 +68,7 @@
   import showMarker from '../components/showMarker'
   
   import floor from '../components/floor'
+  import simulationPrompt from '../components/simulationPrompt'
   
   export default {
     name: "Map",
@@ -87,6 +89,7 @@
       parameterDetails,
       floor,
       showMarker,
+      simulationPrompt,
     },
     data() {
       return {
@@ -121,6 +124,8 @@
         isShowImg: true,
         deleteMarker: {},
         arrMac: {},
+        isShowPrompt: false,
+        promptValue: '',
       }
     },
     computed: {
@@ -179,15 +184,15 @@
           this.onInitMapSuccess(regionEx)
         })
         
-        this.map.addEventListener(idrMapEvent.types.onNaviStatusUpdate, (data) => {
-          
-          this.onNaviStatusUpdate(data)
-        })
+        // this.map.addEventListener(idrMapEvent.types.onNaviStatusUpdate, (data) => {
+        //
+        //   this.onNaviStatusUpdate(data)
+        // })
         
-        this.map.addEventListener(idrMapEvent.types.onUnitClick, (unit) => {
-          
-          this.onUnitClick(unit)
-        })
+        // this.map.addEventListener(idrMapEvent.types.onUnitClick, (unit) => {
+        //
+        //   this.onUnitClick(unit)
+        // })
       },
       
       addGreyMarker(pos) {
@@ -215,7 +220,7 @@
             })
         }))
       },
-
+      
       onNaviToUnit(unit) {
         
         this.preparePlayAudio()
@@ -226,8 +231,16 @@
             return this.onRouterSuccess(res, false)
           })
           .catch(res => {
-            
-            window.HeaderTip.show(res)
+  
+            this.isShowPrompt = true ,
+    
+              this.promptValue = res
+  
+            setTimeout(() => {
+    
+              this.isShowPrompt = false
+    
+            }, 3000)
           })
       },
       onNaviToOuter() {
@@ -280,8 +293,16 @@
                 return this.onRouterSuccess(res, false)
               })
               .catch(res => {
-                
-                window.HeaderTip.show(res)
+  
+                this.isShowPrompt = true ,
+    
+                  this.promptValue = res
+  
+                setTimeout(() => {
+    
+                  this.isShowPrompt = false
+    
+                }, 3000)
               })
           }
         }
@@ -322,18 +343,20 @@
           
           
           idrLocateServerInstance.setReceiveBeaconListener((beacons) => {
-            
-              this.foundMac(beacons)
+            if(!beacons || beacons.length <= 0){
+              return
+            }
+            this.foundMac(beacons)
             
           })
           
           this.firstTime = false
         }
-  
-  
+        
+        
         // console.log(this.obj);
         // const totalcount = this.obj[floorIndex].length
-
+        
         // setInterval(() => {
         //
         //     const start = Math.floor(Math.random() * totalcount)
@@ -364,7 +387,16 @@
           
           if (!idrWxManager._beaconStart) {
             
-            window.HeaderTip.show('蓝牙未开启，请开启蓝牙')
+            this.isShowPrompt = true ,
+              
+              this.promptValue = '蓝牙未开启，请开启蓝牙'
+            
+            setTimeout(() => {
+              
+              this.isShowPrompt = false
+              
+            }, 3000)
+            
             
             return
           }
@@ -376,7 +408,16 @@
             })
             .catch(res => {
               
-              window.HeaderTip.show(res)
+              
+              this.isShowPrompt = true
+              
+              this.promptValue = res
+              
+              setTimeout(() => {
+                this.isShowPrompt = false
+              }, 3000)
+              
+              
             })
           
           return
@@ -400,8 +441,16 @@
             return this.onRouterSuccess(res)
           })
           .catch(res => {
-            
-            window.HeaderTip.show(res)
+  
+            this.isShowPrompt = true ,
+    
+              this.promptValue = res
+  
+            setTimeout(() => {
+    
+              this.isShowPrompt = false
+    
+            }, 3000)
           })
       },
       doLocating() {
@@ -424,11 +473,18 @@
               
               if (msg == 'Bluetooth_poweroff') {
                 
-                HeaderTip.show('蓝牙未开启，请打开蓝牙')
+                
+                this.isShowPrompt = true ,
+                  
+                  this.promptValue = '蓝牙未开启，请开启蓝牙'
+                
+                setTimeout(() => {
+                  this.isShowPrompt = false
+                }, 3000)
               }
               else {
-                
-                HeaderTip.show(msg)
+                this.isShowPrompt = true ,
+                  this.promptValue = msg
               }
             })
         }
@@ -444,8 +500,11 @@
         this.errorCount += 1
         
         if (this.errorCount % 5 == 0) {
+          setTimeout(() => {
+            this.isShowPrompt = true ,
+              this.promptValue = msg
+          }, 3000)
           
-          HeaderTip.show(msg)
         }
       },
       onSelect(val) {
@@ -469,74 +528,8 @@
           this.audio = new Audio()
         }
       },
-      playAudio(text) {
-        
-        if (!text) {
-          
-          return
-        }
-        
-        const date = new Date().getTime()
-        
-        if (date - this.audioTime < 5000) {
-          
-          return
-        }
-        
-        this.audio.src = 'https://wx.indoorun.com/thxz/pc/speech?text=' + text
-        
-        this.audio.play()
-        
-        this.audioTime = date
-      },
-      onNaviStatusUpdate({validate, projDist, goalDist, serialDist, nextSug}) {
-        
-        if (!validate) {
-          
-          return
-        }
-        
-        if (projDist >= 150) {
-          
-          this.map.reRoute()
-          
-          return
-        }
-        
-        const totalDistance = Math.ceil(goalDist / 10.0)
-        
-        const nextDistance = Math.ceil(serialDist / 10.0)
-        
-        this.$store.dispatch('setNaviStatus', {
-          nextLeft: YFM.Map.Navigate.NextSuggestion.LEFT == nextSug,
-          totalDistance,
-          nextDistance
-        })
-        
-        if (totalDistance < 15) {
-          
-          this.playAudio('您已到达目的地')
-          
-          var confirm = {
-            name: '知道了', callback: () => {
-              
-              window.Alertboxview.hide()
-              
-              this.stopRouteAndClean()
-            }
-          }
-          
-          window.Alertboxview.show('您已到达目的地', null, [confirm])
-        }
-        else {
-          
-          const leftrighttext = YFM.Map.Navigate.NextSuggestion.LEFT == nextSug ? '左转' : '右转'
-          
-          const text = '前方' + nextDistance + '米' + leftrighttext
-          
-          this.playAudio(text)
-        }
-      },
+      
+      
       stopRouteAndClean(removeEndMarker = true) {
         
         this.map.stopRoute()
@@ -564,7 +557,7 @@
         
         this.endMarker = this.map.addMarker(endMarker)
       },
-    
+      
       isShowParameter() {
         console.log('气泡');
         for (let i = 0; i < this.obj[this.currentFloorIndex].length; i++) {
@@ -630,7 +623,7 @@
           })
           
           let localmac = JSON.parse(localStorage.getItem('localStorageMarker'))
-         
+          alert(JSON.stringify(localmac))
           if (localmac == null) {
             
             for (let i = 0; i < this.obj[item].length; i++) {
@@ -657,7 +650,7 @@
               
               this.myMarker[mac] = this.map.addMarker(marker)
             }
-           
+            
           } else {
             for (let i = 0; i < this.obj[item].length; i++) {
               
@@ -712,9 +705,9 @@
       },
       
       foundMac(beacons) {
-     
-        if (beacons.length > 0) {
         
+        if (beacons.length > 0) {
+          
           // idrDebug.debugInfo(JSON.stringify(beacons[0]))
           
           for (let i = 0; i < beacons.length; ++i) {
@@ -759,6 +752,7 @@
       },
       
       myFoundMac(beacons) {
+        
         if (beacons.length > 0) {
           
           // idrDebug.debugInfo(JSON.stringify(beacons[0]))
@@ -823,7 +817,7 @@
           
           let num = (Number(enfTime) - Number(newStartDate))
           
-          if (num > 10) {
+          if (num > 43200) {
             
             localStorage.setItem('localStorageMarker', null)
             

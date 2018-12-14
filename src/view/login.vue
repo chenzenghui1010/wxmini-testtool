@@ -39,6 +39,7 @@
     },
     mounted() {
       
+      // localStorage.removeItem('sessionKey')
       document.title = '登录'
       
       idrWxManager.init()
@@ -63,16 +64,35 @@
           this.showError = true
           return
         }
+  
+        let u = navigator.userAgent, app = navigator.appVersion;
+        let isAndroid = u.includes('Android') || u.includes('Linux'); //g
+        let isIOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+  
+        if (isAndroid) {
+          localStorage.setItem('OSType','Android')
+        }
+        if (isIOS) {
+          localStorage.setItem('OSType','iOS')
+        }
+  
+        localStorage.setItem('appId','yf1958599107')
+  
+        localStorage.setItem('phoneUUID',new Date().getTime())
+        
+        let uuId = localStorage.getItem('phoneUUID')
+        
+        
         open()
         
         initAppSession()
           
           .then(sessionKey => {
+            
             close()
             
             localStorage.setItem('sessionKey', sessionKey)
             
-            console.log(localStorage.getItem('sessionKey'));
           })
           .catch(msg => {
             
@@ -81,23 +101,28 @@
             Toasts(msg)
           })
         
-        let pwd = md5(this.pwd)
-        let pwdSign = md5(`${localStorage.getItem('sessionKey')}${pwd}`)
-        let loginUrl = `appId=${localStorage.getItem('appId')}&phoneUUID=${localStorage.getItem('phoneUUID')}
-        &OSType=${localStorage.getItem('OSType')}&sessionKey=${localStorage.getItem('sessionKey')}&userAccount=${this.user}&pwdSign=${pwdSign}`
-      localStorage.setItem('loginUrl', loginUrl)
+        localStorage.setItem('loginUrl', this.loginUrl)
         
         login()
-          .then(data => {
+          .then(sessionKey => {
             close()
+           
+            localStorage.setItem('loginSessionKey', sessionKey)
             if (this.select) {
               
               localStorage.setItem('user', this.user)
               
               localStorage.setItem('pwd', this.pwd)
             }
-            close()
-            this.$router.push({path: 'Home'})
+           
+            if (window.__wxjs_environment === 'miniprogram') {
+              
+              wx.miniProgram.navigateTo({url: '../home/home'})
+              
+            } else {
+             
+              this.$router.push({path: 'Home'})
+            }
             
           })
           .catch(msg => {
@@ -106,7 +131,14 @@
           })
       },
     },
-    computed: {}
+    computed: {
+      loginUrl(){
+        let pwd = md5(this.pwd)
+        let pwdSign = md5(`${localStorage.getItem('sessionKey')}${pwd}`)
+       return   `appId=${localStorage.getItem('appId')}&phoneUUID=${localStorage.getItem('phoneUUID')} &OSType=${localStorage.getItem('OSType')}&sessionKey=${localStorage.getItem('sessionKey')}&userAccount=${this.user}&pwdSign=${pwdSign}`
+      }
+      
+    }
   }
 </script>
 

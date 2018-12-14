@@ -1,5 +1,7 @@
 <template>
   <div>
+    
+    <simulation-prompt v-if="isShowPrompt" :promptValue="promptValue"></simulation-prompt>
     <show-marker @showMarker="isShowMarker" v-if="showMarker" :markerInfo="markerInfo"></show-marker>
     
     <div id="map" class="page"></div>
@@ -17,8 +19,8 @@
     
     <parameter-details></parameter-details>
     
-    <npm v-if='navigation.start' @toggleSpeak="toggleSpeak" v-on:stop="onStopNavigate" @birdlook="onBirdLook"
-                @followme="onFollowMe"></npm>
+    <navigation v-if='navigation.start' @toggleSpeak="toggleSpeak" v-on:stop="onStopNavigate" @birdlook="onBirdLook"
+                @followme="onFollowMe"></navigation>
     
     
     <mark-in-map v-if="mapState.markInMap"></mark-in-map>
@@ -65,6 +67,7 @@
   import showMarker from '../components/showMarker'
   
   import floor from '../components/floor'
+  import simulationPrompt from '../components/simulationPrompt'
   
   export default {
     name: "Map",
@@ -85,6 +88,7 @@
       parameterDetails,
       floor,
       showMarker,
+      simulationPrompt,
       
     },
     data() {
@@ -121,14 +125,16 @@
         isShowHeaderTip: false,
         one: true,
         start: null,
-        startOrEnd:true,
+        startOrEnd: true,
+        promptValue: '温馨提示:',
+        isShowPrompt: false
       }
     },
     computed: {
       ...mapGetters([
         'mapState',
         'navigation'
-      ])
+      ]),
     },
     watch: {
       currentFloorIndex() {
@@ -165,7 +171,7 @@
         })
         
         this.map.addEventListener(idrMapEvent.types.onNaviStatusUpdate, (data) => {
-         
+          
           this.onNaviStatusUpdate(data)
         })
         
@@ -190,17 +196,16 @@
       onUnitClick(unit) {
         
         this.start = unit
-        if(this.startOrEnd) return
+        if (this.startOrEnd) return
         if (this.map._inNavi) return  // 是否在导航
         
         this.one = true
         
         console.log('终点');
         
-        
         // if (!this.isShowHeaderTip) {
-        //
-        //   window.HeaderTip.show("请点选地图空白位置选择起点")
+        
+       
         // }
         //
         
@@ -208,6 +213,7 @@
           
           .then(res => {
             
+            this.isShowPrompt = false
             this.onRouterSuccess(res)
             
           })
@@ -227,7 +233,6 @@
             //
             //   return Promise.reject('蓝牙未开启，请开启蓝牙')
             // }
-            alert(0)
             return this.map.doRoute({start: null, end: unit})
           })
           .then((res) => {
@@ -235,8 +240,8 @@
             return this.onRouterSuccess(res)
           })
           .catch(res => {
-            
-            window.HeaderTip.show(res)
+  
+            this.isShowPrompt(res)
           })
       },
       onRouterSuccess({start, end}, findcar = true) {
@@ -281,6 +286,8 @@
         var unfind = {
           
           name: '未找到爱车', callback: () => {
+    
+            this.showPrompt()
             
             Alertboxview.hide()
             
@@ -294,7 +301,7 @@
         
         var found = {
           name: '已找到爱车', callback: () => {
-            
+           this.showPrompt()
             Alertboxview.hide()
             
             this.stopRouteAndClean(true)
@@ -328,8 +335,8 @@
             return this.onRouterSuccess(res, false)
           })
           .catch(res => {
-            
-            window.HeaderTip.show(res)
+  
+            this.isShowPrompt(res)
           })
       },
       onNaviToOuter() {
@@ -382,8 +389,8 @@
                 return this.onRouterSuccess(res, false)
               })
               .catch(res => {
-                
-                window.HeaderTip.show(res)
+  
+                this.isShowPrompt(res)
               })
           }
         }
@@ -408,7 +415,7 @@
             })
         }
         // setTimeout(() => {
-          window.HeaderTip.show("温馨提示：点选地图空白位置选择起点")
+       this.showPrompt()
         // }, 2000)
         
       },
@@ -444,8 +451,8 @@
         if (this.endMarker) {
           
           if (!idrWxManager._beaconStart) {
-            
-            window.HeaderTip.show('蓝牙未开启，请开启蓝牙')
+  
+            this.isShowPrompt('蓝牙未开启，请开启蓝牙')
             
             return
           }
@@ -456,8 +463,8 @@
               return this.onRouterSuccess(res)
             })
             .catch(res => {
-              
-              window.HeaderTip.show(res)
+  
+              this.isShowPrompt(res)
             })
           
           return
@@ -482,7 +489,7 @@
           })
           .catch(res => {
             
-            window.HeaderTip.show(res)
+            this.isShowPrompt(res)
           })
       },
       
@@ -531,7 +538,9 @@
           //
           // return
         }
-  
+        
+        this.promptValue = "请点选车位选择终点"
+        
         this.startOrEnd = false
         
         console.log(this.map._inNavi);
@@ -542,7 +551,6 @@
         
         this.map.setUserPos(pos)
         
-        window.HeaderTip.show("温馨提示：点选车位设为终点")
       },
       preparePlayAudio() {
         
@@ -574,7 +582,7 @@
         this.audioTime = date
       },
       onNaviStatusUpdate({validate, projDist, goalDist, serialDist, nextSug}) {
-       
+        
         if (!validate) {
           
           return
@@ -592,7 +600,9 @@
         const nextDistance = Math.ceil(serialDist / 10.0)
         
         this.$store.dispatch('setNaviStatus', {
+          
           nextLeft: YFM.Map.Navigate.NextSuggestion.LEFT == nextSug,
+          
           totalDistance,
           nextDistance
         })
@@ -600,11 +610,12 @@
         if (totalDistance < 15) {
           
           if (this.one) {
-            // this.playAudio('您已到达目的地')
             
             var confirm = {
               
               name: '知道了', callback: () => {
+    
+                this.showPrompt()
                 
                 window.Alertboxview.hide()
                 
@@ -615,7 +626,8 @@
             window.Alertboxview.show('您已到达目的地', null, [confirm])
             
             this.one = false
-            window.HeaderTip.show("温馨提示：")
+            
+            // window.HeaderTip.show("温馨提示：")
           }
         }
         else {
@@ -626,7 +638,7 @@
           
           this.playAudio(text)
         }
-       
+        
       },
       stopRouteAndClean(removeEndMarker = true) {
         
@@ -662,8 +674,12 @@
         
         this.showMarker = false
       },
-      
-    }
+      showPrompt(val = '请点选地图空白位置选择起点'){
+        this.isShowPrompt = true
+        this.promptValue = val
+      },
+    },
+  
   }
 </script>
 <style scoped lang="scss">

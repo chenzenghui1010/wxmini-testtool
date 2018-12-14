@@ -66,6 +66,7 @@
     },
     
     mounted() {
+      
       this.requestList()
       
     },
@@ -89,7 +90,7 @@
               this.lists.push({name: name, id: id})
               
             }
-            this.lists.push({name: '', id: ''})
+            // this.lists.push({name: '', id: ''})
             
           }).catch(msg => {
           close()
@@ -98,12 +99,27 @@
       },
       go(id) {
         if (this.firstOrLast == 0) {
-          
-          this.$router.push({path: '/map', query: {mapId: id}})
+  
+          if (window.__wxjs_environment === 'miniprogram') {
+    
+            wx.miniProgram.navigateTo({url: '../map/map?mapId'+id})
+    
+          } else {
+    
+            this.$router.push({path: '/map', query: {mapId: id}})
+          }
+        
           
         } else {
-          
-          this.$router.push({path: '/simulation', query: {mapId: id}})
+          if (window.__wxjs_environment === 'miniprogram') {
+    
+            wx.miniProgram.navigateTo({url: '../simulation/simulation?mapId'+id})
+    
+          } else {
+  
+            this.$router.push({path: '/simulation', query: {mapId: id}})
+          }
+         
         }
         
       },

@@ -27,7 +27,7 @@ service.interceptors.response.use(
     // console.log('返回', response)
     
     const { code, msg, data,sessionKey } = response.data
-  
+    
     if (JSON.stringify(response.data).includes('sessionKey')) {
     
       return sessionKey

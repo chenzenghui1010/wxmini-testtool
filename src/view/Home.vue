@@ -28,11 +28,29 @@
     },
     methods: {
       first(){
-        this.$router.push({path:'projectList',query:{firstOrLast:0}})
+  
+        if (window.__wxjs_environment === 'miniprogram') {
+    
+          wx.miniProgram.navigateTo({url: '../projectList/projectList?'+0})
+          
+        } else {
+  
+          this.$router.push({path:'projectList',query:{firstOrLast:0}})
+        }
+     
       
       },
+      
       last(){
-        this.$router.push({path:'projectList',query:{firstOrLast:1}})
+        if (window.__wxjs_environment === 'miniprogram') {
+    
+          wx.miniProgram.navigateTo({url: '../projectList/projectList?'+1})
+    
+        } else {
+    
+          this.$router.push({path:'projectList',query:{firstOrLast:1}})
+        }
+  
       },
       out() {
         MessageBox.confirm(
@@ -121,7 +139,6 @@
     background: url("../assets/Home/return.png") no-repeat center /100% 100%;
     margin-left: 5rem;
     position: absolute;
-    bottom: 15%;
-   
+    bottom: 12%;
   }
 </style>

@@ -12,24 +12,6 @@
     <script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.3.2.js"></script>
     <script type="text/javascript" src="./static/yfmap.min.js"></script>
     <script>
-      (function () {
-        var u = navigator.userAgent, app = navigator.appVersion;
-        var isAndroid = u.includes('Android') || u.includes('Linux'); //g
-        var isIOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
-        if (isAndroid) {
-         localStorage.setItem('OSType','Android')
-        }
-        if (isIOS) {
-          localStorage.setItem('OSType','iOS')
-        }
-        
-        localStorage.setItem('phoneUUID',new Date().getTime())
-        
-        localStorage.setItem('appId','yf1958599107')
-        
-        // sessionStorage.removeItem('sessionKey')
-      }());
-      
     </script>
     <style>
       .indoorunMap_map {
@@ -110,7 +92,7 @@
   <body id="body">
     <div id="app"></div>
     <alertbox id="alertbox" :message="message" :title="title" :buttons="buttons"></alertbox>
-    <header-tip-control id="errortip" :message="message" v-show="display"></header-tip-control>
+    <!--<header-tip-control id="errortip" :message="message" v-show="display"></header-tip-control>-->
     <floatalertview id="floatalertview" v-show="show" v-bind:msg="msg"></floatalertview>
     <label id="debug"></label>
   </body>

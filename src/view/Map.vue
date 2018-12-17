@@ -141,7 +141,7 @@
     },
     mounted() {
       
-      localStorage.removeItem('localStorageMarker')
+      this.requestData()
       
       this.resetLocalStorageMarker()
       
@@ -166,9 +166,6 @@
     },
     methods: {
       initMap() {
-        
-        this.requestData()
-        
         this.map = new idrMapView()
         
         this.map.initMap('yf1248331604', 'map', this.mapId)
@@ -343,9 +340,7 @@
           
           
           idrLocateServerInstance.setReceiveBeaconListener((beacons) => {
-            if(!beacons || beacons.length <= 0){
-              return
-            }
+           
             this.foundMac(beacons)
             
           })
@@ -623,7 +618,6 @@
           })
           
           let localmac = JSON.parse(localStorage.getItem('localStorageMarker'))
-          alert(JSON.stringify(localmac))
           if (localmac == null) {
             
             for (let i = 0; i < this.obj[item].length; i++) {
@@ -652,12 +646,13 @@
             }
             
           } else {
+            
             for (let i = 0; i < this.obj[item].length; i++) {
               
               // if (this.obj[i].floorIndex != this.currentFloorIndex) continue
               
               const mac = this.obj[item][i].major + '' + this.obj[item][i].minor
-              
+            
               if (localmac[mac] != null) {
                 
                 let marker = new idrMarker({
@@ -705,7 +700,7 @@
       },
       
       foundMac(beacons) {
-        
+   
         if (beacons.length > 0) {
           
           // idrDebug.debugInfo(JSON.stringify(beacons[0]))
@@ -819,7 +814,7 @@
           
           if (num > 43200) {
             
-            localStorage.setItem('localStorageMarker', null)
+            localStorage.removeItem('localStorageMarker')
             
             localStorage.removeItem('closeDate')
           }

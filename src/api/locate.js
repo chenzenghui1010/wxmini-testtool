@@ -76,7 +76,7 @@ export function initAppSession(data) {
 
 export function getRegionsOfUser(data) {
   
-  let OfUserUrl = `sessionKey=${localStorage.getItem('loginSessionKey')}&phoneUUID=${localStorage.getItem('phoneUUID')}&appId=${localStorage.getItem('appId')}`
+  let OfUserUrl = `sessionKey=${localStorage.getItem('sessionKey')}&phoneUUID=${localStorage.getItem('phoneUUID')}&appId=${localStorage.getItem('appId')}`
  
   return request({
     url: 'getRegionsOfUser.html?' + OfUserUrl,

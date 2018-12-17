@@ -450,12 +450,12 @@
         
         if (this.endMarker) {
           
-          if (!idrWxManager._beaconStart) {
-  
-            this.isShowPrompt('蓝牙未开启，请开启蓝牙')
-            
-            return
-          }
+          // if (!idrWxManager._beaconStart) {
+          //
+          //   this.isShowPrompt('蓝牙未开启，请开启蓝牙')
+          //
+          //   return
+          // }
           
           this.map.doRoute({start: null, end: this.endMarker})
             .then(res => {

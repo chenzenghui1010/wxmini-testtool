@@ -387,6 +387,8 @@ export class idrMapView {
       
       this.autoChangeFloor = true
       
+      clearInterval(this._naviStatusUpdateTimer)
+      
       this._naviStatusUpdateTimer = setInterval(()=> {
         
         this._mapEvent.fireEvent(this.eventTypes.onNaviStatusUpdate, this._idrMap.getNaviStatus())

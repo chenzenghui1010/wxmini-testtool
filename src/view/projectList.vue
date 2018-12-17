@@ -31,7 +31,7 @@
   import inputBox from '../components/inputBoX'
   import noResults from '../components/noResults'
   import {Toasts, open, close} from '../mintUi'
-  import {getRegionsOfUser} from '../api/locate'
+  import {getRegionsOfUser, getQueryString} from '../api/locate'
   
   document.title = '项目列表'
   export default {
@@ -49,7 +49,7 @@
         isShow: false,
         val: '',
         vals: 9,
-        firstOrLast: this.$route.query.firstOrLast
+        firstOrLast: 0
       }
     },
     watch: {
@@ -66,6 +66,8 @@
     },
     
     mounted() {
+      this.firstOrLast = getQueryString('firstOrLast')
+      
       
       this.requestList()
       
@@ -90,37 +92,18 @@
               this.lists.push({name: name, id: id})
               
             }
-            // this.lists.push({name: '', id: ''})
-            
           }).catch(msg => {
           close()
           Toasts(msg)
         })
       },
+      select(id) {
+        this.selectProject(id)
+    
+      },
       go(id) {
-        if (this.firstOrLast == 0) {
-  
-          if (window.__wxjs_environment === 'miniprogram') {
-    
-            wx.miniProgram.navigateTo({url: '../map/map?mapId'+id})
-    
-          } else {
-    
-            this.$router.push({path: '/map', query: {mapId: id}})
-          }
         
-          
-        } else {
-          if (window.__wxjs_environment === 'miniprogram') {
-    
-            wx.miniProgram.navigateTo({url: '../simulation/simulation?mapId'+id})
-    
-          } else {
-  
-            this.$router.push({path: '/simulation', query: {mapId: id}})
-          }
-         
-        }
+        this.selectProject(id)
         
       },
       resetInput() {
@@ -136,17 +119,31 @@
         this.isShow = true
       },
       
-      select(id) {
-        
+      selectProject(id) {
+       
         if (this.firstOrLast == 0) {
           
-          this.$router.push({path: '/map', query: {mapId: id}})
+          if (window.__wxjs_environment === 'miniprogram') {
+            
+            wx.miniProgram.navigateTo({url: '../map/map?mapId' + id})
+            
+          } else {
+            
+            this.$router.push({path: '/map', query: {mapId: id}})
+          }
+          
           
         } else {
           
-          this.$router.push({path: '/simulation', query: {mapId: id}})
+          if (window.__wxjs_environment === 'miniprogram') {
+            
+            wx.miniProgram.navigateTo({url: '../simulation/simulation?mapId' + id})
+            
+          } else {
+            
+            this.$router.push({path: '/simulation', query: {mapId: id}})
+          }
         }
-        
       }
     },
     

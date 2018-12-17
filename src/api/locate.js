@@ -3,7 +3,7 @@ import {timestampToTime} from '../Time'
 import md5 from 'js-md5';
 
 
-function getQueryString(name) {
+ export  function getQueryString(name) {
   
   var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
   

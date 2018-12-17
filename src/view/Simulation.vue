@@ -5,9 +5,8 @@
     <show-marker @showMarker="isShowMarker" v-if="showMarker" :markerInfo="markerInfo"></show-marker>
     
     <div id="map" class="page"></div>
-    <!--<find-car-btn v-if="!mapState.markInMap && !navigation.start" @find-car="beginFindCar"></find-car-btn>-->
+
     <zoom v-bind:map="map"></zoom>
-    <!--<public-facility-btn v-on:onclick='showFacilityPanel = true' v-if="!mapState.markInMap && !navigation.start"></public-facility-btn>-->
     
     <find-car-with-plate-number v-if="mapState.searchCarWithPlate" v-on:navigatetocar="navigateToCar"
                                 v-bind:initcarno="carno" :region-id="mapId"></find-car-with-plate-number>
@@ -150,7 +149,6 @@
       this.initMap(maPId)
       
     },
-    
     
     methods: {
       
@@ -679,7 +677,16 @@
         this.promptValue = val
       },
     },
-  
+    destroyed(){
+      
+      let data={
+        totalDistance:0,
+        nextLeft:false,
+        nextDistance:0,
+      }
+     this.$store.dispatch('stopNavigation',false)
+      this.$store.dispatch('setNaviStatus',data)
+    }
   }
 </script>
 <style scoped lang="scss">

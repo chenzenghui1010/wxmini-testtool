@@ -38,8 +38,12 @@
       }
     },
     mounted() {
+      let arr = [1,3,54,35,22,55]
       
+      let num  = arr.reduce((x,y)=> x+y)/arr.length
+      console.log(num);
       // localStorage.removeItem('sessionKey')
+      
       document.title = '登录'
       
       idrWxManager.init()
@@ -47,6 +51,14 @@
     },
     methods: {
       
+      box(){
+        let  num = undefined
+        return {
+          set:function(newval){ num = newval},
+          get:function(){return num},
+          type:function(){return typeof num}
+        }
+      },
       isSelect() {
         this.select = !this.select
       },

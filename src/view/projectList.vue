@@ -66,8 +66,7 @@
     },
     
     mounted() {
-      this.firstOrLast = getQueryString('firstOrLast')
-      
+      this.firstOrLast = getQueryString('firstOrLast') || this.$route.query.firstOrLast
       
       this.requestList()
       
@@ -98,6 +97,7 @@
         })
       },
       select(id) {
+        
         this.selectProject(id)
     
       },
@@ -125,7 +125,7 @@
           
           if (window.__wxjs_environment === 'miniprogram') {
             
-            wx.miniProgram.navigateTo({url: '../map/map?mapId' + id})
+            wx.miniProgram.navigateTo({url: '../map/map?mapId=' + id})
             
           } else {
             
@@ -137,7 +137,7 @@
           
           if (window.__wxjs_environment === 'miniprogram') {
             
-            wx.miniProgram.navigateTo({url: '../simulation/simulation?mapId' + id})
+            wx.miniProgram.navigateTo({url: '../simulation/simulation?mapId=' + id})
             
           } else {
             

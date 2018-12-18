@@ -38,10 +38,7 @@
       }
     },
     mounted() {
-      let arr = [1,3,54,35,22,55]
       
-      let num  = arr.reduce((x,y)=> x+y)/arr.length
-      console.log(num);
       // localStorage.removeItem('sessionKey')
       
       document.title = '登录'

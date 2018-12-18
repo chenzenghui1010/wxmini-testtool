@@ -27,37 +27,31 @@
       document.title = '首页'
     },
     methods: {
-      first(){
-  
-        if (window.__wxjs_environment === 'miniprogram') {
-    
-          wx.miniProgram.navigateTo({url: '../projectList/projectList?'+0})
-          
-        } else {
-  
-          this.$router.push({path:'projectList',query:{firstOrLast:0}})
-        }
-     
-      
+      first() {
+        this.selectProject(0)
       },
       
-      last(){
+      last() {
+        this.selectProject(1)
+      },
+      
+      selectProject(num) {
         if (window.__wxjs_environment === 'miniprogram') {
-    
-          wx.miniProgram.navigateTo({url: '../projectList/projectList?'+1})
-    
-        } else {
-    
-          this.$router.push({path:'projectList',query:{firstOrLast:1}})
-        }
   
+  
+          wx.miniProgram.navigateTo({url: '../projectList/projectList?firstOrLast=' + num})
+          
+        } else {
+          
+          this.$router.push({path: 'projectList', query: {firstOrLast: num}})
+        }
       },
       out() {
         MessageBox.confirm(
           '是否确定退出登录',
           '退出登录',
         ).then(action => {
-          this.$router.push({path:'/'})
+          this.$router.push({path: '/'})
           
         }).catch(action => {
         })
@@ -105,9 +99,11 @@
     height: 2.6rem;
     background: url("../assets/Home/homelogo.png") no-repeat center/100% 100%;
   }
-  .footer{
+  
+  .footer {
     position: absolute;
   }
+  
   .content > .footer > P {
     width: 5rem;
     height: 7.4rem;

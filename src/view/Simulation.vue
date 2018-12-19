@@ -147,6 +147,10 @@
       this.mapId = maPId
       
       this.initMap(maPId)
+  
+      this.reset()
+      
+      this.one = false
       
     },
     
@@ -688,8 +692,9 @@
       }
     },
     destroyed(){
+      console.log("-----------------")
       this.reset()
-     
+     this.map.release()
     }
   }
 </script>

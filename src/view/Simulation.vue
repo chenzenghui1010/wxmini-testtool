@@ -212,6 +212,7 @@
           .then(res => {
             
             this.isShowPrompt = false
+            this.reset()
             this.onRouterSuccess(res)
             
           })
@@ -676,16 +677,19 @@
         this.isShowPrompt = true
         this.promptValue = val
       },
+      reset(){
+        let data={
+          totalDistance:0,
+          nextLeft:false,
+          nextDistance:0,
+        }
+        this.$store.dispatch('stopNavigation',false)
+        this.$store.dispatch('setNaviStatus',data)
+      }
     },
     destroyed(){
-      
-      let data={
-        totalDistance:0,
-        nextLeft:false,
-        nextDistance:0,
-      }
-     this.$store.dispatch('stopNavigation',false)
-      this.$store.dispatch('setNaviStatus',data)
+      this.reset()
+     
     }
   }
 </script>

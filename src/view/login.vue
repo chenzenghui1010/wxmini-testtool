@@ -35,6 +35,9 @@
         select: false,
         showError: false,
         errorInfo: '',
+        
+        
+        test: '',
       }
     },
     mounted() {
@@ -48,12 +51,18 @@
     },
     methods: {
       
-      box(){
-        let  num = undefined
+      box() {
+        let num = undefined
         return {
-          set:function(newval){ num = newval},
-          get:function(){return num},
-          type:function(){return typeof num}
+          set: function (newval) {
+            num = newval
+          },
+          get: function () {
+            return num
+          },
+          type: function () {
+            return typeof num
+          }
         }
       },
       isSelect() {
@@ -90,58 +99,62 @@
         
         localStorage.setItem('phoneUUID', new Date().getTime())
         
-        let uuId = localStorage.getItem('phoneUUID')
-        
-        
-        initAppSession()
-          
-          .then(async sessionKey => {
-            
-            close()
-            
-            localStorage.setItem('sessionKey', sessionKey)
-
-            localStorage.setItem('loginUrl', this.loginUrl)
-            
-            login()
-              
-              .then(sessionKey => {
-                
-                close()
-                
-                // localStorage.setItem('loginSessionKey', sessionKey)
-                if (this.select) {
-                  
-                  localStorage.setItem('user', this.user)
-                  
-                  localStorage.setItem('pwd', this.pwd)
-                }
-                
-                if (window.__wxjs_environment === 'miniprogram') {
-                  
-                  wx.miniProgram.navigateTo({url: '../home/home'})
-                  
-                } else {
-                  
-                  this.$router.push({path: 'Home'})
-                }
-                
-              })
-              .catch(msg => {
-                close()
-                Toasts(msg)
-              })
-          })
-          .catch(msg => {
-            
-            close()
-            
-            Toasts(msg)
-          })
-        open()
-        
+        this.log()
       },
-      
+      async log() {
+        try {
+          await   initAppSession()
+            
+            .then(sessionKey => {
+              
+              close()
+              
+              localStorage.setItem('sessionKey', sessionKey)
+              
+              localStorage.setItem('loginUrl', this.loginUrl)
+              
+            })
+            
+            .catch(msg => {
+              
+              close()
+              
+              Toasts(msg)
+            })
+          await  login()
+            
+            .then(() => {
+              
+              close()
+              
+              if (this.select) {
+                
+                localStorage.setItem('user', this.user)
+                
+                localStorage.setItem('pwd', this.pwd)
+              }
+              
+              if (window.__wxjs_environment === 'miniprogram') {
+                
+                wx.miniProgram.navigateTo({url: '../home/home'})
+                
+              } else {
+                
+                this.$router.push({path: 'Home'})
+              }
+              
+            })
+            
+            .catch(msg => {
+              close()
+              Toasts(msg)
+            })
+          
+        } catch (e) {
+          close()
+          Toasts(e)
+        }
+      }
     },
     computed: {
       loginUrl() {

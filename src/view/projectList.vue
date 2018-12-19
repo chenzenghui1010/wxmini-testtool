@@ -33,7 +33,6 @@
   import {Toasts, open, close} from '../mintUi'
   import {getRegionsOfUser, getQueryString} from '../api/locate'
   
-  document.title = '项目列表'
   export default {
     components: {
       project,
@@ -66,6 +65,8 @@
     },
     
     mounted() {
+  
+      document.title = '项目列表'
       this.firstOrLast = getQueryString('firstOrLast') || this.$route.query.firstOrLast
       
       this.requestList()

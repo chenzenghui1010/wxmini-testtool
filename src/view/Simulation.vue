@@ -147,11 +147,6 @@
       this.mapId = maPId
       
       this.initMap(maPId)
-  
-      this.reset()
-      
-      this.one = false
-      
     },
     
     methods: {
@@ -205,12 +200,6 @@
         
         console.log('终点');
         
-        // if (!this.isShowHeaderTip) {
-        
-       
-        // }
-        //
-        
         this.map.doRoute({start: null, end: unit})
           
           .then(res => {
@@ -221,21 +210,10 @@
             
           })
         
-        // if (!this.mapState.markInMap) {
-        //
-        //   return
-        // }
-        
-        // this.addEndMarker(unit.position)//终
-        
         this.$store.dispatch('finishMarkInMap')
           
           .then(() => {
-            
-            // if (!idrWxManager._beaconStart) {
-            //
-            //   return Promise.reject('蓝牙未开启，请开启蓝牙')
-            // }
+        
             return this.map.doRoute({start: null, end: unit})
           })
           .then((res) => {
@@ -417,10 +395,8 @@
               console.log(e)
             })
         }
-        // setTimeout(() => {
        this.showPrompt()
-        // }, 2000)
-        
+   
       },
       onFloorChangeSuccess({floorIndex}) {
         
@@ -452,14 +428,7 @@
       beginFindCar() {
         
         if (this.endMarker) {
-          
-          // if (!idrWxManager._beaconStart) {
-          //
-          //   this.isShowPrompt('蓝牙未开启，请开启蓝牙')
-          //
-          //   return
-          // }
-          
+        
           this.map.doRoute({start: null, end: this.endMarker})
             .then(res => {
               
@@ -530,16 +499,7 @@
         if (this.map._inNavi) {
           
           this.map.setUserPos(pos)
-          
-          // this.map.doRoute({start: pos, end: this.start})
-          //
-          //   .then(res => {
-          //
-          //     this.onRouterSuccess(res)
-          //
-          //   })
-          //
-          // return
+      
         }
         
         this.promptValue = "请点选车位选择终点"
@@ -629,8 +589,6 @@
             window.Alertboxview.show('您已到达目的地', null, [confirm])
             
             this.one = false
-            
-            // window.HeaderTip.show("温馨提示：")
           }
         }
         else {
@@ -692,7 +650,6 @@
       }
     },
     destroyed(){
-      console.log("-----------------")
       this.reset()
      this.map.release()
     }

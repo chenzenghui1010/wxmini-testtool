@@ -35,36 +35,17 @@
         select: false,
         showError: false,
         errorInfo: '',
-        
-        
-        test: '',
       }
     },
     mounted() {
-      
       // localStorage.removeItem('sessionKey')
-      
       document.title = '登录'
       
       idrWxManager.init()
       
     },
     methods: {
-      
-      box() {
-        let num = undefined
-        return {
-          set: function (newval) {
-            num = newval
-          },
-          get: function () {
-            return num
-          },
-          type: function () {
-            return typeof num
-          }
-        }
-      },
+
       isSelect() {
         this.select = !this.select
       },

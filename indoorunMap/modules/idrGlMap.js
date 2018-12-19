@@ -527,6 +527,11 @@ class idrGlMap {
     
     this._region.insertCallout(obj, floor, x, y, offsetX, offsetY)
   }
+  
+  release() {
+  
+    this._region.release()
+  }
 }
 
 export { idrGlMap as default }

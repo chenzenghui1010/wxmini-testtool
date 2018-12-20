@@ -556,10 +556,6 @@
         this.audioTime = date
       },
       onNaviStatusUpdate({validate, projDist, goalDist, serialDist, nextSug}) {
-       
-       
-       console.log(this.currentFloorIndex)
-        
         
         if (!validate) {
           

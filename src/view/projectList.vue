@@ -68,7 +68,7 @@
   
       document.title = '项目列表'
       this.firstOrLast = getQueryString('firstOrLast') || this.$route.query.firstOrLast
-      
+     
       this.requestList()
       
     },
@@ -79,11 +79,13 @@
     methods: {
       
       requestList() {
+        
         open()
+        
         getRegionsOfUser()
           
           .then(data => {
-            
+           
             close()
             for (let i = 0; i < data.length; i++) {
               

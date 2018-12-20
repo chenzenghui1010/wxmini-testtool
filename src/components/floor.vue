@@ -91,6 +91,7 @@
     right: 1.5rem;
     top: 10rem;
     background: #fff;
+    z-index: 999;
   }
   
   .ceng p:nth-child(1) {

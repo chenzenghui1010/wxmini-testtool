@@ -1,7 +1,9 @@
 <template>
   <div>
     
-    <simulation-prompt v-if="isShowPrompt" :promptValue="promptValue"></simulation-prompt>
+    <simulation-prompt  :prompButtom ='prompButtom' v-if="isShowPrompt" :promptValue="promptValue"></simulation-prompt>
+    
+    
     <show-marker @showMarker="isShowMarker" v-if="showMarker" :markerInfo="markerInfo"></show-marker>
     
     <div id="map" class="page"></div>
@@ -126,7 +128,8 @@
         start: null,
         startOrEnd: true,
         promptValue: '温馨提示:',
-        isShowPrompt: false
+        isShowPrompt: false,
+        prompButtom:false
       }
     },
     computed: {
@@ -203,8 +206,9 @@
         this.map.doRoute({start: null, end: unit})
           
           .then(res => {
-            
-            this.isShowPrompt = false
+            this.prompButtom = true
+            this.showPrompt('点选地图空白处切换起点')
+            // this.isShowPrompt = false
             this.reset()
             this.onRouterSuccess(res)
             
@@ -230,9 +234,10 @@
         return new Promise((resolve => {
           
           this.$store.dispatch('startNavigation', findcar)
+            
             .then(() => {
               
-              this.addEndMarker(end)
+              this.addEndMarker(end.position)
               
               this.map.changeFloor(start.floorIndex)
               
@@ -264,32 +269,32 @@
           return
         }
         
-        var unfind = {
-          
-          name: '未找到爱车', callback: () => {
-    
-            this.showPrompt()
-            
-            Alertboxview.hide()
-            
-            this.stopRouteAndClean(false)
-            
-            this.map._inNavi = false
-            
-            this.start = null
-          }
-        }
+        // var unfind = {
+        //
+        //   name: '未找到爱车', callback: () => {
+        //
+        //     this.showPrompt()
+        //
+        //     Alertboxview.hide()
+        //
+        //     this.stopRouteAndClean(false)
+        //
+        //     this.map._inNavi = false
+        //
+        //     this.start = null
+        //   }
+        // }
         
         var found = {
-          name: '已找到爱车', callback: () => {
+          name: '确定', callback: () => {
            this.showPrompt()
             Alertboxview.hide()
             
             this.stopRouteAndClean(true)
             
-            this.playAudio('已找到爱车')
+            this.playAudio('确定')
             
-            this.onNaviToOuter()
+            // this.onNaviToOuter()
             
             this.map._inNavi = false
             
@@ -304,7 +309,9 @@
           }
         }
         
-        Alertboxview.show('在中断导航前', '是否已找到您的爱车', [unfind, found, cancel])
+        this.prompButtom = false
+        
+        Alertboxview.show('是否终止导航', [ found, cancel])
       },
       onNaviToUnit(unit) {
         
@@ -350,7 +357,7 @@
           }
         })
         
-        Alertboxview.show('离场引导', null, btns)
+        Alertboxview.show('离场引导', btns)
       },
       onNavigateTo(unitType) {
         
@@ -502,7 +509,11 @@
       
         }
         
-        this.promptValue = "请点选车位选择终点"
+        if(!this.prompButtom){
+          
+          this.promptValue = "请点选车位选择终点"
+        }
+       
         
         this.startOrEnd = false
         
@@ -545,6 +556,10 @@
         this.audioTime = date
       },
       onNaviStatusUpdate({validate, projDist, goalDist, serialDist, nextSug}) {
+       
+       
+       console.log(this.currentFloorIndex)
+        
         
         if (!validate) {
           
@@ -580,13 +595,16 @@
     
                 this.showPrompt()
                 
+                this.prompButtom = false
+                
                 window.Alertboxview.hide()
                 
                 this.stopRouteAndClean()
               }
             }
+           
             
-            window.Alertboxview.show('您已到达目的地', null, [confirm])
+            window.Alertboxview.show('您已到达目的地',  [confirm])
             
             this.one = false
           }
@@ -646,6 +664,7 @@
           nextDistance:0,
         }
         this.$store.dispatch('stopNavigation',false)
+        
         this.$store.dispatch('setNaviStatus',data)
       }
     },

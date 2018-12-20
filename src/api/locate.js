@@ -76,7 +76,7 @@ export function initAppSession(data) {
 
 export function getRegionsOfUser(data) {
   
-  let OfUserUrl = `sessionKey=${localStorage.getItem('sessionKey')}&phoneUUID=${localStorage.getItem('phoneUUID')}&appId=${localStorage.getItem('appId')}`
+  let OfUserUrl = `sessionKey=${localStorage.getItem('loginSessionKey')}&phoneUUID=${localStorage.getItem('phoneUUID')}&appId=${localStorage.getItem('appId')}`
  
   return request({
     url: 'getRegionsOfUser.html?' + OfUserUrl,
@@ -88,7 +88,7 @@ export function getRegionsOfUser(data) {
 
 // getBeaconMarksOfRegion	获取某个region的蓝牙标签或嗅探器部署位置数据。
 export function getBeaconMarksOfRegion(data) {
-  let OfUserUrl = `sessionKey=${localStorage.getItem('sessionKey')}&phoneUUID=${localStorage.getItem('phoneUUID')}&appId=${localStorage.getItem('appId')}`
+  let OfUserUrl = `sessionKey=${localStorage.getItem('loginSessionKey')}&phoneUUID=${localStorage.getItem('phoneUUID')}&appId=${localStorage.getItem('appId')}`
   return request({
     url: 'getBeaconMarksOfRegion.html?' + `${OfUserUrl}&regionId=${getQueryString('mapId')}&deviceType=${'Y'}`,
     method: 'get',

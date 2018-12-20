@@ -35,6 +35,7 @@
         select: false,
         showError: false,
         errorInfo: '',
+        session: ''
       }
     },
     mounted() {
@@ -45,14 +46,13 @@
       
     },
     methods: {
-
+      
       isSelect() {
         this.select = !this.select
       },
       
       login() {
         
-        localStorage.setItem('sessionKey', null)
         if (!this.user) {
           this.errorInfo = '账号不能为空'
           this.showError = true
@@ -82,66 +82,71 @@
         
         this.log()
       },
-      async log() {
-        try {
-          await   initAppSession()
-            
-            .then(sessionKey => {
-              
-              close()
-              
-              localStorage.setItem('sessionKey', sessionKey)
-              
-              localStorage.setItem('loginUrl', this.loginUrl)
-              
-            })
-            
-            .catch(msg => {
-              
-              close()
-              
-              Toasts(msg)
-            })
-          await  login()
-            
-            .then(() => {
-              
-              close()
-              
-              if (this.select) {
-                
-                localStorage.setItem('user', this.user)
-                
-                localStorage.setItem('pwd', this.pwd)
-              }
-              
-              if (window.__wxjs_environment === 'miniprogram') {
-                
-                wx.miniProgram.navigateTo({url: '../home/home'})
-                
-              } else {
-                
-                this.$router.push({path: 'Home'})
-              }
-              
-            })
-            
-            .catch(msg => {
-              close()
-              Toasts(msg)
-            })
+      
+      log() {
+        
+        open()
+        
+        localStorage.setItem('sessionKey', null)
+        
+        initAppSession()
           
-        } catch (e) {
-          close()
-          Toasts(e)
-        }
+          .then(sessionKey => {
+            
+            close()
+            
+            this.session = sessionKey
+            
+            localStorage.setItem('loginUrl', this.loginUrl)
+            
+            login()
+              
+              .then(sessionKey => {
+                
+                close()
+                
+                localStorage.setItem('loginSessionKey', sessionKey)
+                
+                console.log(localStorage.getItem('loginSessionKey'));
+                
+                if (this.select) {
+                  
+                  localStorage.setItem('user', this.user)
+                  
+                  localStorage.setItem('pwd', this.pwd)
+                }
+                
+                if (window.__wxjs_environment === 'miniprogram') {
+                  
+                  wx.miniProgram.navigateTo({url: '../home/home'})
+                  
+                } else {
+                  
+                  this.$router.push({path: 'Home'})
+                }
+                
+              })
+              
+              .catch(msg => {
+                close()
+                Toasts(msg)
+              })
+            
+          })
+          
+          .catch(msg => {
+            
+            close()
+            
+            Toasts(msg)
+          })
       }
     },
     computed: {
       loginUrl() {
         let pwd = md5(this.pwd)
-        let pwdSign = md5(`${localStorage.getItem('sessionKey')}${pwd}`)
-        return `appId=${localStorage.getItem('appId')}&phoneUUID=${localStorage.getItem('phoneUUID')} &OSType=${localStorage.getItem('OSType')}&sessionKey=${localStorage.getItem('sessionKey')}&userAccount=${this.user}&pwdSign=${pwdSign}`
+        let pwdSign = md5(`${this.session}${pwd}`)
+        return `appId=${localStorage.getItem('appId')}&phoneUUID=${localStorage.getItem('phoneUUID')} &OSType=${localStorage.getItem('OSType')}&sessionKey=${this.session}&userAccount=${this.user}&pwdSign=${pwdSign}`
       }
     },
     

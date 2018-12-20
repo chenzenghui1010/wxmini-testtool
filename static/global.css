@@ -35,6 +35,7 @@
   transform: rotate(0deg);
   background: url("./resetMap.png") transparent no-repeat;
   background-size: contain;
+  z-index: 999;
 }
 
 * {

@@ -240,38 +240,38 @@
             }, 3000)
           })
       },
-      onNaviToOuter() {
-        
-        let units = this.mapInfo.findUnitsWithType([5])
-        
-        console.log(units)
-        
-        if (!('5' in units)) {
-          
-          return
-        }
-        
-        let btns = units[5].map(unit => {
-          
-          return {
-            name: unit.name, callback: () => {
-              
-              Alertboxview.hide()
-              
-              this.onNaviToUnit(unit)
-            }
-          }
-        })
-        
-        btns.push({
-          name: '取消', callback: () => {
-            
-            Alertboxview.hide()
-          }
-        })
-        
-        Alertboxview.show('离场引导', null, btns)
-      },
+      // onNaviToOuter() {
+      //
+      //   let units = this.mapInfo.findUnitsWithType([5])
+      //
+      //   console.log(units)
+      //
+      //   if (!('5' in units)) {
+      //
+      //     return
+      //   }
+      //
+      //   let btns = units[5].map(unit => {
+      //
+      //     return {
+      //       name: unit.name, callback: () => {
+      //
+      //         Alertboxview.hide()
+      //
+      //         this.onNaviToUnit(unit)
+      //       }
+      //     }
+      //   })
+      //
+      //   btns.push({
+      //     name: '取消', callback: () => {
+      //
+      //       Alertboxview.hide()
+      //     }
+      //   })
+      //
+      //   Alertboxview.show('离场引导', btns)
+      // },
       onNavigateTo(unitType) {
         
         this.showFacilityPanel = false

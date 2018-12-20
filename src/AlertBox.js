@@ -13,7 +13,7 @@ function AlertBox() {
       data: function(){
         return {
           title:'',
-          message:'',
+          // message:'',
           buttons:[]
         }
       },
@@ -28,7 +28,7 @@ function AlertBox() {
     }
   }
   
-  function show(title, message, buttons) {
+  function show(title, buttons) {
     
     if (!_vm) {
     
@@ -36,7 +36,7 @@ function AlertBox() {
       
       _vm.title = title
       
-      _vm.message = message
+      // _vm.message = message
       
       _vm.buttons = buttons
       
@@ -45,7 +45,7 @@ function AlertBox() {
   
     _vm.title = title
   
-    _vm.message = message
+    // _vm.message = message
   
     _vm.buttons = buttons
   

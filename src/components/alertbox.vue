@@ -3,7 +3,7 @@
     <div class="bg"></div>
     <div class="content">
       <div v-show="title !== null" class="title">{{ title }}</div>
-      <div v-show="message !== null" class="message">{{ message }}</div>
+      <!--<div v-show="message !== null" class="message">{{ message }}</div>-->
       <div class="btns" v-bind:style="{flexDirection:buttons.length > 2 ? 'column':'', borderTop:buttons.length > 2 ? 'none':'1px solid #a7a49d'}">
         <div class="btn" v-for="(button, index) in buttons" v-bind:key="index" v-on:click="callback(button)" v-bind:style="{borderTop:buttons.length > 2 ? '1px solid #a7a49d':'', borderLeft:buttons.length <= 2 && index == 1  ? '1px solid #a7a49d':'none'}" v-html="button.name"></div>
       </div>
@@ -14,7 +14,8 @@
 <script>
   export default {
     name: 'alertbox',
-    props: ['message', 'title', 'buttons'],
+    // props: ['message', 'title', 'buttons'],
+    props: [ 'title', 'buttons'],
     methods:{
       callback(button) {
 
@@ -40,7 +41,7 @@
 
   .title {
 
-    padding-top: 1rem;
+    padding: 1.5rem 0;
     text-align: center;
     font-size: 1.7rem;
   }

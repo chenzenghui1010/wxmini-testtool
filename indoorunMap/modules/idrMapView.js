@@ -904,7 +904,7 @@ export class idrMapView {
    */
   release() {
   
-    cancelAnimationFrame(this._displayAnimId)
+    cancelAnimationFrame(this._displayAnimId
     
     clearInterval(this._naviStatusUpdateTimer)
     

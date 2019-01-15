@@ -4,9 +4,9 @@
     <show-marker @showMarker="isShowMarker" v-if="showMarker" :markerInfo="markerInfo"></show-marker>
     
     <div id="map" class="page"></div>
-    <!--<find-car-btn v-if="!mapState.markInMap && !navigation.start" @find-car="beginFindCar"></find-car-btn>-->
+    
     <zoom v-bind:map="map"></zoom>
-    <!--<public-facility-btn v-on:onclick='showFacilityPanel = true' v-if="!mapState.markInMap && !navigation.start"></public-facility-btn>-->
+    
     <locate-status-control :dolocate="dolocate" @onclick="doLocating"></locate-status-control>
     <find-car-with-plate-number v-if="mapState.searchCarWithPlate" v-on:navigatetocar="navigateToCar"
                                 v-bind:initcarno="carno" :region-id="mapId"></find-car-with-plate-number>
@@ -17,17 +17,12 @@
     
     <status></status>
     <device-parameter :deviceParamers='deviceParamers' @isShow="isShowParameter"></device-parameter>
-    <!--<parameter v-if="showParameter"></parameter>-->
+    <clear-marker @isClear="isClear"></clear-marker>
+    
     <parameter-details></parameter-details>
-    
-    <!--<navigation v-if='navigation.start' @toggleSpeak="toggleSpeak" v-on:stop="onStopNavigate" @birdlook="onBirdLook"-->
-    <!--@followme="onFollowMe"></navigation>    提示-->
-    
     
     <mark-in-map v-if="mapState.markInMap"></mark-in-map>
     
-    <!--<floor-list-control :floorlist="floorList" :currentName="currentFloorName" :selectfloorid="currentFloorId"-->
-    <!--:locatefloorid="locateFloorId" v-on:onselect="onSelect"></floor-list-control>-->
     <floor :floorlist="floorList" :currentName="currentFloorName" :selectfloorIndex="currentFloorIndex"
            :locatefloorIndex="locateFloorIndex" v-on:onselect="onSelect"></floor>
   
@@ -61,6 +56,7 @@
   import Zoom from "@/components/Zoom";
   import status from '../components/status'
   import deviceParameter from '../components/deviceParameter'
+  import clearMarker from '../components/ClearMarker'
   import parameter from '../components/parameter'
   import parameterDetails from '../components/parameterDetails'
   import {getstatus, getDetectionStatus, getBeaconMarksOfRegion} from "../api/locate";
@@ -90,6 +86,7 @@
       floor,
       showMarker,
       simulationPrompt,
+      clearMarker
     },
     data() {
       return {
@@ -126,6 +123,7 @@
         arrMac: {},
         isShowPrompt: false,
         promptValue: '',
+        clearMarker:0,
       }
     },
     computed: {
@@ -137,6 +135,16 @@
     watch: {
       currentFloorIndex() {
       
+      },
+      clearMarker(val){
+       
+       if(val === 1){
+         
+         localStorage.removeItem('localStorageMarker')
+         
+         this.initialiZationMac()
+         
+       }
       }
     },
     mounted() {
@@ -165,6 +173,11 @@
       
     },
     methods: {
+      isClear( val){
+       
+       this.clearMarker = val
+       
+      },
       initMap() {
         this.map = new idrMapView()
         
@@ -240,38 +253,7 @@
             }, 3000)
           })
       },
-      // onNaviToOuter() {
-      //
-      //   let units = this.mapInfo.findUnitsWithType([5])
-      //
-      //   console.log(units)
-      //
-      //   if (!('5' in units)) {
-      //
-      //     return
-      //   }
-      //
-      //   let btns = units[5].map(unit => {
-      //
-      //     return {
-      //       name: unit.name, callback: () => {
-      //
-      //         Alertboxview.hide()
-      //
-      //         this.onNaviToUnit(unit)
-      //       }
-      //     }
-      //   })
-      //
-      //   btns.push({
-      //     name: '取消', callback: () => {
-      //
-      //       Alertboxview.hide()
-      //     }
-      //   })
-      //
-      //   Alertboxview.show('离场引导', btns)
-      // },
+
       onNavigateTo(unitType) {
         
         this.showFacilityPanel = false
@@ -343,15 +325,17 @@
            
             this.foundMac(beacons)
             
+           
           })
+  
+        
           
           this.firstTime = false
         }
-        
-        
+  
         // console.log(this.obj);
         // const totalcount = this.obj[floorIndex].length
-        
+  
         // setInterval(() => {
         //
         //     const start = Math.floor(Math.random() * totalcount)
@@ -361,7 +345,8 @@
         //     this.foundMac(this.obj[floorIndex].slice(start, end))
         //   }
         //   , 2000);
-        
+  
+  
         this.currentFloorName = this.getCurrentName()
       },
       getCurrentName() {
@@ -702,7 +687,8 @@
       foundMac(beacons) {
    
         if (beacons.length > 0) {
-          
+  
+          this.clearMarker = 0
           // idrDebug.debugInfo(JSON.stringify(beacons[0]))
           
           for (let i = 0; i < beacons.length; ++i) {
@@ -812,7 +798,7 @@
           
           let num = (Number(enfTime) - Number(newStartDate))
           
-          if (num > 43200) {
+          if (num > 43200   ) {
             
             localStorage.removeItem('localStorageMarker')
             

@@ -332,21 +332,8 @@
           
           this.firstTime = false
         }
-  
-        // console.log(this.obj);
-        // const totalcount = this.obj[floorIndex].length
-  
-        // setInterval(() => {
-        //
-        //     const start = Math.floor(Math.random() * totalcount)
-        //
-        //     const end = Math.min(totalcount, start + Math.floor(Math.random() * 40))
-        //
-        //     this.foundMac(this.obj[floorIndex].slice(start, end))
-        //   }
-        //   , 2000);
-  
-  
+        
+        
         this.currentFloorName = this.getCurrentName()
       },
       getCurrentName() {

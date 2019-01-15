@@ -903,8 +903,6 @@ export class idrMapView {
    * 功能：释放地图对应的资源
    */
   release() {
-  
-    cancelAnimationFrame(this._displayAnimId
     
     clearInterval(this._naviStatusUpdateTimer)
     
